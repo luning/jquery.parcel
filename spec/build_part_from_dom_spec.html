@@ -1,0 +1,73 @@
+<html>
+
+<head>
+	<title>Javascript Tests</title>
+	<script src="../lib/jquery-1.3.2.js"></script>
+	<script src="screw.unit.dependencies.js"></script>
+	<script src="test_extensions.js"></script>
+	<script src="../src/coconut.js"></script>
+</head>
+
+<body>
+
+<div id="fixture">
+	<div id="person">
+		<input type="text" value="luning" name="name"></input>
+		<select name="age">
+			<option selected="selected">please select</option>
+			<option>20</option>
+			<option>21</option>
+			<option>22</option>
+		</select>
+		<div>
+			<input type="radio" value="Male" checked="checked" name="gender">Male</input>
+			<input type="radio" value="Female" name="gender">Female</input>
+		</div>
+	</div>
+</div>
+	
+<script type="text/javascript">
+Screw.Unit(function() {
+
+	var fixtureHtml = $("#fixture").html();
+
+	before(function() {
+		$("#fixture").html(fixtureHtml);
+	});
+
+	describe("Build Part", function() {
+		it("should capture text input in dom", function() {
+			var person = $("#person").part();
+			expect(person.getState()).to(contain_object, {name:"luning"});
+		});		
+		
+		it("should capture select in dom", function() {
+			var person = $("#person").part();
+			person.age.value("21");
+			expect(person.age.value()).to(equal, "21");
+		});		
+		
+		it("should capture radio in dom", function() {
+			var person = $("#person").part();
+			person.gender.value("Female");
+			expect(person.gender.value()).to(equal, "Female");
+		});	
+		
+		it("should ensure unique field name", function() {
+			$("select[name=age]").attr("name", "name");
+			
+			var error = false;
+			try{
+				var person = $("#person").part();
+				expect()
+			} catch (m){
+				error = true;
+			}
+			expect(error).to(be_true);
+		});
+	});
+
+});
+</script>
+</body>
+</html>

@@ -1,7 +1,57 @@
 ﻿/*!
  * Coconut JavaScript Library v0.0.1
- * http://luning.github.com/coconut/
+ * http://www.github.com/luning/coconut
  */
+ 
+;(function($) {
+	$.extend($.fn, {
+		part: function(){
+			return new $.part(this);
+		}
+	});
+	
+	// constructor for part
+	$.part = function(container) {
+		this.container = $(container);
+		this.fields = {};
+		this.init();
+	};
+	
+	$.extend($.part, {
+		prototype: {
+			init: function(){
+				var all = this.container.find(":input");
+				all.each(function(i, dom){
+					if($.inArray(dom, this.get()) >= 0){
+						return;
+					}
+					var fieldName = dom.name;
+					if(this.fields.hasOwnProperty(fieldName)){
+						throw "Coconut : field with name [" + fieldName + "] already exist in part.";
+					}
+					var domWrapper = $(dom);
+					this[fieldName] = this.fields[fieldName] = domWrapper.is(":radio") ? this.container.find(":radio[name=" + dom.name + "]") : domWrapper;
+				}.bind(this));
+			},
+			// return all dom elements in all fields
+			get: function(){
+				var all = [];
+				$.each(this.fields, function(n, field) {
+					all = all.concat(field.get());
+				});
+				return all;
+			},
+			getState: function(){
+				var state = {};
+				$.each(this.fields, function(fieldName, field){
+					state[fieldName] = field.value();
+				});
+				return state;
+			}
+		}
+	});
+
+})(jQuery);
 
 //
 // extension for state aware field type of jQuery, and more
@@ -118,7 +168,7 @@ StateAware.prototype = {
 	domElements: function() {
 		var result = [];
 		$.each(this.fields, function(i, field) {
-			result.concat(field.domElements());
+			result = result.concat(field.domElements());
 		});
 		return $.unique(result);
 	},
