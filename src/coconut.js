@@ -57,8 +57,6 @@
 // extension for state aware field type of jQuery, and more
 //
 $.fn.extend({
-	isJQuery: true,
-
 	value: function(v) {
 		if (v === undefined) {
 			if (this.length === 1) {
@@ -91,10 +89,6 @@ $.fn.extend({
 			return this;
 		}
 	},
-
-	domElements: function() {
-		return this.get();
-	}
 });
 
 //
@@ -165,10 +159,10 @@ StateAware.prototype = {
 		}
 	},
 
-	domElements: function() {
+	get: function() {
 		var result = [];
 		$.each(this.fields, function(i, field) {
-			result = result.concat(field.domElements());
+			result = result.concat(field.get());
 		});
 		return $.unique(result);
 	},
@@ -179,7 +173,7 @@ StateAware.prototype = {
 
 	showHideSection: function(sectionContainer, fieldsToReset, triggerField, showValue) {
 		sectionContainer = $(sectionContainer);
-		$(triggerField.domElements()).change(function() {
+		$(triggerField.get()).change(function() {
 			var shouldShowSection = triggerField.value() === (showValue || "Yes");
 			if (shouldShowSection && sectionContainer.is(":hidden")) {
 				sectionContainer.slideDown("fast");
@@ -197,7 +191,7 @@ StateAware.prototype = {
 		}
 
 		var fieldDef = { field: rawFieldDef };
-		if (typeof (rawFieldDef) === "string" || rawFieldDef.isJQuery) { // jQuery object or selector
+		if (typeof (rawFieldDef) === "string" || rawFieldDef.jquery) { // jQuery object or selector
 			fieldDef.type = "jquery";
 		} else if (rawFieldDef.value) { // fieldDef is not a jQuery nor dom
 			fieldDef.type = "custom";
@@ -288,7 +282,7 @@ StateAware.prototype = {
 			// test if it is a derived(calculated) field
 			var sourceField = this.fields[sourceFieldName] || this[sourceFieldName];
 			var eventSourceField = sourceField.derivedFrom || sourceField;
-			var eventSource = $(eventSourceField.domElements());
+			var eventSource = $(eventSourceField.get());
 			// TODO : introduce EmptyPart to remove the if check
 			var doUpdate = target ?
 					  function() { target.setFieldValue.call(target, targetFieldNameOrSelector, sourceField.value()); }
@@ -318,7 +312,7 @@ StateAware.prototype = {
 			this.container.trigger(constructorName + "." + fieldEvent);
 		} .bind(this);
 
-		var fieldWrapper = $(field.domElements());
+		var fieldWrapper = $(field.get());
 		fieldWrapper.bind(fieldEvent, masterEventHandler);
 		if (eventsTreatedAsFieldEvent) {
 			$.each(eventsTreatedAsFieldEvent, function(i, eventType) {
