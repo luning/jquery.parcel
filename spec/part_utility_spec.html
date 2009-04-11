@@ -1,0 +1,58 @@
+<html>
+
+<head>
+	<title>Part Utility Spec</title>
+	<script src="../lib/jquery-1.3.2.js"></script>
+	<script src="screw.unit.dependencies.js"></script>
+	<script src="test_extensions.js"></script>
+	<script src="../src/coconut.js"></script>
+</head>
+
+<body>
+	
+<script type="text/javascript">
+Screw.Unit(function() {
+
+	describe("Object Equality", function() {
+		it("requires objects have same property and value", function() {
+			expect($.objectEqual({ name: "luning" }, { name: "luning" })).to(be_true);
+		});				
+		
+		it("requires objects have same amount of properties", function() {
+			expect($.objectEqual({ name: "luning", age: "20" }, { name: "luning" })).to(be_false);
+			expect($.objectEqual({ name: "luning" }, { name: "luning", age: "20" })).to(be_false);
+		});			
+		
+		it("requires properties of 'object' type in any level are equal", function() {
+			expect($.objectEqual({ dob: {year: "1990"} }, { dob: {year: "1990"}	})).to(be_true);
+			expect($.objectEqual({ dob: {year: "1990"} }, { dob: {year: "2009"} })).to(be_false);	
+			expect($.objectEqual({ dob: {year: "1990"} }, { })).to(be_false);	
+			expect($.objectEqual({ person: { dob: { year: "1990"} } }, { person: { dob: { year: "1990" } } })).to(be_true);
+			expect($.objectEqual({ person: { dob: { year: "1990"} }	}, { person: { dob: { month: "Jan" } } })).to(be_false);
+		});		
+		
+		it("should ignore property if it's value is undefined or null", function() {
+			expect($.objectEqual({ dob: null }, {	})).to(be_true);
+			expect($.objectEqual({ }, { dob: undefined })).to(be_true);
+		});		
+
+		it("should ignore property if it's an object without property", function() {
+			expect($.objectEqual({ dob: {} }, {	})).to(be_true);
+			expect($.objectEqual({ }, { dob: {} })).to(be_true);
+		});		
+	});
+
+	describe("Object A contains B", function() {
+		it("requires B is a subset of A", function() {
+			expect($.objectContain({ name: "luning" }, { name: "luning"	})).to(be_true);
+			expect($.objectContain({ name: "luning" }, { name: "smith"	})).to(be_false);
+			expect($.objectContain({ name: "luning" }, { })).to(be_true);
+			expect($.objectContain({ dob: {day: "01", month: "Feb"} }, { dob: {day: "01"} })).to(be_true);
+			expect($.objectContain({ dob: {day: "01", month: "Feb"} }, { dob: {month: "Jan"} })).to(be_false);
+		});				
+	});
+
+});
+</script>
+</body>
+</html>

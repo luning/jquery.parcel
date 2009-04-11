@@ -35,7 +35,7 @@ Screw.Unit(function() {
 	    this.setupInitialState();
 
 	    this.copyOfField = this.createDerivedField(this.field, function() {
-		    return this.field.value(); // normally this would be some transform of the original value
+		    return this.field.state(); // normally this would be some transform of the original value
 	    });
     }
     $.extend(PartWithDerivedField.prototype, StateAware.prototype, {});

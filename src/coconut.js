@@ -24,7 +24,7 @@
 	$.extend($.part, {
 		prototype: {
 			init: function(){
-				var all = this.container.find(":input");
+				var all = this.container.find(":input, [part], [part=]");
 				all.each(function(i, e){
 					if(this.contains(e)){
 						return;
@@ -37,15 +37,25 @@
 					if(this.fields.hasOwnProperty(fieldName)){
 						throw "CoconutError: field with name [" + fieldName + "] already exist in part.";
 					}
-					this[fieldName] = this.fields[fieldName] = element.is(":radio") ? this.container.find(":radio[name=" + element.attr("name") + "]") : element;
+					this[fieldName] = this.fields[fieldName] = this._createField(element);
 				}.bind(this));
+			},
+			
+			_createField: function(element) {
+				if(element.attr("part") !== undefined) {
+					return element.part();
+				} else if (element.is(":radio")) {
+					return this.container.find(":radio[name=" + element.attr("name") + "]");
+				} else {
+					return element;
+				}
 			},
 			
 			addBehaviour: function(behaviour){
 				if(behaviour === undefined){
 					var behav = this.container.attr("part");
-					if(behav === undefined){
-						return;
+					if(!behav){
+						return this;
 					}
 					eval("behaviour = window." + behav + ";");
 				}
@@ -54,16 +64,21 @@
 				$.each(behaviour.prototype, function(name, value){
 					this[name] = value;
 				}.bind(this));
+				return this;
 			},
-			
+			// fieldDefs = { fieldName1: "selector1", fieldName2: "selector2" }
+			// TODO: this method is not useful, consider to remove it.
 			addFields: function(fieldDefs){
 				$.each(fieldDefs, function(fieldName, selector){
 					var element = $(selector, this.container);
 					if(element.length === 0){
-						throw "CoconutError: can not find [" + selector + "] in dom.";
+						throw "CoconutError: can not find [" + selector + "] in container.";
 					}
 					if(this.contains(element)){
 						throw "CoconutError: field for element [" + selector + "] is already defined.";
+					}
+					if(this.fields.hasOwnProperty(fieldName)){
+						throw "CoconutError: field with name [" + fieldName + "] already exist in part."
 					}
 					this[fieldName] = this.fields[fieldName] = element;
 				}.bind(this));				
@@ -95,15 +110,11 @@
 			},
 			
 			isDirty: function() {
-				var state = this.state();
-				for (var fieldName in this.initialState) {
-					if (state[fieldName] !== this.initialState[fieldName]) {
-						return true;
-					}
-				}
-				return false;
+				return !$.objectEqual(this.initialState, this.state());
 			},
 			
+			// optional parameter : fieldNames
+			// eg. resetState("field1", "field2", "field3")
 			resetState: function() {
 				if(arguments.length === 0){
 					this.state(this.initialState);
@@ -145,6 +156,39 @@
 		}
 	});
 
+	var compare = function(one, another, recursiveCallback){
+		for (var p in another) {
+			if(typeof(another[p]) === "object"){
+				if(!recursiveCallback(one[p], another[p])){
+					return false;
+				}
+			} else if (one[p] !== another[p]) {
+				return false;
+			}
+		}
+		return true;
+	};
+	
+	// equality of two objects
+	$.objectEqual = function(one, another) {
+		if(!one && another){
+			return $.isObjectEmpty(another)? true : false;
+		}
+		return compare(one, another, $.objectEqual) && compare(another, one, $.objectEqual);
+	};
+	
+	// contain/subset check of two object
+	$.objectContain = function(whole, subset) {
+		return compare(whole, subset, $.objectContain);
+	};
+	
+	$.isObjectEmpty = function(o){
+		for(var p in o){
+			return false;
+		}
+		return true;
+	}
+
 })(jQuery);
 
 //
@@ -152,34 +196,34 @@
 //
 (function($) {
 	$.fn.extend({
-		state: function(v) {
-			if (v === undefined) {
+		state: function(s) {
+			if (s === undefined) {
 				if (this.length === 1) {
 					return this.val();
 				} else if (this.is(":radio")) {
 					var checkedRadio = this.filter(":checked");
 					return (checkedRadio.length > 0) ? checkedRadio.val() : null;
 				}
-			} else if( v !== this.state() ){
+			} else if( s !== this.state() ){
 				if (this.is(":text, select")) {
 					this.focus()
-					  .val(v)
+					  .val(s)
 					  .change()
 					  .blur();
 				} else if (this.is(":radio")) {
-					if (v === null) {
+					if (s === null) {
 						this.removeAttr("checked").change();
 						var fieldDef = this.data("fieldDef");
 						if (fieldDef && fieldDef.onDeselectAll) {
 							fieldDef.onDeselectAll();
 						}
 					} else {
-						this.filter("[value=" + v + "]")
+						this.filter("[value=" + s + "]")
 						  .click()
 						  .change();
 					}
 				} else {
-					this.text(v);
+					this.text(s);
 				}
 				return this;
 			}
