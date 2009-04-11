@@ -35,7 +35,7 @@ Screw.Unit(function() {
 	    this.setupInitialState();
 
 	    this.copyOfField = this.createDerivedField(this.field, function() {
-		    return this.field.value(); // normally this would be some transform of the original value
+		    return this.field.state(); // normally this would be some transform of the original value
 	    });
     }
     $.extend(PartWithDerivedField.prototype, StateAware.prototype, {});
@@ -54,10 +54,10 @@ Screw.Unit(function() {
 
 			part.resets(targetPart, ["field"]);
 
-			targetPart.field.value("whatever");
-			part.field.value("whatever").change();
+			targetPart.field.state("whatever");
+			part.field.state("whatever").change();
 
-			expect(targetPart.field.value()).to(equal, "DEFAULT");
+			expect(targetPart.field.state()).to(equal, "DEFAULT");
 		});
 
 		it("should reset dropdown to 'please select' if dependent element changes", function() {
@@ -66,10 +66,10 @@ Screw.Unit(function() {
 
 			part.resets(targetPart, ["dropdown"]);
 
-			targetPart.dropdown.value("SOMEVAL");
-			part.field.value("new value").change();
+			targetPart.dropdown.state("SOMEVAL");
+			part.field.state("new value").change();
 
-			expect(targetPart.dropdown.value()).to(equal, "please select");
+			expect(targetPart.dropdown.state()).to(equal, "please select");
 		});
 
 		it("should reset radio button groups to default values", function() {
@@ -94,7 +94,7 @@ Screw.Unit(function() {
 
 			part.setState({ field: "GOOD" });
 
-			expect(targetPart.field.value()).to(equal, "GOOD");
+			expect(targetPart.field.state()).to(equal, "GOOD");
 			expect(targetPart.span.text()).to(equal, "GOOD");
 		});
 
@@ -107,7 +107,7 @@ Screw.Unit(function() {
 
 			part.setState({ field: "GOOD" });
 
-			expect(targetPart.field.value()).to(equal, "GOOD");
+			expect(targetPart.field.state()).to(equal, "GOOD");
 			expect(targetPart.span.text()).to(equal, "GOOD");
 		});
 
@@ -137,9 +137,9 @@ Screw.Unit(function() {
 
 			part.changes(targetPart, { field: "field" }, "blur");
 
-			part.field.value("VALUE").blur().change();
+			part.field.state("VALUE").blur().change();
 
-			expect(targetPart.field.value()).to(equal, "VALUE");
+			expect(targetPart.field.state()).to(equal, "VALUE");
 		});
 	});
 	

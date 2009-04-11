@@ -77,28 +77,25 @@
 				return all;
 			},
 			
-			getState: function(){
-				var state = {};
-				$.each(this.fields, function(fieldName, field){
-					state[fieldName] = field.value();
-				});
-				return state;
-			},
-			
-			setState: function(state) {
-				if(!state){
-					throw "CoconutError: invalid state to set.";
+			state: function(s){
+				if(s === undefined){
+					var state = {};
+					$.each(this.fields, function(fieldName, field){
+						state[fieldName] = field.state();
+					});
+					return state;
 				}
+
 				$.each(this.fields, function(fieldName, field){
-					if(state.hasOwnProperty(fieldName)){
-						field.value(state[fieldName]);
+					if(s.hasOwnProperty(fieldName)){
+						field.state(s[fieldName]);
 					}
 				});
 				return this;
 			},
 			
 			isDirty: function() {
-				var state = this.getState();
+				var state = this.state();
 				for (var fieldName in this.initialState) {
 					if (state[fieldName] !== this.initialState[fieldName]) {
 						return true;
@@ -109,7 +106,7 @@
 			
 			resetState: function() {
 				if(arguments.length === 0){
-					this.setState(this.initialState);
+					this.state(this.initialState);
 					return this;
 				}
 
@@ -121,16 +118,16 @@
 					newState[fieldName] = this.initialState[fieldName];
 				}.bind(this));
 				
-				return this.setState(newState); 
+				return this.state(newState); 
 			},
 			
 			captureInitialState: function() {
-				this.initialState = this.getState();
+				this.initialState = this.state();
 				return this;
 			}, 
 			
 			needUpdateWith: function(state) {
-				var thisState = this.getState();
+				var thisState = this.state();
 				for (var fieldName in thisState) {
 					if (state.hasOwnProperty(fieldName) && state[fieldName] !== thisState[fieldName]) {
 						return true;
@@ -155,7 +152,7 @@
 //
 (function($) {
 	$.fn.extend({
-		value: function(v) {
+		state: function(v) {
 			if (v === undefined) {
 				if (this.length === 1) {
 					return this.val();
@@ -163,7 +160,7 @@
 					var checkedRadio = this.filter(":checked");
 					return (checkedRadio.length > 0) ? checkedRadio.val() : null;
 				}
-			} else if( v !== this.value() ){
+			} else if( v !== this.state() ){
 				if (this.is(":text, select")) {
 					this.focus()
 					  .val(v)
@@ -273,7 +270,7 @@ StateAware.prototype = {
 	showHideSection: function(sectionContainer, fieldsToReset, triggerField, showValue) {
 		sectionContainer = $(sectionContainer);
 		$(triggerField.get()).change(function() {
-			var shouldShowSection = triggerField.value() === (showValue || "Yes");
+			var shouldShowSection = triggerField.state() === (showValue || "Yes");
 			if (shouldShowSection && sectionContainer.is(":hidden")) {
 				sectionContainer.slideDown("fast");
 			} else if (!shouldShowSection && sectionContainer.is(":visible")) {
@@ -332,7 +329,7 @@ StateAware.prototype = {
 	getState: function() {
 		var state = {};
 		for (var p in this.fields) {
-			state[p] = this.fields[p].value();
+			state[p] = this.fields[p].state();
 		}
 		return state;
 	},
@@ -343,7 +340,7 @@ StateAware.prototype = {
 		}
 		for(var p in this.fields){
 		    if(state.hasOwnProperty(p)){
-		        this.fields[p].value(state[p]);
+		        this.fields[p].state(state[p]);
 		    }
 		}
 	},
@@ -361,7 +358,7 @@ StateAware.prototype = {
 	createDerivedField: function(derivedFrom, func) {
 		return {
 			derivedFrom: derivedFrom,
-			value: func.bind(this)
+			state: func.bind(this)
 		};
 	},
 
@@ -384,8 +381,8 @@ StateAware.prototype = {
 			var eventSource = $(eventSourceField.get());
 			// TODO : introduce EmptyPart to remove the if check
 			var doUpdate = target ?
-					  function() { target.setFieldValue.call(target, targetFieldNameOrSelector, sourceField.value()); }
-					: function() { $(targetFieldNameOrSelector).value(sourceField.value()); };
+					  function() { target.setFieldValue.call(target, targetFieldNameOrSelector, sourceField.state()); }
+					: function() { $(targetFieldNameOrSelector).state(sourceField.state()); };
 
 			eventSource.bind(eventType || 'change', doUpdate);
 		} .bind(this));
@@ -442,8 +439,8 @@ StateAware.prototype = {
 
 	setFieldValue: function(fieldName, newValue) {
 		var field = this.fields[fieldName] || this[fieldName];
-		if (field.value() !== newValue) {
-			field.value(newValue);
+		if (field.state() !== newValue) {
+			field.state(newValue);
 		}
 	}
 };
