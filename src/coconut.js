@@ -5,33 +5,68 @@
  
 ;(function($) {
 	$.extend($.fn, {
-		part: function(){
-			return new $.part(this);
+		part: function(behaviour){
+			return new $.part(this, behaviour);
 		}
 	});
 	
 	// constructor for part
-	$.part = function(container) {
+	$.part = function(container, behaviour) {
 		this.container = $(container);
 		this.fields = {};
+		this.initialState = {};
+		
 		this.init();
+		this.addBehaviour(behaviour);
+		this.captureInitialState();
 	};
 	
 	$.extend($.part, {
 		prototype: {
 			init: function(){
 				var all = this.container.find(":input");
-				all.each(function(i, dom){
-					if($.inArray(dom, this.get()) >= 0){
+				all.each(function(i, e){
+					if(this.contains(e)){
 						return;
 					}
-					var fieldName = dom.name;
-					if(this.fields.hasOwnProperty(fieldName)){
-						throw "Coconut : field with name [" + fieldName + "] already exist in part.";
+					var element = $(e);
+					var fieldName = element.attr("fieldname") || element.attr("name") || element.attr("id");
+					if(!fieldName){
+						return; // ignore this dom element
 					}
-					var domWrapper = $(dom);
-					this[fieldName] = this.fields[fieldName] = domWrapper.is(":radio") ? this.container.find(":radio[name=" + dom.name + "]") : domWrapper;
+					if(this.fields.hasOwnProperty(fieldName)){
+						throw "CoconutError: field with name [" + fieldName + "] already exist in part.";
+					}
+					this[fieldName] = this.fields[fieldName] = element.is(":radio") ? this.container.find(":radio[name=" + element.attr("name") + "]") : element;
 				}.bind(this));
+			},
+			
+			addBehaviour: function(behaviour){
+				if(behaviour === undefined){
+					var behav = this.container.attr("part");
+					if(behav === undefined){
+						return;
+					}
+					eval("behaviour = window." + behav + ";");
+				}
+				behaviour.call(this);
+				// TODO : mixin behaviour this way lose the efficiency of prototype. treat behaviour as the first class constructor??
+				$.each(behaviour.prototype, function(name, value){
+					this[name] = value;
+				}.bind(this));
+			},
+			
+			addFields: function(fieldDefs){
+				$.each(fieldDefs, function(fieldName, selector){
+					var element = $(selector, this.container);
+					if(element.length === 0){
+						throw "CoconutError: can not find [" + selector + "] in dom.";
+					}
+					if(this.contains(element)){
+						throw "CoconutError: field for element [" + selector + "] is already defined.";
+					}
+					this[fieldName] = this.fields[fieldName] = element;
+				}.bind(this));				
 			},
 			// return all dom elements in all fields
 			get: function(){
@@ -41,12 +76,74 @@
 				});
 				return all;
 			},
+			
 			getState: function(){
 				var state = {};
 				$.each(this.fields, function(fieldName, field){
 					state[fieldName] = field.value();
 				});
 				return state;
+			},
+			
+			setState: function(state) {
+				if(!state){
+					throw "CoconutError: invalid state to set.";
+				}
+				$.each(this.fields, function(fieldName, field){
+					if(state.hasOwnProperty(fieldName)){
+						field.value(state[fieldName]);
+					}
+				});
+				return this;
+			},
+			
+			isDirty: function() {
+				var state = this.getState();
+				for (var fieldName in this.initialState) {
+					if (state[fieldName] !== this.initialState[fieldName]) {
+						return true;
+					}
+				}
+				return false;
+			},
+			
+			resetState: function() {
+				if(arguments.length === 0){
+					this.setState(this.initialState);
+					return this;
+				}
+
+				var newState = {};
+				$.each(arguments, function(i, fieldName){
+					if(!this.initialState.hasOwnProperty(fieldName)){
+						throw "CoconutError: reset state with invalid field name.";
+					}
+					newState[fieldName] = this.initialState[fieldName];
+				}.bind(this));
+				
+				return this.setState(newState); 
+			},
+			
+			captureInitialState: function() {
+				this.initialState = this.getState();
+				return this;
+			}, 
+			
+			needUpdateWith: function(state) {
+				var thisState = this.getState();
+				for (var fieldName in thisState) {
+					if (state.hasOwnProperty(fieldName) && state[fieldName] !== thisState[fieldName]) {
+						return true;
+					}
+				}
+				return false;
+			}, 
+			// does this part contains any dom in element
+			contains: function(element){
+				var all = this.get();
+				return $.grep($(element).get(), function(e){ 
+					return $.inArray(e, all) !== -1;
+				}).length > 0;
 			}
 		}
 	});
@@ -54,42 +151,44 @@
 })(jQuery);
 
 //
-// extension for state aware field type of jQuery, and more
+// extension for part field type of jQuery, and more
 //
-$.fn.extend({
-	value: function(v) {
-		if (v === undefined) {
-			if (this.length === 1) {
-				return this.val();
-			} else if (this.is(":radio")) {
-				var checkedRadio = this.filter(":checked");
-				return (checkedRadio.length > 0) ? checkedRadio.val() : null;
-			}
-		} else if( v !== this.value() ){
-			if (this.is(":text, select")) {
-				this.focus()
-				  .val(v)
-				  .change()
-				  .blur();
-			} else if (this.is(":radio")) {
-				if (v === null) {
-					this.removeAttr("checked").change();
-					var fieldDef = this.data("fieldDef");
-					if (fieldDef && fieldDef.onDeselectAll) {
-						fieldDef.onDeselectAll();
+(function($) {
+	$.fn.extend({
+		value: function(v) {
+			if (v === undefined) {
+				if (this.length === 1) {
+					return this.val();
+				} else if (this.is(":radio")) {
+					var checkedRadio = this.filter(":checked");
+					return (checkedRadio.length > 0) ? checkedRadio.val() : null;
+				}
+			} else if( v !== this.value() ){
+				if (this.is(":text, select")) {
+					this.focus()
+					  .val(v)
+					  .change()
+					  .blur();
+				} else if (this.is(":radio")) {
+					if (v === null) {
+						this.removeAttr("checked").change();
+						var fieldDef = this.data("fieldDef");
+						if (fieldDef && fieldDef.onDeselectAll) {
+							fieldDef.onDeselectAll();
+						}
+					} else {
+						this.filter("[value=" + v + "]")
+						  .click()
+						  .change();
 					}
 				} else {
-					this.filter("[value=" + v + "]")
-					  .click()
-					  .change();
+					this.text(v);
 				}
-			} else {
-				this.text(v);
+				return this;
 			}
-			return this;
 		}
-	},
-});
+	});
+})(jQuery);
 
 //
 // extension for custom field

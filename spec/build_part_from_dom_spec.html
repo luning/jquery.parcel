@@ -23,6 +23,8 @@
 			<input type="radio" value="Male" checked="checked" name="gender">Male</input>
 			<input type="radio" value="Female" name="gender">Female</input>
 		</div>
+		<input id="city" type="text" someproperty="city"></input>
+		<input id="id_street" type="text" fieldname="street"></input>
 	</div>
 </div>
 	
@@ -38,7 +40,7 @@ Screw.Unit(function() {
 	describe("Build Part", function() {
 		it("should capture text input in dom", function() {
 			var person = $("#person").part();
-			expect(person.getState()).to(contain_object, {name:"luning"});
+			expect(person.name.value()).to(equal, "luning");
 		});		
 		
 		it("should capture select in dom", function() {
@@ -56,15 +58,199 @@ Screw.Unit(function() {
 		it("should ensure unique field name", function() {
 			$("select[name=age]").attr("name", "name");
 			
-			var error = false;
 			try{
 				var person = $("#person").part();
-				expect()
-			} catch (m){
-				error = true;
+				expect(true).to(be_false);
+			} catch (ex){
+				expect(ex.toString()).to(match, "CoconutError");
 			}
-			expect(error).to(be_true);
 		});
+		
+		it("should use id as field name if name property is not provided", function() {
+			var person = $("#person").part();
+			person.city.value("sydney");
+			expect(person.city.value()).to(equal, "sydney");
+		});		
+		
+		it("should use field name as defined in fieldname property if present", function() {
+			var person = $("#person").part();
+			expect(person.hasOwnProperty("id_street")).to(be_false);
+			
+			person.street.value("pitt");
+			expect(person.street.value()).to(equal, "pitt");
+		});		
+		
+		it("should ignore element if field name can not be determined", function() {
+			var cityDom = $("#city").removeAttr("id").get(0);
+
+			var person = $("#person").part();
+			expect($.inArray(cityDom, person.get())).to(equal, -1);
+		});
+	});
+
+	describe("Build Part with constructing Behaviour", function() {
+
+		it("should add extra field", function() {
+			$("#city").removeAttr("id"); // #city will be ignored
+
+			var person = $("#person").part(function Person(){
+				this.addFields({
+					city: "input[someproperty=city]"
+				});
+			});
+			
+			person.city.value("sydney");
+			expect(person.city.value()).to(equal, "sydney");
+		});			
+		
+		it("should not add duplicated field", function() {
+			try{
+				var person = $("#person").part(function Person(){
+					this.addFields({
+						city: "#city"
+					});
+				});
+				expect(true).to(be_false);
+			} catch(ex) {
+				expect(ex.toString()).to(match, "CoconutError");
+			}
+		});			
+		
+		it("should not add field without matched dom", function() {
+			try{
+				var person = $("#person").part(function Person(){
+					this.addFields({
+						notexist: "#notexist"
+					});
+				});
+				expect(true).to(be_false);
+			} catch(ex) {
+				expect(ex.toString()).to(match, "CoconutError");
+			}
+		});		
+		
+		it("should mixin method defined in behaviour", function() {
+			function Person(){};
+			Person.prototype = {
+				getNameAndGender: function(){
+					return this.name.value() + "," + this.gender.value();
+				}
+			};
+			
+			var person = $("#person").part(Person);
+			person.setState({name:"smith", gender:"Female"});
+			
+			expect(person.getNameAndGender()).to(equal, "smith,Female");
+		});		
+		
+		it("should capture initial state after behaviour is applied", function() {
+			function Person(){
+				this.name.value("smith");
+			};
+			
+			var person = $("#person").part(Person);
+			person.resetState();
+			
+			expect(person.name.value()).to(equal, "smith");
+		});		
+		
+		it("should pick behaviour specified in dom", function() {
+			$("#person").attr("part", "Person");
+			
+			window.Person = function(){
+				this.getSomething = "something";
+			};
+			
+			var person = $("#person").part();
+			
+			expect(person.getSomething).to(equal, "something");
+		});		
+
+	});
+	
+	describe("State Operations", function() {
+		it("should get/set state of a part", function() {
+			var person = $("#person").part();
+			var state = { name: "josh", age: "22", gender: "Male", city: "sydney", street: "george" };
+			person.setState(state);
+			expect(person.getState()).to(contain_object, state);
+		});		
+
+		it("should not set state without parameter", function() {
+			var person = $("#person").part();
+			try{
+				person.setState();
+				expect(true).to(be_false);
+			} catch (ex){
+				expect(ex.toString()).to(match, "CoconutError");
+			}
+		});
+		
+		it("should be dirty if any field is changed after creation", function() {
+			var person = $("#person").part();
+			expect(person.isDirty()).to(be_false);
+			
+			person.name.value(person.name.value()); // setting without change
+			expect(person.isDirty()).to(be_false);
+			
+			person.name.value("smith");
+			expect(person.isDirty()).to(be_true);
+		});			
+		
+		it("should reset initial state", function() {
+			var person = $("#person").part();
+			var initialState = person.getState();
+			
+			person.setState({ name: "josh", age: "22", gender: "Male", city: "sydney", street: "george" });
+			
+			person.resetState();
+			expect(person.getState()).to(contain_object, initialState);
+		});	
+		
+		it("should reset initial state with specific fields", function() {
+			var person = $("#person").part();
+			var initialState = person.getState();
+			var tempState = { name: "josh", age: "22", gender: "Male", city: "sydney", street: "george" };
+			person.setState(tempState);
+			
+			person.resetState("name", "age");
+			var finalState = person.getState();
+			
+			expect(finalState.name).to(equal, initialState.name);
+			expect(finalState.age).to(equal, initialState.age);
+			
+			expect(finalState.gender).to(equal, tempState.gender);
+			expect(finalState.city).to(equal, tempState.city);
+			expect(finalState.street).to(equal, tempState.street);
+		});	
+		
+		it("should not reset state with non-exist field", function() {
+			var person = $("#person").part();
+			
+			try{
+				person.resetState("notexist");
+				expect(true).to(be_false);
+			} catch(ex){
+				expect(ex.toString()).to(match, "CoconutError");
+			}
+		});	
+				
+		it("should know need or not to update this part with another state", function() {
+			var person = $("#person").part();
+			
+			expect(person.needUpdateWith({name: "smith"})).to(be_true);
+			expect(person.needUpdateWith({name: "luning"})).to(be_false);
+		});	
+		
+		it("should be able to capture initial state even after construction", function() {
+			var person = $("#person").part()
+							.setState({name: "smith"})
+							.captureInitialState()
+							.resetState();
+			
+			expect(person.name.value()).to(equal, "smith");
+		});
+
 	});
 
 });
