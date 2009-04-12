@@ -59,7 +59,7 @@
 					if(this.index(fieldName) !== -1){
 						throw "CoconutError: field with name [" + fieldName + "] already exist in part.";
 					}
-					this.addField(fieldName, this._createField(element), reorder);
+					this._addField(fieldName, this._createField(element), reorder);
 				}.bind(this));
 			},
 			
@@ -77,7 +77,7 @@
 				}
 			},
 			// reorder is only for efficency, will add to end by default if not specified. can always be true.
-			addField: function(fieldName, field, reorder){
+			_addField: function(fieldName, field, reorder){
 				this[fieldName] = field;
 
 				if(!reorder){
@@ -135,8 +135,25 @@
 					if(this.index(fieldName) !== -1){
 						throw "CoconutError: field with name [" + fieldName + "] already exist in part."
 					}
-					this.addField(fieldName, element);
+					this._addField(fieldName, element);
 				}.bind(this));				
+			},
+			
+			fieldOrder: function(){
+				for(var i = 0; i < arguments.length - 1; i++){
+					var cur = this.index(arguments[i]);
+					var next = this.index(arguments[i + 1]);
+					if(cur === -1 || next === -1){
+						throw "CoconutError: field with specified name does not exist.";
+					}
+					if(cur < next){
+						continue;
+					}
+					var nextField = this.fields[next];
+					this.fields.splice(next, 1);
+					this.fields.splice(this.index(arguments[i]) + 1, 0, nextField);
+				}
+				return this;
 			},
 			// return all dom elements in all fields
 			// index is optional and can only be 0 if provided.

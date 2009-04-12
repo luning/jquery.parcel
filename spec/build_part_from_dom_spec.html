@@ -333,6 +333,25 @@ Screw.Unit(function() {
 
 	describe("Field Operations", function() {
 
+		it("should set up field order", function() {
+			var person = $("#person").part(function Person(){
+				this.fieldOrder("gender", "title", "name");
+			});
+			expect(person.index("gender")).to(equal, person.index("title") - 1);
+			expect(person.index("title")).to(equal, person.index("name") - 1);
+		});			
+
+		it("should not set up field order with invalid names", function() {
+			try{
+				var person = $("#person").part(function Person(){
+					this.fieldOrder("gender", "invalidname");
+				});
+				expect(true).to(be_false);
+			} catch(ex) {
+				expect(ex.toString()).to(match, "CoconutError");
+			}
+		});			
+		
 		it("should add field ignored during construction", function() {
 			$("#city").removeAttr("id"); // #city will be ignored
 
