@@ -295,19 +295,35 @@ Screw.Unit(function() {
 	
 	describe("Part Dom Sync", function() {
 		describe("adding dom elements dynamicly", function() {
-			it("should add field if applicable, and in correct order", function() {
+			it("should add field if applicable", function() {
+				var person = $("#person").part();
+				var edu = $("<input type='text' name='education'></input>");
+				person.title.after(edu);
+				edu.sync();
+				
+				person.education.state("college");
+				expect(person.education.state()).to(equal, "college");
+			});
+			
+			it("should add field with proper field order", function() {
 				var person = $("#person").part();
 				var input = $("<input type='text' name='education'></input>");
 				person.title.after(input);
 				input.sync();
 				
-				person.education.state("college");
-				expect(person.education.state()).to(equal, "college");
-				// TODO : expect(person.index("education").to(equal, person.index("title") + 1);
+				expect(person.index("education")).to(equal, person.index("title") + 1);
 			});
 			
 			it("should add part type field if applicable, and in correct order", function() {
-				// TODO expect(true).to(be_false);
+				var person = $("#person").part();
+				var edu = $("<div part name='education'><input type='text' name='college'></input></div>");
+				person.title.after(edu);
+				edu.sync();
+				
+				person.education.state({college: "UTS"});
+				
+				expect($.objectEqual(person.education.state(), {college: "UTS"})).to(be_true);
+				expect(person.index("education")).to(equal, person.index("title") + 1);
 			});
 		});
 

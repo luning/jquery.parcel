@@ -10,18 +10,23 @@
 		},
 		sync: function(){
 			this.trigger("sync");
+			return this;
+		},
+		linkedPart: function(){
+			return this.data("linkedPart");
 		}
 	});
 	
 	// constructor for part
 	$.part = function(container, behaviour) {
 		this.container = $(container);
-		this.fields = {};
+		this.fields = [];
 		this.initialState = {};
 		
 		this.init();
 		this.addBehaviour(behaviour);
 		this.captureInitialState();
+		this.container.data("linkedPart", this);
 	};
 	
 	$.extend($.part, {
@@ -37,7 +42,7 @@
 				this.buildFields(this.container);
 			},
 			
-			buildFields: function(context){
+			buildFields: function(context, reorder){
 				var all = context.filter(this.FIELD_SELECTOR)
 							.add(context.find(this.FIELD_SELECTOR))
 							.not(this.container);
@@ -51,15 +56,15 @@
 					if(!fieldName){
 						return; // ignore this dom element
 					}
-					if(this.fields.hasOwnProperty(fieldName)){
+					if(this.index(fieldName) !== -1){
 						throw "CoconutError: field with name [" + fieldName + "] already exist in part.";
 					}
-					this[fieldName] = this.fields[fieldName] = this._createField(element);
+					this.addField(fieldName, this._createField(element), reorder);
 				}.bind(this));
 			},
 			
 			sync: function(element){
-				this.buildFields($(element));
+				this.buildFields($(element), true);
 			},
 
 			_createField: function(element) {
@@ -70,6 +75,35 @@
 				} else {
 					return element;
 				}
+			},
+			// reorder is only for efficency, will add to end by default if not specified. can always be true.
+			addField: function(fieldName, field, reorder){
+				this[fieldName] = field;
+
+				if(!reorder){
+					this.fields.push({ name: fieldName, it: field });
+				} else {
+					var all = this.container.find(this.FIELD_SELECTOR);
+					var posOfField = all.index(field.get(0));
+					var insertIndex = 0;
+					for(insertIndex = 0; insertIndex < this.fields.length; insertIndex++){
+						var pos = all.index(this.fields[insertIndex].it.get(0));
+						if(pos > posOfField){
+							break;
+						}
+					}
+					
+					this.fields.splice(insertIndex, 0, { name: fieldName, it: field });
+				}
+			},
+
+			index: function(fieldName) {
+				for(var i = 0; i < this.fields.length; i++){
+					if(this.fields[i].name === fieldName){
+						return i;
+					}
+				}
+				return -1;
 			},
 			
 			addBehaviour: function(behaviour){
@@ -98,33 +132,42 @@
 					if(this.contains(element)){
 						throw "CoconutError: field for element [" + selector + "] is already defined.";
 					}
-					if(this.fields.hasOwnProperty(fieldName)){
+					if(this.index(fieldName) !== -1){
 						throw "CoconutError: field with name [" + fieldName + "] already exist in part."
 					}
-					this[fieldName] = this.fields[fieldName] = element;
+					this.addField(fieldName, element);
 				}.bind(this));				
 			},
 			// return all dom elements in all fields
-			get: function(){
-				var all = [];
-				$.each(this.fields, function(n, field) {
-					all = all.concat(field.get());
-				});
-				return all;
+			// index is optional and can only be 0 if provided.
+			get: function(index){
+				if(index === undefined){
+					var all = [];
+					$.each(this.fields, function(i, field) {
+						all = all.concat(field.it.get());
+					});
+					return all;
+				}
+				if(index !== 0){
+					throw "CoconutError: index can only be 0 under current implementation.";
+				}
+				if(this.fields.length > 0){
+					return this.fields[0].it.get(0);
+				}
 			},
 			
 			state: function(s){
 				if(s === undefined){
 					var state = {};
-					$.each(this.fields, function(fieldName, field){
-						state[fieldName] = field.state();
+					$.each(this.fields, function(i, field){
+						state[field.name] = field.it.state();
 					});
 					return state;
 				}
 
-				$.each(this.fields, function(fieldName, field){
-					if(s.hasOwnProperty(fieldName)){
-						field.state(s[fieldName]);
+				$.each(this.fields, function(i, field){
+					if(s.hasOwnProperty(field.name)){
+						field.it.state(s[field.name]);
 					}
 				});
 				return this;
