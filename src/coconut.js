@@ -1,12 +1,15 @@
-﻿/*!
+﻿/*
  * Coconut JavaScript Library v0.0.1
  * http://www.github.com/luning/coconut
  */
  
 ;(function($) {
-	$.extend($.fn, {
+	$.fn.extend({
 		part: function(behaviour){
 			return new $.part(this, behaviour);
+		},
+		sync: function(){
+			this.trigger("sync");
 		}
 	});
 	
@@ -23,8 +26,22 @@
 	
 	$.extend($.part, {
 		prototype: {
+			FIELD_SELECTOR: ":input, [part], [part=]",
+			
 			init: function(){
-				var all = this.container.find(":input, [part], [part=]");
+				this.container.bind("sync", function(event){
+					event.stopPropagation();
+					this.sync(event.target);
+				}.bind(this));
+				
+				this.buildFields(this.container);
+			},
+			
+			buildFields: function(context){
+				var all = context.filter(this.FIELD_SELECTOR)
+							.add(context.find(this.FIELD_SELECTOR))
+							.not(this.container);
+							
 				all.each(function(i, e){
 					if(this.contains(e)){
 						return;
@@ -41,6 +58,10 @@
 				}.bind(this));
 			},
 			
+			sync: function(element){
+				this.buildFields($(element));
+			},
+
 			_createField: function(element) {
 				if(element.attr("part") !== undefined) {
 					return element.part();
@@ -169,7 +190,7 @@
 		return true;
 	};
 	
-	// equality of two objects
+	// equality of two objects, do recursive check
 	$.objectEqual = function(one, another) {
 		if(!one && another){
 			return $.isObjectEmpty(another)? true : false;

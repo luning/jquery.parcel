@@ -100,6 +100,10 @@ Screw.Unit(function() {
 
 			var person = $("#person").part();
 			expect($.inArray(cityDom, person.get())).to(equal, -1);
+		});		
+		
+		it("should build field array for fields with same name", function() {
+			// TODO : expect(true).to(be_false);
 		});
 	});
 
@@ -115,14 +119,6 @@ Screw.Unit(function() {
 			expect(person.year).to(be_undefined);
 		});
 		
-		it("should get/set state of object hierarchy", function() {
-			var person = $("#person").part();
-			var dobState = {day: "01", month: "Feb", year: "1991"};
-
-			person.state({ dob: dobState });
-			expect($.objectContain(person.state(), {dob: dobState})).to(be_true);
-		});
-
 		it("should pick constructor behaviour specified in dom", function() {
 			window.Dob = function(){
 				this.description = function(){
@@ -136,6 +132,10 @@ Screw.Unit(function() {
 			person.dob.state({day: "01", month: "Feb", year: "1991"});
 			
 			expect(person.dob.description()).to(equal, "01 Feb 1991");
+		});
+
+		it("should build field array for part type fields with same name", function() {
+			// TODO : expect(true).to(be_false);
 		});
 	});
 
@@ -275,8 +275,46 @@ Screw.Unit(function() {
 			expect(person.name.state()).to(equal, "smith");
 		});
 
+		describe("State of Composite Part", function() {
+
+			it("should get/set state of object hierarchy", function() {
+				var person = $("#person").part();
+				var dobState = {day: "01", month: "Feb", year: "1991"};
+
+				person.state({ dob: dobState });
+				expect($.objectContain(person.state(), {dob: dobState})).to(be_true);
+			});
+
+			it("should get/set state of flaten object", function() {
+			    // TODO : expect(true).to(be_false);
+			});
+
+		});
+
 	});
 	
+	describe("Part Dom Sync", function() {
+		describe("adding dom elements dynamicly", function() {
+			it("should add field if applicable, and in correct order", function() {
+				var person = $("#person").part();
+				var input = $("<input type='text' name='education'></input>");
+				person.title.after(input);
+				input.sync();
+				
+				person.education.state("college");
+				expect(person.education.state()).to(equal, "college");
+				// TODO : expect(person.index("education").to(equal, person.index("title") + 1);
+			});
+			
+			it("should add part type field if applicable, and in correct order", function() {
+				// TODO expect(true).to(be_false);
+			});
+		});
+
+		describe("removing dom elements dynamicly", function() {
+		});
+	});
+
 	describe("Field Operations", function() {
 
 		it("should add field ignored during construction", function() {
