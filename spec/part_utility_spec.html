@@ -14,16 +14,20 @@
 Screw.Unit(function() {
 
 	describe("Object Equality", function() {
-		it("requires objects have same property and value", function() {
+		it("should have same property and value", function() {
 			expect($.objectEqual({ name: "luning" }, { name: "luning" })).to(be_true);
 		});				
 		
-		it("requires objects have same amount of properties", function() {
+		it("should have same amount of properties", function() {
 			expect($.objectEqual({ name: "luning", age: "20" }, { name: "luning" })).to(be_false);
 			expect($.objectEqual({ name: "luning" }, { name: "luning", age: "20" })).to(be_false);
 		});			
 		
-		it("requires properties of 'object' type in any level are equal", function() {
+		it("should be equal if only have different property order", function() {
+			expect($.objectEqual({ name: "luning", age: "20" }, { age: "20", name: "luning" })).to(be_true);
+		});			
+		
+		it("should compare objects recursively", function() {
 			expect($.objectEqual({ dob: {year: "1990"} }, { dob: {year: "1990"}	})).to(be_true);
 			expect($.objectEqual({ dob: {year: "1990"} }, { dob: {year: "2009"} })).to(be_false);	
 			expect($.objectEqual({ dob: {year: "1990"} }, { })).to(be_false);	
@@ -36,10 +40,33 @@ Screw.Unit(function() {
 			expect($.objectEqual({ }, { dob: undefined })).to(be_true);
 		});		
 
-		it("should ignore property if it's an object without property", function() {
+		it("should ignore property if it's an empty object", function() {
 			expect($.objectEqual({ dob: {} }, {	})).to(be_true);
 			expect($.objectEqual({ }, { dob: {} })).to(be_true);
-		});		
+		});	
+		
+		it("array property should contain same value and in same order", function() {
+			expect($.objectEqual({ numbers: [1, 2] }, {	numbers: [1, 2]})).to(be_true);
+			expect($.objectEqual({ numbers: [1, 2] }, {	numbers: [2, 1]})).to(be_false);
+			expect($.objectEqual({ numbers: [1, 2] }, {	numbers: [1]})).to(be_false);
+		});	
+		
+		it("should compare directly against two arrays", function() {
+			expect($.objectEqual([1, 2], [1, 2])).to(be_true);
+			expect($.objectEqual([1, 2], [2, 1])).to(be_false);
+			expect($.objectEqual([1, 2], [1])).to(be_false);
+		});	
+		
+		it("should compare arrays recursively", function() {
+			expect($.objectEqual([1, [1, 2]], [1, [1, 2]])).to(be_true);
+			expect($.objectEqual([1, [1, 2]], [1, [2, 1]])).to(be_false);
+			expect($.objectEqual([1, [2]], [[2], 1])).to(be_false);
+		});	
+		
+		it("should compare arrays mixed with objects recursively", function() {
+			expect($.objectEqual([1, {name:"lu"}], [1, {name:"lu"}])).to(be_true);
+			expect($.objectEqual([1, {name:"lu"}], [1, {name:"smith"}])).to(be_false);
+		});	
 	});
 
 	describe("Object A contains B", function() {

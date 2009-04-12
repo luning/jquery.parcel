@@ -42,7 +42,7 @@
 				this.buildFields(this.container);
 			},
 			
-			buildFields: function(context, reorder){
+			buildFields: function(context, inferOrder){
 				var all = context.filter(this.FIELD_SELECTOR)
 							.add(context.find(this.FIELD_SELECTOR))
 							.not(this.container);
@@ -56,10 +56,7 @@
 					if(!fieldName){
 						return; // ignore this dom element
 					}
-					if(this.index(fieldName) !== -1){
-						throw "CoconutError: field with name [" + fieldName + "] already exist in part.";
-					}
-					this._addField(fieldName, this._createField(element), reorder);
+					this._addField(fieldName, element, inferOrder);
 				}.bind(this));
 			},
 			
@@ -67,7 +64,7 @@
 				this.buildFields($(element), true);
 			},
 
-			_createField: function(element) {
+			_constructField: function(element) {
 				if(element.attr("part") !== undefined) {
 					return element.part();
 				} else if (element.is(":radio")) {
@@ -76,27 +73,73 @@
 					return element;
 				}
 			},
-			// reorder is only for efficency, will add to end by default if not specified. can always be true.
-			_addField: function(fieldName, field, reorder){
-				this[fieldName] = field;
-
-				if(!reorder){
-					this.fields.push({ name: fieldName, it: field });
-				} else {
-					var all = this.container.find(this.FIELD_SELECTOR);
-					var posOfField = all.index(field.get(0));
-					var insertIndex = 0;
-					for(insertIndex = 0; insertIndex < this.fields.length; insertIndex++){
-						var pos = all.index(this.fields[insertIndex].it.get(0));
-						if(pos > posOfField){
-							break;
+			// inferOrder is only for efficency, will add to end by default if not specified. can always be true.
+			_addField: function(fieldName, element, inferOrder){
+				var field = this._constructField(element);
+				var fieldtype = element.attr("fieldtype");
+				var needAdding = true;
+				var theFieldName = fieldName;
+				var theField = field;
+				var arrayFieldName = fieldName + "s";
+				if(fieldtype === "array"){
+					if(this.has(arrayFieldName, false)){
+						throw "CoconutError: nonarray field [" + arrayFieldName + "] already exists, failed to create array field.";
+					} else if (this.has(arrayFieldName, true)) {
+						this.fields[this.index(arrayFieldName)].it.push(field);
+						needAdding = false;
+					} else {
+						theFieldName = arrayFieldName;
+						theField = new $.arrayField();
+						theField.push(field);
+						if(!(theFieldName in this)){
+							this[theFieldName] = theField;
 						}
 					}
-					
-					this.fields.splice(insertIndex, 0, { name: fieldName, it: field });
+				} else {
+					if(this.has(arrayFieldName, true)){
+						this.fields[this.index(arrayFieldName)].it.push(field);
+						needAdding = false;
+					} else if (this.has(fieldName)){
+						throw "CoconutError: field with name [" + fieldName + "] already exists.";
+					} else {
+						if(!(theFieldName in this)){
+							this[theFieldName] = theField;
+						}
+					}
+				}
+
+				if(needAdding){
+					var fieldObj = { name: theFieldName, it: theField };
+					if(!inferOrder){
+						this.fields.push(fieldObj);
+					} else {
+						var all = this.container.find(this.FIELD_SELECTOR);
+						var posOfField = all.index(field.get(0));
+						var insertIndex = 0;
+						for(insertIndex = 0; insertIndex < this.fields.length; insertIndex++){
+							var pos = all.index(this.fields[insertIndex].it.get(0));
+							if(pos > posOfField){
+								break;
+							}
+						}
+						
+						this.fields.splice(insertIndex, 0, fieldObj);
+					}
 				}
 			},
-
+			
+			has: function(fieldName, arrayOrNot){
+				var index = this.index(fieldName);
+				if(index === -1){
+					return false;
+				} else if (arrayOrNot === undefined) {
+					return true;
+				} else {
+					var isArray = this.fields[index] instanceof Array;
+					return arrayOrNot ? isArray : !isArray ;
+				}
+			},
+			
 			index: function(fieldName) {
 				for(var i = 0; i < this.fields.length; i++){
 					if(this.fields[i].name === fieldName){
@@ -121,7 +164,7 @@
 				}.bind(this));
 				return this;
 			},
-			// fieldDefs = { fieldName1: "selector1", fieldName2: "selector2" }
+			// fieldDefs = { fieldName1: "selector1", fieldName2: "selector2" }, fields are ordered.
 			// TODO: this method is not useful, consider to remove it.
 			addFields: function(fieldDefs){
 				$.each(fieldDefs, function(fieldName, selector){
@@ -132,14 +175,15 @@
 					if(this.contains(element)){
 						throw "CoconutError: field for element [" + selector + "] is already defined.";
 					}
-					if(this.index(fieldName) !== -1){
+					if(this.has(fieldName)){
 						throw "CoconutError: field with name [" + fieldName + "] already exist in part."
 					}
 					this._addField(fieldName, element);
 				}.bind(this));				
 			},
 			
-			fieldOrder: function(){
+			// orderFields("field1", "field2", ... ,"fieldN"), pass in only the fields need order ensurance.
+			orderFields: function(){
 				for(var i = 0; i < arguments.length - 1; i++){
 					var cur = this.index(arguments[i]);
 					var next = this.index(arguments[i + 1]);
@@ -237,45 +281,49 @@
 		}
 	});
 
-	var compare = function(one, another, recursiveCallback){
-		for (var p in another) {
-			if(typeof(another[p]) === "object"){
-				if(!recursiveCallback(one[p], another[p])){
-					return false;
-				}
-			} else if (one[p] !== another[p]) {
-				return false;
+	// part field of array type, which may contain an array of other fields.
+	$.arrayField = function(){
+		Array.apply(this);
+	};
+
+	$.arrayField.prototype.__proto__ = Array.prototype;
+	
+	$.extend($.arrayField.prototype, {
+		get: function(index) {
+			if(index === undefined){
+				var all = [];
+				$.each(this, function(i, field) {
+					all = all.concat(field.get());
+				});
+				return all;
 			}
-		}
-		return true;
-	};
-	
-	// equality of two objects, do recursive check
-	$.objectEqual = function(one, another) {
-		if(!one && another){
-			return $.isObjectEmpty(another)? true : false;
-		}
-		return compare(one, another, $.objectEqual) && compare(another, one, $.objectEqual);
-	};
-	
-	// contain/subset check of two object
-	$.objectContain = function(whole, subset) {
-		return compare(whole, subset, $.objectContain);
-	};
-	
-	$.isObjectEmpty = function(o){
-		for(var p in o){
-			return false;
-		}
-		return true;
-	}
+			if(index !== 0){
+				throw "CoconutError: index can only be 0 under current implementation.";
+			}
+			if(this.length > 0){
+				return this[0].get(0);
+			}
+		},
+		
+		state: function(s) {
+			if(s === undefined){
+				var state = [];
+				$.each(this, function(i, field){
+					state.push(field.state());
+				});
+				return state;
+			}
 
-})(jQuery);
+			$.each(s, function(i, s){
+				if(i < this.length){
+					this[i].state(s);
+				}
+			}.bind(this));
+			return this;
+		}
+	});
 
-//
-// extension for part field type of jQuery, and more
-//
-(function($) {
+	// extension for jQuery field type of part
 	$.fn.extend({
 		state: function(s) {
 			if (s === undefined) {
@@ -310,6 +358,40 @@
 			}
 		}
 	});
+
+	var compare = function(one, another, recursiveCallback){
+		for (var p in another) {
+			if(typeof(another[p]) === "object"){
+				if(!recursiveCallback(one[p], another[p])){
+					return false;
+				}
+			} else if (one[p] !== another[p]) {
+				return false;
+			}
+		}
+		return true;
+	};
+	
+	// equality of two objects, do recursive check
+	$.objectEqual = function(one, another) {
+		if(!one && another){
+			return $.isObjectEmpty(another)? true : false;
+		}
+		return compare(one, another, $.objectEqual) && compare(another, one, $.objectEqual);
+	};
+	
+	// contain/subset check of two object
+	$.objectContain = function(whole, subset) {
+		return compare(whole, subset, $.objectContain);
+	};
+	
+	$.isObjectEmpty = function(o){
+		for(var p in o){
+			return false;
+		}
+		return true;
+	}
+
 })(jQuery);
 
 //

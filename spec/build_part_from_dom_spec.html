@@ -87,7 +87,7 @@ Screw.Unit(function() {
 			expect(person.city.state()).to(equal, "sydney");
 		});		
 		
-		it("should use field name as defined in fieldname property if present", function() {
+		it("should use field name defined by 'fieldname' property in dom", function() {
 			var person = $("#person").part();
 			expect(person.hasOwnProperty("id_street")).to(be_false);
 			
@@ -102,8 +102,23 @@ Screw.Unit(function() {
 			expect($.inArray(cityDom, person.get())).to(equal, -1);
 		});		
 		
-		it("should build field array for fields with same name", function() {
-			// TODO : expect(true).to(be_false);
+		it("should not create convenient field accessor if it will override existng property of part", function() {
+			$("select[name=title]").attr("name", "isDirty");
+			
+			var person = $("#person").part();
+			expect(person.isDirty.state).to(be_undefined);
+			expect($.isFunction(person.isDirty)).to(be_true);
+		});
+		
+		it("should build field of array type for element if 'fieldtype' property is setted to 'array' in dom", function() {
+			$("input[name=name]").attr("fieldtype", "array");
+			
+			var person = $("#person").part();
+			
+			expect(person.names.length).to(equal, 1);
+			expect(person.names[0].state()).to(equal, "luning");
+			
+			expect($.objectContain(person.state(), {names:["luning"]})).to(be_true);
 		});
 	});
 
@@ -335,7 +350,7 @@ Screw.Unit(function() {
 
 		it("should set up field order", function() {
 			var person = $("#person").part(function Person(){
-				this.fieldOrder("gender", "title", "name");
+				this.orderFields("gender", "title", "name");
 			});
 			expect(person.index("gender")).to(equal, person.index("title") - 1);
 			expect(person.index("title")).to(equal, person.index("name") - 1);
@@ -344,7 +359,7 @@ Screw.Unit(function() {
 		it("should not set up field order with invalid names", function() {
 			try{
 				var person = $("#person").part(function Person(){
-					this.fieldOrder("gender", "invalidname");
+					this.orderFields("gender", "invalidname");
 				});
 				expect(true).to(be_false);
 			} catch(ex) {
