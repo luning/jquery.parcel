@@ -39,6 +39,7 @@
 		</div>
 		<input id="city" type="text" someproperty="city"></input>
 		<input id="id_street" type="text" fieldname="street"></input>
+		<input type="text" fieldtype="array" value="luning.tw@gmail.com" name="email"></input>
 	</div>
 	<input id="randomInput" type="text"></input>
 </div>
@@ -111,14 +112,25 @@ Screw.Unit(function() {
 		});
 		
 		it("should build field of array type for element if 'fieldtype' property is setted to 'array' in dom", function() {
-			$("input[name=name]").attr("fieldtype", "array");
-			
 			var person = $("#person").part();
 			
-			expect(person.names.length).to(equal, 1);
-			expect(person.names[0].state()).to(equal, "luning");
+			expect(person.email).to(be_undefined);
+			expect(person.emails.length).to(equal, 1);
+			expect(person.emails[0].state()).to(equal, "luning.tw@gmail.com");
 			
-			expect($.objectContain(person.state(), {names:["luning"]})).to(be_true);
+			expect($.objectContain(person.state(), {emails:["luning.tw@gmail.com"]})).to(be_true);
+		});
+		
+		it("should add the following fields to array if the name is supposed to be of array type", function() {
+			$("#person").append("<input type='text' name='email'></input>");
+			
+			var person = $("#person").part();
+			expect(person.email).to(be_undefined);
+			expect(person.emails.length).to(equal, 2);
+			
+			var s = {emails: ["one@my.com", "another@my.com"]};
+			person.state(s);
+			expect($.objectContain(person.state(), s)).to(be_true);
 		});
 	});
 
@@ -309,7 +321,7 @@ Screw.Unit(function() {
 	});
 	
 	describe("Part Dom Sync", function() {
-		describe("adding dom elements dynamicly", function() {
+		describe("adding dom element dynamicly", function() {
 			it("should add field if applicable", function() {
 				var person = $("#person").part();
 				var edu = $("<input type='text' name='education'></input>");
@@ -340,6 +352,31 @@ Screw.Unit(function() {
 				expect($.objectEqual(person.education.state(), {college: "UTS"})).to(be_true);
 				expect(person.index("education")).to(equal, person.index("title") + 1);
 			});
+			
+			it("should create array field if 'fieldtype' is setted to 'array'", function() {
+				var person = $("#person").part();
+				
+				var hobby = $("<input type='text' value='reading' fieldtype='array' name='hobby'></input>");
+				$("#person").append(hobby);
+				hobby.sync();
+				
+				expect(person.hobby).to(be_undefined);
+				expect(person.hobbies.length).to(equal, 1);
+				expect(person.hobbies[0].state()).to(equal, "reading");
+			});
+			
+			it("should add field to array if the name is supposed to be of array type", function() {
+				var person = $("#person").part();
+				
+				var anotherEmail = $("<input type='text' value='another@my.com' name='email'></input>");
+				$("#person").append(anotherEmail);
+				anotherEmail.sync();
+				
+				expect(person.email).to(be_undefined);
+				expect(person.emails.length).to(equal, 2);
+				expect(person.emails[1].state()).to(equal, "another@my.com");
+			});
+
 		});
 
 		describe("removing dom elements dynamicly", function() {

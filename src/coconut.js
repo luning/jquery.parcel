@@ -76,56 +76,54 @@
 			// inferOrder is only for efficency, will add to end by default if not specified. can always be true.
 			_addField: function(fieldName, element, inferOrder){
 				var field = this._constructField(element);
-				var fieldtype = element.attr("fieldtype");
-				var needAdding = true;
-				var theFieldName = fieldName;
-				var theField = field;
-				var arrayFieldName = fieldName + "s";
-				if(fieldtype === "array"){
-					if(this.has(arrayFieldName, false)){
+				var isDirectFieldOfThisPart = true;
+				var arrayFieldName = this._plural(fieldName);
+				
+				if(this.has(arrayFieldName, true)){ // add to existing array field
+					this.fields[this.index(arrayFieldName)].it.push(field);
+					isDirectFieldOfThisPart = false;
+				} else if (element.attr("fieldtype") === "array") { // create new array field
+					if(this.has(arrayFieldName)){
 						throw "CoconutError: nonarray field [" + arrayFieldName + "] already exists, failed to create array field.";
-					} else if (this.has(arrayFieldName, true)) {
-						this.fields[this.index(arrayFieldName)].it.push(field);
-						needAdding = false;
-					} else {
-						theFieldName = arrayFieldName;
-						theField = new $.arrayField();
-						theField.push(field);
-						if(!(theFieldName in this)){
-							this[theFieldName] = theField;
-						}
 					}
-				} else {
-					if(this.has(arrayFieldName, true)){
-						this.fields[this.index(arrayFieldName)].it.push(field);
-						needAdding = false;
-					} else if (this.has(fieldName)){
+					fieldName = arrayFieldName;
+					field = new $.arrayField(field);
+					if(!(fieldName in this)){
+						this[fieldName] = field;
+					}
+				} else { // non-array field
+					if (this.has(fieldName)){
 						throw "CoconutError: field with name [" + fieldName + "] already exists.";
-					} else {
-						if(!(theFieldName in this)){
-							this[theFieldName] = theField;
-						}
+					}
+					if(!(fieldName in this)){
+						this[fieldName] = field;
 					}
 				}
-
-				if(needAdding){
-					var fieldObj = { name: theFieldName, it: theField };
-					if(!inferOrder){
-						this.fields.push(fieldObj);
-					} else {
-						var all = this.container.find(this.FIELD_SELECTOR);
-						var posOfField = all.index(field.get(0));
-						var insertIndex = 0;
-						for(insertIndex = 0; insertIndex < this.fields.length; insertIndex++){
-							var pos = all.index(this.fields[insertIndex].it.get(0));
-							if(pos > posOfField){
-								break;
-							}
-						}
-						
-						this.fields.splice(insertIndex, 0, fieldObj);
+				
+				if(isDirectFieldOfThisPart){
+					var insertIndex = inferOrder ? this._suggestedIndex(field) : this.fields.length;
+					this.fields.splice(insertIndex, 0, { name: fieldName, it: field });
+				}
+			},
+			
+			_suggestedIndex: function(field){
+				var all = this.container.find(this.FIELD_SELECTOR);
+				var posOfField = all.index(field.get(0));
+				var index = 0;
+				for(; index < this.fields.length; index++){
+					var pos = all.index(this.fields[index].it.get(0));
+					if(pos > posOfField){
+						break;
 					}
 				}
+				return index;
+			},
+			
+			_plural: function(noun){
+				if(noun[noun.length - 1] === 'y'){
+					return noun.substr(0, noun.length - 1) + "ies";
+				}
+				return noun + "s";
 			},
 			
 			has: function(fieldName, arrayOrNot){
@@ -135,7 +133,7 @@
 				} else if (arrayOrNot === undefined) {
 					return true;
 				} else {
-					var isArray = this.fields[index] instanceof Array;
+					var isArray = this.fields[index].it instanceof Array;
 					return arrayOrNot ? isArray : !isArray ;
 				}
 			},
@@ -284,6 +282,9 @@
 	// part field of array type, which may contain an array of other fields.
 	$.arrayField = function(){
 		Array.apply(this);
+		$.each(arguments, function(i, f){
+			this.push(f);
+		}.bind(this));
 	};
 
 	$.arrayField.prototype.__proto__ = Array.prototype;
