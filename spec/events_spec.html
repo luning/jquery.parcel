@@ -1,0 +1,99 @@
+<html>
+<head>
+	<title>Events Spec</title>
+	<script src="../lib/jquery-1.3.2.js"></script>
+	<script src="screw.unit.dependencies.js"></script>
+	<script src="test_extensions.js"></script>
+	<script src="../src/coconut.js"></script>
+</head>
+<body>
+
+<div id="fixture">
+	<div id="person">
+		<input type="text" value="luning" name="name"></input>
+		<input type="text" fieldtype="array" value="luning.tw@gmail.com" name="email"></input>
+	</div>
+	<div id="personDetails">
+		<span id="spanPersonName">span</span>
+	</div>
+</div>
+	
+<script type="text/javascript">
+Screw.Unit(function() {
+
+	var fixtureHtml = $("#fixture").html();
+
+	before(function() {
+		$("#fixture").html(fixtureHtml);
+	});
+
+	describe("Bind to Field State", function() {
+		it("should update target if source state changes", function() {
+			var person = $("#person").part();
+			var nameSpan = $("#personDetails #spanPersonName");
+			person.name.bindState(nameSpan);
+			
+			person.name.state("smith");
+			expect(nameSpan.state()).to(equal, "smith");
+		});	
+
+		it("should update target just after setting binding", function() {
+			var person = $("#person").part();
+			var nameSpan = $("#personDetails #spanPersonName");
+			person.name.bindState(nameSpan);
+
+			expect(nameSpan.state()).to(equal, "luning");
+		});	
+		
+		it("should apply converter while updating state", function() {
+			var person = $("#person").part();
+			var nameSpan = $("#personDetails #spanPersonName");
+			person.name.bindState(nameSpan, function(s){
+				return s.toUpperCase();
+			});
+
+			expect(nameSpan.state()).to(equal, "LUNING");
+		});	
+	});
+
+	describe("Change in Part", function() {
+		it("should listen to the change of a part", function() {
+			var person = $("#person").part();
+			var eventFired = false;
+			person.change(function(){
+				eventFired = true;
+			});
+			
+			expect(eventFired).to(be_false);
+			person.name.state("smith");
+			expect(eventFired).to(be_true);
+		});	
+
+		it("should listen to the change of a non-array field", function() {
+			var person = $("#person").part();
+			var eventFired = false;
+			person.name.change(function(){
+				eventFired = true;
+			});
+			
+			expect(eventFired).to(be_false);
+			person.name.state("smith");
+			expect(eventFired).to(be_true);
+		});	
+		
+		it("should listen to the change of an array field", function() {
+			var person = $("#person").part();
+			var eventFired = false;
+			person.emails.change(function(){
+				eventFired = true;
+			});
+			
+			expect(eventFired).to(be_false);
+			person.emails[0].state("another@my.com");
+			expect(eventFired).to(be_true);
+		});	
+	});
+});
+</script>
+</body>
+</html>
