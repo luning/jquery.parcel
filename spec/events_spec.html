@@ -14,7 +14,7 @@
 		<input type="text" fieldtype="array" value="luning.tw@gmail.com" name="email"></input>
 	</div>
 	<div id="personDetails">
-		<span id="spanPersonName">span</span>
+		<span id="span">span</span>
 	</div>
 </div>
 	
@@ -27,32 +27,64 @@ Screw.Unit(function() {
 		$("#fixture").html(fixtureHtml);
 	});
 
-	describe("Bind to Field State", function() {
+	describe("Bind to State", function() {
 		it("should update target if source state changes", function() {
 			var person = $("#person").part();
-			var nameSpan = $("#personDetails #spanPersonName");
-			person.name.bindState(nameSpan);
+			var span = $("#personDetails #span");
+			person.name.bindState(span);
 			
 			person.name.state("smith");
-			expect(nameSpan.state()).to(equal, "smith");
+			expect(span.state()).to(equal, "smith");
 		});	
 
 		it("should update target just after setting binding", function() {
 			var person = $("#person").part();
-			var nameSpan = $("#personDetails #spanPersonName");
-			person.name.bindState(nameSpan);
+			var span = $("#personDetails #span");
+			person.name.bindState(span);
 
-			expect(nameSpan.state()).to(equal, "luning");
+			expect(span.state()).to(equal, "luning");
 		});	
 		
 		it("should apply converter while updating state", function() {
 			var person = $("#person").part();
-			var nameSpan = $("#personDetails #spanPersonName");
-			person.name.bindState(nameSpan, function(s){
+			var span = $("#personDetails #span");
+			person.name.bindState(span, function(s){
 				return s.toUpperCase();
 			});
 
-			expect(nameSpan.state()).to(equal, "LUNING");
+			expect(span.state()).to(equal, "LUNING");
+		});	
+		
+		it("should bind a compound object state of a part", function() {
+			var person = $("#person").part();
+			var span = $("#personDetails #span");
+			person.bindState(span, function(s){
+				return s.name + ":" + s.emails[0];
+			});
+			
+			person.emails[0].state("another@my.com");
+
+			expect(span.state()).to(equal, "luning:another@my.com");
+		});	
+		
+		it("should bind state of an array field", function() {
+			var person = $("#person").part();
+			var span = $("#personDetails #span");
+			person.emails.bindState(span, function(s){
+				return "email count is " + s.length;
+			});
+			
+			person.emails[0].state("another@my.com");
+
+			expect(span.state()).to(equal, "email count is 1");
+		});	
+		
+		it("should work after dom element is added dynamicly", function() {
+			// do something in sync
+		});	
+
+		it("should work after dom element is removed dynamicly", function() {
+			// do something in sync
 		});	
 	});
 
