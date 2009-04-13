@@ -37,9 +37,13 @@
 				<option>1991</option>
 			</select>
 		</div>
-		<input id="city" type="text" someproperty="city"></input>
-		<input id="id_street" type="text" fieldname="street"></input>
+		<input id="nationality" type="text" someproperty="nationality"></input>
+		<input id="id_city" type="text" fieldname="city"></input>
 		<input type="text" fieldtype="array" value="luning.tw@gmail.com" name="email"></input>
+		<div part="" fieldtype="array" name="contact">
+			<input type="text" name="number"></input>
+			<input type="text" name="type"></input>
+		</div>
 	</div>
 	<input id="randomInput" type="text"></input>
 </div>
@@ -84,23 +88,23 @@ Screw.Unit(function() {
 		
 		it("should use id as field name if name property is not provided", function() {
 			var person = $("#person").part();
-			person.city.state("sydney");
-			expect(person.city.state()).to(equal, "sydney");
+			person.nationality.state("OZ");
+			expect(person.nationality.state()).to(equal, "OZ");
 		});		
 		
 		it("should use field name defined by 'fieldname' property in dom", function() {
 			var person = $("#person").part();
-			expect(person.hasOwnProperty("id_street")).to(be_false);
+			expect(person.hasOwnProperty("id_city")).to(be_false);
 			
-			person.street.state("pitt");
-			expect(person.street.state()).to(equal, "pitt");
+			person.city.state("sydney");
+			expect(person.city.state()).to(equal, "sydney");
 		});		
 		
 		it("should ignore dom element if field name can not be determined", function() {
-			var cityDom = $("#city").removeAttr("id").get(0);
+			var nationalityDom = $("#nationality").removeAttr("id").get(0);
 
 			var person = $("#person").part();
-			expect($.inArray(cityDom, person.get())).to(equal, -1);
+			expect($.inArray(nationalityDom, person.get())).to(equal, -1);
 		});		
 		
 		it("should not create convenient field accessor if it will override existng property of part", function() {
@@ -118,7 +122,7 @@ Screw.Unit(function() {
 			expect(person.emails.length).to(equal, 1);
 			expect(person.emails[0].state()).to(equal, "luning.tw@gmail.com");
 			
-			expect($.objectContain(person.state(), {emails:["luning.tw@gmail.com"]})).to(be_true);
+			expect(person.state()).to(contain_object, {emails:["luning.tw@gmail.com"]});
 		});
 		
 		it("should add the following fields to array if the name is supposed to be of array type", function() {
@@ -130,7 +134,17 @@ Screw.Unit(function() {
 			
 			var s = {emails: ["one@my.com", "another@my.com"]};
 			person.state(s);
-			expect($.objectContain(person.state(), s)).to(be_true);
+			expect(person.state()).to(contain_object, s);
+		});
+
+		it("should build array field of part type", function() {
+			var person = $("#person").part();
+			expect(person.contact).to(be_undefined);
+			expect(person.contacts.length).to(equal, 1);
+			
+			var s = {contacts: [{number: "123456789", type: "office"}]};
+			person.state(s)
+			expect(person.state()).to(contain_object, s);
 		});
 	});
 
@@ -140,7 +154,7 @@ Screw.Unit(function() {
 			var dobState = {day: "01", month: "Feb", year: "1991"};
 			person.dob.state(dobState);
 			
-			expect($.objectEqual(person.dob.state(), dobState)).to(be_true);
+			expect(person.dob.state()).to(equal, dobState);
 			expect(person.day).to(be_undefined);
 			expect(person.month).to(be_undefined);
 			expect(person.year).to(be_undefined);
@@ -159,10 +173,6 @@ Screw.Unit(function() {
 			person.dob.state({day: "01", month: "Feb", year: "1991"});
 			
 			expect(person.dob.description()).to(equal, "01 Feb 1991");
-		});
-
-		it("should build field array for part type fields with same name", function() {
-			// TODO : expect(true).to(be_false);
 		});
 	});
 
@@ -232,9 +242,9 @@ Screw.Unit(function() {
 	describe("State Operations", function() {
 		it("should get/set state of a part", function() {
 			var person = $("#person").part();
-			var state = { name: "josh", title: "Mrs", gender: "Male", city: "sydney", street: "george" };
+			var state = { name: "josh", title: "Mrs", gender: "Male", nationality: "OZ", city: "sydney" };
 			person.state(state);
-			expect($.objectContain(person.state(), state)).to(be_true);
+			expect(person.state()).to(contain_object, state);
 		});		
 		
 		it("should be dirty if any field is changed after creation", function() {
@@ -252,16 +262,16 @@ Screw.Unit(function() {
 			var person = $("#person").part();
 			var initialState = person.state();
 			
-			person.state({ name: "josh", title: "Mrs", gender: "Male", city: "sydney", street: "george" });
+			person.state({ name: "josh", title: "Mrs", gender: "Male", nationality: "OZ", city: "sydney" });
 			
 			person.resetState();
-			expect($.objectEqual(person.state(), initialState)).to(be_true);
+			expect(person.state()).to(equal, initialState);
 		});	
 		
 		it("should reset initial state with specific fields", function() {
 			var person = $("#person").part();
 			var initialState = person.state();
-			var tempState = { name: "josh", title: "Mrs", gender: "Male", city: "sydney", street: "george" };
+			var tempState = { name: "josh", title: "Mrs", gender: "Male", nationality: "OZ", city: "sydney" };
 			person.state(tempState);
 			
 			person.resetState("name", "title");
@@ -271,8 +281,8 @@ Screw.Unit(function() {
 			expect(finalState.title).to(equal, initialState.title);
 			
 			expect(finalState.gender).to(equal, tempState.gender);
+			expect(finalState.nationality).to(equal, tempState.nationality);
 			expect(finalState.city).to(equal, tempState.city);
-			expect(finalState.street).to(equal, tempState.street);
 		});	
 		
 		it("should not reset state with non-exist field", function() {
@@ -309,7 +319,7 @@ Screw.Unit(function() {
 				var dobState = {day: "01", month: "Feb", year: "1991"};
 
 				person.state({ dob: dobState });
-				expect($.objectContain(person.state(), {dob: dobState})).to(be_true);
+				expect(person.state()).to(contain_object, {dob: dobState});
 			});
 
 			it("should get/set state of flaten object", function() {
@@ -334,9 +344,9 @@ Screw.Unit(function() {
 			
 			it("should add field with proper field order", function() {
 				var person = $("#person").part();
-				var input = $("<input type='text' name='education'></input>");
-				person.title.after(input);
-				input.sync();
+				var edu = $("<input type='text' name='education'></input>");
+				person.title.after(edu);
+				edu.sync();
 				
 				expect(person.index("education")).to(equal, person.index("title") + 1);
 			});
@@ -349,7 +359,7 @@ Screw.Unit(function() {
 				
 				person.education.state({college: "UTS"});
 				
-				expect($.objectEqual(person.education.state(), {college: "UTS"})).to(be_true);
+				expect(person.education.state()).to(equal, {college: "UTS"});
 				expect(person.index("education")).to(equal, person.index("title") + 1);
 			});
 			
@@ -367,6 +377,7 @@ Screw.Unit(function() {
 			
 			it("should add field to array if the name is supposed to be of array type", function() {
 				var person = $("#person").part();
+				expect(person.emails.length).to(equal, 1);
 				
 				var anotherEmail = $("<input type='text' value='another@my.com' name='email'></input>");
 				$("#person").append(anotherEmail);
@@ -375,6 +386,19 @@ Screw.Unit(function() {
 				expect(person.email).to(be_undefined);
 				expect(person.emails.length).to(equal, 2);
 				expect(person.emails[1].state()).to(equal, "another@my.com");
+			});
+			
+			it("should add part type field to array if the name is supposed to be of array type", function() {
+				var person = $("#person").part();
+				expect(person.contacts.length).to(equal, 1);
+
+				var anotherContact = $("<div part='' name='contact'><input type='text' value='111' name='number'></input><input type='text' value='home' name='type'></input></div>");
+				$("#person").append(anotherContact);
+				anotherContact.sync();
+				
+				expect(person.contact).to(be_undefined);
+				expect(person.contacts.length).to(equal, 2);
+				expect(person.contacts[1].state()).to(equal, {number: "111", type: "home"});
 			});
 
 		});
@@ -405,23 +429,23 @@ Screw.Unit(function() {
 		});			
 		
 		it("should add field ignored during construction", function() {
-			$("#city").removeAttr("id"); // #city will be ignored
+			$("#nationality").removeAttr("id"); // #nationality will be ignored
 
 			var person = $("#person").part(function Person(){
 				this.addFields({
-					city: "input[someproperty=city]"
+					nationality: "input[someproperty=nationality]"
 				});
 			});
 			
-			person.city.state("sydney");
-			expect(person.city.state()).to(equal, "sydney");
+			person.nationality.state("OZ");
+			expect(person.nationality.state()).to(equal, "OZ");
 		});			
 		
 		it("should not add field for dom element which is already captured by other field", function() {
 			try{
 				var person = $("#person").part(function Person(){
 					this.addFields({
-						mycity: "#city"
+						myField: "#nationality"
 					});
 				});
 				expect(true).to(be_false);
@@ -444,12 +468,12 @@ Screw.Unit(function() {
 		});		
 		
 		it("should not add field with duplicated name", function() {
-			$("#city").removeAttr("id"); // #city will be ignored
+			$("#nationality").removeAttr("id"); // #nationality will be ignored
 
 			try{
 				var person = $("#person").part(function Person(){
 					this.addFields({
-						name: "[someproperty=city]"
+						name: "[someproperty=nationality]"
 					});
 				});
 				expect(true).to(be_false);

@@ -29,22 +29,25 @@ Screw.Matchers.not_be_visible = {
 };
 
 Screw.Matchers.contain_object = {
-	message: "",
 	match: function(expected, actual) {
-		for (var p in expected) {
-			if (typeof (actual[p]) === "undefined") {
-				this.message = p + " is undefined in actual object";
-				return false;
-			}
-			else if (actual[p] !== expected[p]) {
-				this.message = "'" + p + "' of actual object is expected to be [" + expected[p] + "], but is [" + actual[p] + "]";
-				return false;
-			}
-		}
-		return true;
+		return $.objectContain(actual, expected);
 	},
 	failure_message: function(expected, actual, not) {
-		return this.message;
+		return 'expected ' + $.print(actual) + (not ? ' to not contain ' : ' to contain ') + $.print(expected);
+	}
+};
+
+var old_equal_matcher = Screw.Matchers.equal;
+Screw.Matchers.equal = {
+	match: function(expected, actual) {
+		if (expected instanceof Object) {
+			return $.objectEqual(actual, expected);
+		} else {
+			return old_equal_matcher.match(expected, actual);
+		}
+	},
+	failure_message: function(expected, actual, not) {
+		return 'expected ' + $.print(actual) + (not ? ' to not equal ' : ' to equal ') + $.print(expected);
 	}
 };
 

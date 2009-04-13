@@ -362,7 +362,7 @@
 
 	var compare = function(one, another, recursiveCallback){
 		for (var p in another) {
-			if(typeof(another[p]) === "object"){
+			if(another[p] instanceof Object){
 				if(!recursiveCallback(one[p], another[p])){
 					return false;
 				}
