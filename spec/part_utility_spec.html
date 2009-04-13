@@ -35,9 +35,14 @@ Screw.Unit(function() {
 			expect($.objectEqual({ person: { dob: { year: "1990"} }	}, { person: { dob: { month: "Jan" } } })).to(be_false);
 		});		
 		
-		it("should ignore property if it's value is undefined or null", function() {
-			expect($.objectEqual({ dob: null }, {	})).to(be_true);
+		it("should ignore property if it's value is undefined", function() {
+			expect($.objectEqual({ dob: undefined }, { })).to(be_true);
 			expect($.objectEqual({ }, { dob: undefined })).to(be_true);
+		});		
+		
+		it("should not ignore property if it's value is null", function() {
+			expect($.objectEqual({ dob: null }, {	})).to(be_false);
+			expect($.objectEqual({	}, { dob: null })).to(be_false);
 		});		
 
 		it("should ignore property if it's an empty object", function() {

@@ -158,7 +158,7 @@ Screw.Unit(function() {
 			var dobState = {day: "01", month: "Feb", year: "1991"};
 			person.dob.state(dobState);
 			
-			expect(person.dob.state()).to(equal, dobState);
+			expect(person.dob.state()).to(equal_object, dobState);
 			expect(person.day).to(be_undefined);
 			expect(person.month).to(be_undefined);
 			expect(person.year).to(be_undefined);
@@ -269,7 +269,7 @@ Screw.Unit(function() {
 			person.state({ name: "josh", title: "Mrs", gender: "Male", nationality: "OZ", city: "sydney" });
 			
 			person.resetState();
-			expect(person.state()).to(equal, initialState);
+			expect(person.state()).to(equal_object, initialState);
 		});	
 		
 		it("should reset initial state with specific fields", function() {
@@ -374,7 +374,7 @@ Screw.Unit(function() {
 				
 				person.education.state({college: "UTS"});
 				
-				expect(person.education.state()).to(equal, {college: "UTS"});
+				expect(person.education.state()).to(equal_object, {college: "UTS"});
 				expect(person.index("education")).to(equal, person.index("title") + 1);
 			});
 			
@@ -386,6 +386,7 @@ Screw.Unit(function() {
 				hobby.sync();
 				
 				expect(person.hobby).to(be_undefined);
+				expect(person.hobbies).to_not(be_undefined);
 				expect(person.hobbies.length).to(equal, 1);
 				expect(person.hobbies[0].state()).to(equal, "reading");
 			});
@@ -426,7 +427,7 @@ Screw.Unit(function() {
 				
 				expect(person.contact).to(be_undefined);
 				expect(person.contacts.length).to(equal, 2);
-				expect(person.contacts[1].state()).to(equal, {number: "111", type: "home"});
+				expect(person.contacts[1].state()).to(equal_object, {number: "111", type: "home"});
 			});
 
 		});
@@ -452,6 +453,7 @@ Screw.Unit(function() {
 				anotherEmail.remove();
 				person.sync();
 				
+				expect(person.emails).to_not(be_undefined);
 				expect(person.emails.length).to(equal, 1);
 				expect(person.emails[0].state()).to(equal, "luning.tw@gmail.com");
 			});
@@ -478,7 +480,7 @@ Screw.Unit(function() {
 				person.sync();
 				
 				expect(person.contacts.length).to(equal, 1);
-				expect(person.contacts[0].state()).to(equal, { number: "", type: "" });
+				expect(person.contacts[0].state()).to(equal_object, { number: "", type: "" });
 			});
 			
 			it("should remove the array field containing parts if it becomes empty", function() {

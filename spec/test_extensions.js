@@ -37,14 +37,9 @@ Screw.Matchers.contain_object = {
 	}
 };
 
-var old_equal_matcher = Screw.Matchers.equal;
-Screw.Matchers.equal = {
+Screw.Matchers.equal_object = {
 	match: function(expected, actual) {
-		if (expected instanceof Object) {
-			return $.objectEqual(actual, expected);
-		} else {
-			return old_equal_matcher.match(expected, actual);
-		}
+		return $.objectEqual(actual, expected);
 	},
 	failure_message: function(expected, actual, not) {
 		return 'expected ' + $.print(actual) + (not ? ' to not equal ' : ' to equal ') + $.print(expected);

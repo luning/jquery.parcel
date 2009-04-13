@@ -46,7 +46,7 @@ Screw.Unit(function() {
 	
 	describe("Array Field", function() {
 		it("should get all dom", function() {
-			var f = new $.arrayField();
+			var f = $.newArrayField();
 			
 			var firstEmail = $("input[name=email]:first");
 			var lastEmail = $("input[name=email]:last");
@@ -60,7 +60,7 @@ Screw.Unit(function() {
 		});
 
 		it("should get first dom", function() {
-			var f = new $.arrayField();
+			var f = $.newArrayField();
 			
 			var firstEmail = $("input[name=email]:first");
 			f.push(firstEmail);
@@ -71,18 +71,18 @@ Screw.Unit(function() {
 		});
 
 		it("should get state", function() {
-			var f = new $.arrayField();
+			var f = $.newArrayField();
 			
 			var firstEmail = $("input[name=email]:first");
 			var lastEmail = $("input[name=email]:last");
 			f.push(firstEmail);
 			f.push(lastEmail);
 
-			expect($.objectEqual(f.state(), ["first@my.com", "second@my.com"])).to(be_true);
+			expect(f.state()).to(equal_object, ["first@my.com", "second@my.com"]);
 		});
 		
 		it("should set state", function() {
-			var f = new $.arrayField();
+			var f = $.newArrayField();
 			
 			var firstEmail = $("input[name=email]:first");
 			var lastEmail = $("input[name=email]:last");
@@ -92,7 +92,7 @@ Screw.Unit(function() {
 			var s = ["first@my.org", "second@my.org"];
 			f.state(s);
 			
-			expect($.objectEqual(f.state(), s)).to(be_true);
+			expect(f.state()).to(equal_object, s);
 		});
 	});
 });

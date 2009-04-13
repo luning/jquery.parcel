@@ -91,7 +91,7 @@
 						throw "CoconutError: nonarray field [" + arrayFieldName + "] already exists, failed to create array field.";
 					}
 					fieldName = arrayFieldName;
-					field = new $.arrayField(field);
+					field = $.newArrayField(field);
 					if(!(fieldName in this)){
 						this[fieldName] = field;
 					}
@@ -113,6 +113,17 @@
 			_suggestedIndex: function(field){
 				var all = this.container.find(this.FIELD_SELECTOR);
 				var posOfField = all.index(field.get(0));
+				
+				if($.browser.msie && posOfField === -1){
+					var dom = field.get(0);
+					for(var i = 0; i < all.length; i++){
+						if(all[i] == dom){
+							posOfField = i;
+							break;
+						}
+					};
+				}
+				
 				var index = 0;
 				for(; index < this.fields.length; index++){
 					var pos = all.index(this.fields[index].it.get(0));
@@ -124,7 +135,7 @@
 			},
 			
 			_plural: function(noun){
-				if(noun[noun.length - 1] === 'y'){
+				if(noun.charAt(noun.length - 1) === 'y'){
 					return noun.substr(0, noun.length - 1) + "ies";
 				}
 				return noun + "s";
@@ -140,7 +151,6 @@
 						deadFields.push(field);
 					}
 				});
-				
 				$.each(deadFields, function(i, deadField){
 					for(var i = 0; i < this.fields.length; i++){
 						if(this.fields[i] === deadField){
@@ -307,17 +317,7 @@
 		}
 	});
 
-	// part field of array type, which may contain an array of other fields.
-	$.arrayField = function(){
-		Array.apply(this);
-		$.each(arguments, function(i, f){
-			this.push(f);
-		}.bind(this));
-	};
-
-	$.arrayField.prototype.__proto__ = Array.prototype;
-	
-	$.extend($.arrayField.prototype, {
+	var arrayFieldPrototype = {
 		get: function(index) {
 			if(index === undefined){
 				var all = [];
@@ -366,7 +366,21 @@
 				this.splice(index, 1);
 			}.bind(this));
 		}
-	});
+	};
+	
+	// part field of array type, which may contain an array of other fields.
+	// IE does not work with __proto__, so use this unefficent way to extend Array.
+	// TODO : improve the efficency
+	$.newArrayField = function(){
+		var result = new Array();
+		
+		$.each(arguments, function(i, f){
+			result.push(f);
+		});
+		
+		$.extend(result, arrayFieldPrototype);
+		return result;
+	};
 
 	// extension for jQuery field type of part
 	$.fn.extend({
@@ -417,7 +431,8 @@
 		return true;
 	};
 	
-	// equality of two objects, do recursive check
+	// do value equality check recursively
+	// CAUTION: only suitable for tree structured simple object. cycle reference will cause infinite recursion.
 	$.objectEqual = function(one, another) {
 		if(!one && another){
 			return $.objectEmpty(another)? true : false;
@@ -425,7 +440,8 @@
 		return compare(one, another, $.objectEqual) && compare(another, one, $.objectEqual);
 	};
 	
-	// contain/subset check of two object
+	// do value check recursively
+	// CAUTION: only suitable for tree structured simple object. cycle reference will cause infinite recursion.
 	$.objectContain = function(whole, subset) {
 		return compare(whole, subset, $.objectContain);
 	};
@@ -441,11 +457,11 @@
 		var all = field.get();
 		for(var i = 0; i < all.length; i++){
 			var node = all[i];
-			while(node.parentNode){
+			while(node){
+				if(node.tagName === "BODY"){
+					return false;
+				}
 				node = node.parentNode;
-			}
-			if(node === document){
-				return false;
 			}
 		}
 		return true;
