@@ -39,10 +39,10 @@
 					this.sync(event.target);
 				}.bind(this));
 				
-				this.buildFields(this.container);
+				this._buildFields(this.container);
 			},
 			
-			buildFields: function(context, inferOrder){
+			_buildFields: function(context, inferOrder){
 				var all = context.filter(this.FIELD_SELECTOR)
 							.add(context.find(this.FIELD_SELECTOR))
 							.not(this.container);
@@ -61,9 +61,13 @@
 			},
 			
 			sync: function(element){
-				this.buildFields($(element), true);
+				if(element === undefined){ // dom removed
+					this.clean();
+				} else { // dom added
+					this._buildFields($(element), true);
+				}
 			},
-
+			
 			_constructField: function(element) {
 				if(element.attr("part") !== undefined) {
 					return element.part();
@@ -126,6 +130,30 @@
 				return noun + "s";
 			},
 			
+			clean: function(){
+				var deadFields = [];
+				$.each(this.fields, function(i, field) {
+					if(field.it.clean){
+						field.it.clean();
+					}
+					if($.dead(field.it)){
+						deadFields.push(field);
+					}
+				});
+				
+				$.each(deadFields, function(i, deadField){
+					for(var i = 0; i < this.fields.length; i++){
+						if(this.fields[i] === deadField){
+							this.fields.splice(i, 1);
+							if(this[deadField.name] === deadField.it){
+								delete this[deadField.name];
+							}
+							break;
+						}
+					};
+				}.bind(this));
+			},
+						
 			has: function(fieldName, arrayOrNot){
 				var index = this.index(fieldName);
 				if(index === -1){
@@ -321,6 +349,22 @@
 				}
 			}.bind(this));
 			return this;
+		},
+		
+		clean: function(){
+			var deadIndexex = [];
+			$.each(this, function(i, field) {
+				if(field.clean){
+					field.clean();
+				}
+				if($.dead(field)){
+					deadIndexex.push(i);
+				}
+			});
+			deadIndexex.reverse();
+			$.each(deadIndexex, function(i, index){
+				this.splice(index, 1);
+			}.bind(this));
 		}
 	});
 
@@ -376,7 +420,7 @@
 	// equality of two objects, do recursive check
 	$.objectEqual = function(one, another) {
 		if(!one && another){
-			return $.isObjectEmpty(another)? true : false;
+			return $.objectEmpty(another)? true : false;
 		}
 		return compare(one, another, $.objectEqual) && compare(another, one, $.objectEqual);
 	};
@@ -386,9 +430,23 @@
 		return compare(whole, subset, $.objectContain);
 	};
 	
-	$.isObjectEmpty = function(o){
+	$.objectEmpty = function(o){
 		for(var p in o){
 			return false;
+		}
+		return true;
+	}	
+	
+	$.dead = function(field){
+		var all = field.get();
+		for(var i = 0; i < all.length; i++){
+			var node = all[i];
+			while(node.parentNode){
+				node = node.parentNode;
+			}
+			if(node === document){
+				return false;
+			}
 		}
 		return true;
 	}
