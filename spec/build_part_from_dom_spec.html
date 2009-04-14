@@ -39,7 +39,9 @@
 		</div>
 		<input id="nationality" type="text" someproperty="nationality"></input>
 		<input id="id_city" type="text" fieldname="city"></input>
-		<input type="text" fieldtype="array" value="luning.tw@gmail.com" name="email"></input>
+		<div class="emails">
+			<input type="text" fieldtype="array,.emails" value="luning.tw@gmail.com" name="email"></input>
+		</div>
 		<div part="" fieldtype="array" name="contact">
 			<input type="text" name="number"></input>
 			<input type="text" name="type"></input>
@@ -147,7 +149,23 @@ Screw.Unit(function() {
 			expect(person.state()).to(contain_object, s);
 		});
 		
-		it("should ignore template dom elements", function() {
+		it("should build array field with container if specified in 'fieldtype' property", function() {
+			var person = $("#person").part();
+
+			expect(person.emails.container[0]).to(equal, $("#person div.emails")[0]);
+		});
+		
+		it("should build array field without container if not specified in 'fieldtype' property", function() {
+			var person = $("#person").part();
+
+			expect(person.contacts.container).to(be_undefined);
+		});
+		
+		it("should capture hidden dom element", function() {
+			// TODO : 
+		});
+		
+		it("should ignore hidden template dom element", function() {
 			// TODO : 
 		});
 	});
@@ -458,7 +476,9 @@ Screw.Unit(function() {
 				expect(person.emails[0].state()).to(equal, "luning.tw@gmail.com");
 			});
 			
-			it("should remove the array field if it becomes empty", function() {
+			it("should remove the array field associated with no container if it becomes empty", function() {
+				$("#person input[fieldtype='array,.emails']").attr("fieldtype", "array"); // removed container setting
+			
 				var person = $("#person").part();
 				expect(person.emails.length).to(equal, 1);
 				
@@ -467,6 +487,17 @@ Screw.Unit(function() {
 				
 				expect(person.has("emails")).to(be_false);
 				expect(person.emails).to(be_undefined);
+			});
+			
+			it("should not remove the array field associated with a container even if it becomes empty", function() {
+				var person = $("#person").part();
+				expect(person.emails.length).to(equal, 1);
+				
+				person.container.find("input[name=email]").remove();
+				person.sync();
+				
+				expect(person.has("emails")).to(be_true);
+				expect(person.emails.length).to(equal, 0);
 			});
 
 			it("should remove part in array field accordingly", function() {

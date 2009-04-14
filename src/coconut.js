@@ -32,22 +32,15 @@
 	// common field behaviours
 	var fieldMixin = {
 		dead: function(){
-			var all = this.get();
-			for(var i = 0; i < all.length; i++){
-				var node = all[i];
-				while(node){
-					if(node.tagName === "BODY"){
-						return false;
-					}
-					node = node.parentNode;
-				}
-			}
-			return true;
+			// the performance is OK given this.get() is not supposed to return a lot on the calls from Coconut internally.
+			// only called for jquery field from Coconut internally.
+			var context = this.container || $(this.get());
+			return context.parents().filter("body").length === 0;
 		},
 
 		// target - jquery selector, jquery, field or part which accept state()
 		bindState: function(target, converter){
-			var target = typeof(target) === "string" ? $(target) : target;
+			target = typeof(target) === "string" ? $(target) : target;
 			var doChange = function(){
 				var s = this.state();
 				target.state( converter ? converter(s) : s );
@@ -61,7 +54,11 @@
 	// for non-jquery field
 	var fieldMixinEx = {
 		change: function(handler){
-			$(this.get()).change(handler);
+			// container - part or array field, efficent and conceptually correct
+			// this.get() - array field with no specified container. will not hook to the elements added later.
+			var context = this.container || $(this.get());
+			context.change(handler);
+			return this;
 		}
 	};
 	
@@ -112,21 +109,48 @@
 				return element;
 			}
 		},
+		
+		fieldTypeDef: function(element){
+			var def = element.attr("fieldtype");
+			if(!def){
+				return {};
+			}
+			
+			var match = def.match(/^\s*([A-Za-z]+)\s*,?\s*(.*)$/);
+			if(!match){
+				return {};
+			} else {
+				var container;
+				if(match[2]){
+					var containerDom = element.parents().filter(match[2])[0];
+					if(!containerDom){
+						throw "CoconutError: parent container selector [" + match[2] + "] specified in 'fieldtype' property in dom matchs nothing.";
+					}
+					container = $(containerDom);
+				}
+				return {
+					type: match[1], 
+					container: container
+				};
+			}
+		},
 		// inferOrder is only for efficency, will add to end by default if not specified. can always be true.
 		_addField: function(fieldName, element, inferOrder){
 			var field = this._constructField(element);
 			var isDirectFieldOfThisPart = true;
+
 			var arrayFieldName = this._plural(fieldName);
-			
+			var	fieldTypeDef = this.fieldTypeDef(element);
+
 			if(this.has(arrayFieldName, true)){ // add to existing array field
 				this.fields[this.index(arrayFieldName)].it.push(field);
 				isDirectFieldOfThisPart = false;
-			} else if (element.attr("fieldtype") === "array") { // create new array field
+			} else if (fieldTypeDef.type === "array") { // create new array field
 				if(this.has(arrayFieldName)){
 					throw "CoconutError: nonarray field [" + arrayFieldName + "] already exists, failed to create array field.";
 				}
 				fieldName = arrayFieldName;
-				field = $.newArrayField(field);
+				field = $.newArrayField(fieldTypeDef.container, field);
 				if(!(fieldName in this)){
 					this[fieldName] = field;
 				}
@@ -156,7 +180,7 @@
 						posOfField = i;
 						break;
 					}
-				};
+				}
 			}
 			
 			var index = 0;
@@ -178,7 +202,7 @@
 		
 		clean: function(){
 			var deadFields = [];
-			$.each(this.fields, function(i, field) {
+			$.each(this.fields, function(n, field) {
 				if(field.it.clean){
 					field.it.clean();
 				}
@@ -186,7 +210,7 @@
 					deadFields.push(field);
 				}
 			});
-			$.each(deadFields, function(i, deadField){
+			$.each(deadFields, function(n, deadField){
 				for(var i = 0; i < this.fields.length; i++){
 					if(this.fields[i] === deadField){
 						this.fields.splice(i, 1);
@@ -195,7 +219,7 @@
 						}
 						break;
 					}
-				};
+				}
 			}.bind(this));
 		},
 					
@@ -247,7 +271,7 @@
 					throw "CoconutError: field for element [" + selector + "] is already defined.";
 				}
 				if(this.has(fieldName)){
-					throw "CoconutError: field with name [" + fieldName + "] already exist in part."
+					throw "CoconutError: field with name [" + fieldName + "] already exist in part.";
 				}
 				this._addField(fieldName, element);
 			}.bind(this));				
@@ -405,14 +429,16 @@
 	// part field of array type, which may contain an array of other fields.
 	// IE does not work with __proto__, so use this unefficent way to extend Array.
 	// TODO : improve the efficency
-	$.newArrayField = function(){
-		var result = new Array();
+	$.newArrayField = function(container){
+		var result = [];
 		
-		$.each(arguments, function(i, f){
-			result.push(f);
+		for(var i = 1; i < arguments.length; i++){
+			result.push(arguments[i]);
+		}
+		
+		$.extend(result, arrayFieldPrototype, fieldMixin, fieldMixinEx, {
+			container: container
 		});
-		
-		$.extend(result, arrayFieldPrototype, fieldMixin, fieldMixinEx);
 		return result;
 	};
 
@@ -487,7 +513,7 @@
 			return false;
 		}
 		return true;
-	}	
+	};
 
 })(jQuery);
 
