@@ -80,16 +80,24 @@ Screw.Unit(function() {
 		});	
 		
 		it("should work after dom element is added dynamicly", function() {
-			// do something in sync
+			// TODO
+		});	
+		
+		it("should work after dom element is added to an array field dynamicly", function() {
+			// TODO
 		});	
 
 		it("should work after dom element is removed dynamicly", function() {
-			// do something in sync
+			// TODO
+		});	
+		
+		it("should work after dom element is removed from an array field dynamicly", function() {
+			// TODO
 		});	
 	});
 
-	describe("Change in Part", function() {
-		it("should listen to the change of a part", function() {
+	describe("Changing in Part", function() {
+		it("should listen to the CHANGE of a part", function() {
 			var person = $("#person").part();
 			var eventFired = false;
 			person.change(function(){
@@ -101,7 +109,7 @@ Screw.Unit(function() {
 			expect(eventFired).to(be_true);
 		});	
 
-		it("should listen to the change of a non-array field", function() {
+		it("should listen to the CHANGE of a non-array field", function() {
 			var person = $("#person").part();
 			var eventFired = false;
 			person.name.change(function(){
@@ -113,7 +121,7 @@ Screw.Unit(function() {
 			expect(eventFired).to(be_true);
 		});	
 		
-		it("should listen to the change of an array field", function() {
+		it("should listen to the CHANGE of an array field", function() {
 			var person = $("#person").part();
 			var eventFired = false;
 			person.emails.change(function(){
@@ -123,6 +131,26 @@ Screw.Unit(function() {
 			expect(eventFired).to(be_false);
 			person.emails[0].state("another@my.com");
 			expect(eventFired).to(be_true);
+		});	
+	});
+
+	describe("Adding Field", function() {
+		it("should listen to the ADDING of a field in part", function() {
+			// TODO
+		});	
+		
+		it("should listen to the ADDING of a sub field in an array field", function() {
+			// TODO
+		});	
+	});
+
+	describe("Removing Field", function() {
+		it("should listen to the REMOVING of a field in part", function() {
+			// TODO
+		});	
+		
+		it("should listen to the REMOVING of a sub field in an array field", function() {
+			// TODO
 		});	
 	});
 });
