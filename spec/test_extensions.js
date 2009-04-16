@@ -86,51 +86,6 @@ Screw.Matchers.be_greater_than = {
 
 };
 
-Screw.Matchers.be_expanded = {
-	match: function(expected, actual) {
-		return actual.hasClass("accordionExpanded");
-	},
-	failure_message: function(expected, actual, not) {
-		return 'expected expanded but was not';
-	}
-};
-
-Screw.Matchers.be_collapsed = {
-	match: function(expected, actual) {
-		return !actual.hasClass("accordionExpanded")
-	},
-	failure_message: function(expected, actual, not) {
-		return 'expected collapsed but was not';
-	}
-};
-
-Screw.Matchers.be_not_started = {
-	match: function(expected, actual) {
-		return actual.find(".accordionStatus:first").text() === ev.frontEnd.accordionStatus.notStarted.text;
-	},
-	failure_message: function(expected, actual, not) {
-		return 'expected accordion status to be not started but was ' + actual.find(".accordionStatus:first").text();
-	}
-};
-
-Screw.Matchers.be_completed = {
-	match: function(expected, actual) {
-		return actual.find(".accordionStatus:first").text() === ev.frontEnd.accordionStatus.completed.text;
-	},
-	failure_message: function(expected, actual, not) {
-		return 'expected accordion status to be completed but was ' +  actual.find(".accordionStatus:first").text();
-	}
-};
-
-Screw.Matchers.be_in_progress = {
-	match: function(expected, actual) {
-		return actual.find(".accordionStatus:first").text() === ev.frontEnd.accordionStatus.inProgress.text;
-	},
-	failure_message: function(expected, actual, not) {
-	return 'expected accordion status to be in progress but was ' + actual.find(".accordionStatus:first").text();
-	}
-};
-
 Screw.Matchers.start_with = {
 	match: function(expected, actual) {
 		return actual.substring(0, expected.length) === expected;
