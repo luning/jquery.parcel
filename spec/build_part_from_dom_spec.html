@@ -214,7 +214,7 @@ Screw.Unit(function() {
       expect(person.getNameAndGender()).to(equal, "smith,Female");
     });
 
-    it("should capture initial state after constructor behaviour is applied", function() {
+    it("should capture (initial) state after constructor behaviour is applied", function() {
       function Person(){
         this.name.state("smith");
       };
@@ -247,7 +247,7 @@ Screw.Unit(function() {
       expect(person.helloMessage).to(equal, "hello");
     });
 
-    it("should not affect initial state for behaviour added after construction", function() {
+    it("should not affect (initial) state for behaviour added after construction", function() {
       function Person(){
         this.name.state("smith");
       };
@@ -325,10 +325,10 @@ Screw.Unit(function() {
       expect(person.needUpdateWith({name: "luning"})).to(be_false);
     });
 
-    it("should be able to capture initial state even after construction", function() {
+    it("should be able to capture state even after construction", function() {
       var person = $("#person").part()
               .state({name: "smith"})
-              .captureInitialState()
+              .captureState()
               .resetState();
 
       expect(person.name.state()).to(equal, "smith");

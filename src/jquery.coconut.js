@@ -25,20 +25,20 @@
 
     this.init();
     this.addBehaviour(behaviour);
-    this.captureInitialState();
+    this.captureState();
     this.container.data("linkedPart", this);
   };
 
-  // common field behaviours
+  // applied to all field types(jQuery, Array, Part)
   var fieldMixin = {
+    // determine if field is still in dom tree
     dead: function(){
-      // the performance is OK given this.get() is not supposed to return a lot on the calls from Coconut internally.
-      // only called for jquery field from Coconut internally.
       var context = this.container || $(this.get());
       return context.parents().filter("body").length === 0;
     },
 
-    // target - jquery selector, jquery, field or part which accept state()
+    // change of this field will set state of target with the state of this field
+    // target - jquery selector, jquery, field or part, which have state() method
     bindState: function(target, converter){
       target = typeof(target) === "string" ? $(target) : target;
       var doChange = function(){
@@ -51,8 +51,9 @@
     }
   };
 
-  // for non-jquery field
+  // applied to field types except jQuery (because jQuery already has the functionality)
   var fieldMixinEx = {
+    // similar as change method of jQuery
     change: function(handler){
       // container - part or array field, efficent and conceptually correct
       // this.get() - array field with no specified container. will not hook to the elements added later.
@@ -92,6 +93,7 @@
       }.bind(this));
     },
 
+    // sync with dom changes
     sync: function(element){
       if(element === undefined){ // dom removed
         this.clean();
@@ -100,6 +102,7 @@
       }
     },
 
+    // construct field for jQuery element
     _constructField: function(element) {
       if(element.attr("part") !== undefined) {
         return element.part();
@@ -110,6 +113,8 @@
       }
     },
 
+    // parse fieldtype property specified in dom.
+    // format: "type_of_field,container_selector_of_this_field_optional"
     fieldTypeDef: function(element){
       var def = element.attr("fieldtype");
       if(!def){
@@ -122,7 +127,7 @@
       } else {
         var container;
         if(match[2]){
-          var containerDom = element.parents().filter(match[2])[0];
+          var containerDom = element.closest(match[2])[0];
           if(!containerDom){
             throw "CoconutError: parent container selector [" + match[2] + "] specified in 'fieldtype' property in dom matchs nothing.";
           }
@@ -134,7 +139,10 @@
         };
       }
     },
-    // inferOrder is only for efficency, will add to end by default if not specified. can always be true.
+    
+    // field is an object with format: { name: "fieldName", it: theRealField }, theRealField may be jQuery, array or part.
+    // all fields are stored in this.fields array, and convenient field accessors on this are assigned if applicable(not conflict with existing property)
+    // inferOrder is only for efficency, will add new field to the end of this.fields by default, if not specified. can always be true.
     _addField: function(fieldName, element, inferOrder){
       var field = this._constructField(element);
       var isDirectFieldOfThisPart = true;
@@ -169,6 +177,7 @@
       }
     },
 
+    // infer index of given field based on the occurance sequence in dom
     _suggestedIndex: function(field){
       var all = this.container.find(this.FIELD_SELECTOR);
       var posOfField = all.index(field.get(0));
@@ -193,13 +202,18 @@
       return index;
     },
 
+    // used to determine array field name from name of sub-field
+    // TODO : far from mature, just for simplest cases
     _plural: function(noun){
+      // e.g "hobby" -> "hobbies"
       if(noun.charAt(noun.length - 1) === 'y'){
         return noun.substr(0, noun.length - 1) + "ies";
       }
+      // e.g "contact" -> "contacts"
       return noun + "s";
     },
 
+    // remove fields if the corresponding dom element(s) is(are) no longer in dom tree.
     clean: function(){
       var deadFields = [];
       $.each(this.fields, function(n, field) {
@@ -223,6 +237,7 @@
       }.bind(this));
     },
 
+    // return true if the field is defined by this part
     has: function(fieldName, arrayOrNot){
       var index = this.index(fieldName);
       if(index === -1){
@@ -235,6 +250,7 @@
       }
     },
 
+    // return index of the field
     index: function(fieldName) {
       for(var i = 0; i < this.fields.length; i++){
         if(this.fields[i].name === fieldName){
@@ -250,13 +266,15 @@
         if(!behav){
           return this;
         }
-        eval("behaviour = window." + behav + ";");
+        if(!$.isFunction(window[behav])){
+          throw "CoconutError: behavior[" + behav + "] is not a global function."
+        }
+        behaviour = window[behav];
       }
       behaviour.call(this);
-      // TODO : mixin behaviour this way lose the efficiency of prototype. treat behaviour as the first class constructor??
-      $.each(behaviour.prototype, function(name, value){
-        this[name] = value;
-      }.bind(this));
+      // TODO : mixin behaviour this way lose the efficiency of prototype.
+      // properties defined on this may be overwriten ON PURPOSE
+      $.extend(this, behaviour.prototype);
       return this;
     },
     // fieldDefs = { fieldName1: "selector1", fieldName2: "selector2" }, fields are ordered.
@@ -294,8 +312,8 @@
       }
       return this;
     },
-    // return all dom elements in all fields
-    // index is optional and can only be 0 if provided.
+
+    // similar as get method in jQuery
     get: function(index){
       if(index === undefined){
         var all = [];
@@ -304,11 +322,11 @@
         });
         return all;
       }
-      if(index !== 0){
-        throw "CoconutError: index can only be 0 under current implementation.";
-      }
-      if(this.fields.length > 0){
-        return this.fields[0].it.get(0);
+
+      if(index === 0 && this.fields.length > 0){ // only for the efficiency of getting the first element
+          return this.fields[0].it.get(0);
+      } else {
+        return this.get()[index];
       }
     },
 
@@ -334,7 +352,7 @@
     },
 
     // optional parameter : fieldNames
-    // eg. resetState("field1", "field2", "field3")
+    // e.g. resetState("field1", "field2", "field3")
     resetState: function() {
       if(arguments.length === 0){
         this.state(this.initialState);
@@ -352,11 +370,13 @@
       return this.state(newState);
     },
 
-    captureInitialState: function() {
+    // store current state as initial, used later for state resetting and dirty check
+    captureState: function() {
       this.initialState = this.state();
       return this;
     },
 
+    // check is there any diff between current state and the state passed in
     needUpdateWith: function(state) {
       var thisState = this.state();
       for (var fieldName in thisState) {
@@ -366,7 +386,8 @@
       }
       return false;
     },
-    // does this part contains any dom in element
+    
+    // check if this part contains any dom in element
     contains: function(element){
       var all = this.get();
       return $.grep($(element).get(), function(e){
@@ -463,10 +484,6 @@
         } else if (this.is(":radio")) {
           if (s === null) {
             this.removeAttr("checked").change();
-            var fieldDef = this.data("fieldDef");
-            if (fieldDef && fieldDef.onDeselectAll) {
-              fieldDef.onDeselectAll();
-            }
           } else {
             this.filter("[value=" + s + "]")
               .click()
@@ -518,8 +535,8 @@
 })(jQuery);
 
 Function.prototype.bind = function(context) {
-  var __method = this;
+  var method = this;
   return function() {
-    return __method.apply(context, arguments);
+    return method.apply(context, arguments);
   };
 };
