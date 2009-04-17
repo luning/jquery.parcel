@@ -1,100 +1,100 @@
 <html>
 <head>
-	<title>Field Type Spec</title>
-	<script src="../lib/jquery-1.3.2.js"></script>
-	<script src="screw.unit.dependencies.js"></script>
-	<script src="test_extensions.js"></script>
-	<script src="../src/coconut.js"></script>
+  <title>Field Type Spec</title>
+  <script src="../lib/jquery-1.3.2.js"></script>
+  <script src="screw.unit.dependencies.js"></script>
+  <script src="test_extensions.js"></script>
+  <script src="../src/coconut.js"></script>
 </head>
 <body>
 
 <div id="fixture">
-	<div id="person">
-		<input type="text" value="luning" name="name"></input>
-		<select name="title">
-			<option selected="selected">please select</option>
-			<option>Mr</option>
-			<option>Mrs</option>
-		</select>
-		<div>
-			<input type="radio" value="Male" checked="checked" name="gender">Male</input>
-			<input type="radio" value="Female" name="gender">Female</input>
-		</div>
-		<div part="" name="locality">
-			<input type="text" name="no"></input>
-			<input type="text" name="street"></input>
-		</div>
-		<input type="text" fieldtype="array" value="first@my.com" name="email"></input>
-		<input type="text" value="second@my.com" name="email"></input>
-	</div>
+  <div id="person">
+    <input type="text" value="luning" name="name"></input>
+    <select name="title">
+      <option selected="selected">please select</option>
+      <option>Mr</option>
+      <option>Mrs</option>
+    </select>
+    <div>
+      <input type="radio" value="Male" checked="checked" name="gender">Male</input>
+      <input type="radio" value="Female" name="gender">Female</input>
+    </div>
+    <div part="" name="locality">
+      <input type="text" name="no"></input>
+      <input type="text" name="street"></input>
+    </div>
+    <input type="text" fieldtype="array" value="first@my.com" name="email"></input>
+    <input type="text" value="second@my.com" name="email"></input>
+  </div>
 </div>
-	
+  
 <script type="text/javascript">
 Screw.Unit(function() {
 
-	var fixtureHtml = $("#fixture").html();
+  var fixtureHtml = $("#fixture").html();
 
-	before(function() {
-		$("#fixture").html(fixtureHtml);
-	});
+  before(function() {
+    $("#fixture").html(fixtureHtml);
+  });
 
-	describe("jQuery Field", function() {
-	});
+  describe("jQuery Field", function() {
+  });
 
-	describe("Part Field", function() {
-	});
-	
-	describe("Array Field", function() {
-		it("should get all dom", function() {
-			var f = $.newArrayField();
-			
-			var firstEmail = $("input[name=email]:first");
-			var lastEmail = $("input[name=email]:last");
-			f.push(firstEmail);
-			f.push(lastEmail);
+  describe("Part Field", function() {
+  });
+  
+  describe("Array Field", function() {
+    it("should get all dom", function() {
+      var f = $.newArrayField();
+      
+      var firstEmail = $("input[name=email]:first");
+      var lastEmail = $("input[name=email]:last");
+      f.push(firstEmail);
+      f.push(lastEmail);
 
-			var all = f.get();
-			expect(all.length).to(equal, 2);
-			expect(all[0]).to(equal, firstEmail[0]);
-			expect(all[1]).to(equal, lastEmail[0]);
-		});
+      var all = f.get();
+      expect(all.length).to(equal, 2);
+      expect(all[0]).to(equal, firstEmail[0]);
+      expect(all[1]).to(equal, lastEmail[0]);
+    });
 
-		it("should get first dom", function() {
-			var f = $.newArrayField();
-			
-			var firstEmail = $("input[name=email]:first");
-			f.push(firstEmail);
-			f.push($("input[name=email]:last"));
+    it("should get first dom", function() {
+      var f = $.newArrayField();
+      
+      var firstEmail = $("input[name=email]:first");
+      f.push(firstEmail);
+      f.push($("input[name=email]:last"));
 
-			var first = f.get(0);
-			expect(first).to(equal, firstEmail[0]);
-		});
+      var first = f.get(0);
+      expect(first).to(equal, firstEmail[0]);
+    });
 
-		it("should get state", function() {
-			var f = $.newArrayField();
-			
-			var firstEmail = $("input[name=email]:first");
-			var lastEmail = $("input[name=email]:last");
-			f.push(firstEmail);
-			f.push(lastEmail);
+    it("should get state", function() {
+      var f = $.newArrayField();
+      
+      var firstEmail = $("input[name=email]:first");
+      var lastEmail = $("input[name=email]:last");
+      f.push(firstEmail);
+      f.push(lastEmail);
 
-			expect(f.state()).to(equal_object, ["first@my.com", "second@my.com"]);
-		});
-		
-		it("should set state", function() {
-			var f = $.newArrayField();
-			
-			var firstEmail = $("input[name=email]:first");
-			var lastEmail = $("input[name=email]:last");
-			f.push(firstEmail);
-			f.push(lastEmail);
+      expect(f.state()).to(equal_object, ["first@my.com", "second@my.com"]);
+    });
+    
+    it("should set state", function() {
+      var f = $.newArrayField();
+      
+      var firstEmail = $("input[name=email]:first");
+      var lastEmail = $("input[name=email]:last");
+      f.push(firstEmail);
+      f.push(lastEmail);
 
-			var s = ["first@my.org", "second@my.org"];
-			f.state(s);
-			
-			expect(f.state()).to(equal_object, s);
-		});
-	});
+      var s = ["first@my.org", "second@my.org"];
+      f.state(s);
+      
+      expect(f.state()).to(equal_object, s);
+    });
+  });
 });
 </script>
 </body>

@@ -1,158 +1,158 @@
 <html>
 <head>
-	<title>Events Spec</title>
-	<script src="../lib/jquery-1.3.2.js"></script>
-	<script src="screw.unit.dependencies.js"></script>
-	<script src="test_extensions.js"></script>
-	<script src="../src/coconut.js"></script>
+  <title>Events Spec</title>
+  <script src="../lib/jquery-1.3.2.js"></script>
+  <script src="screw.unit.dependencies.js"></script>
+  <script src="test_extensions.js"></script>
+  <script src="../src/coconut.js"></script>
 </head>
 <body>
 
 <div id="fixture">
-	<div id="person">
-		<input type="text" value="luning" name="name"></input>
-		<input type="text" fieldtype="array" value="luning.tw@gmail.com" name="email"></input>
-	</div>
-	<div id="personDetails">
-		<span id="span">span</span>
-	</div>
+  <div id="person">
+    <input type="text" value="luning" name="name"></input>
+    <input type="text" fieldtype="array" value="luning.tw@gmail.com" name="email"></input>
+  </div>
+  <div id="personDetails">
+    <span id="span">span</span>
+  </div>
 </div>
-	
+  
 <script type="text/javascript">
 Screw.Unit(function() {
 
-	var fixtureHtml = $("#fixture").html();
+  var fixtureHtml = $("#fixture").html();
 
-	before(function() {
-		$("#fixture").html(fixtureHtml);
-	});
+  before(function() {
+    $("#fixture").html(fixtureHtml);
+  });
 
-	describe("Bind State to target", function() {
-		it("should update target if source state changes", function() {
-			var person = $("#person").part();
-			var span = $("#personDetails #span");
-			person.name.bindState(span);
-			
-			person.name.state("smith");
-			expect(span.state()).to(equal, "smith");
-		});	
+  describe("Bind State to target", function() {
+    it("should update target if source state changes", function() {
+      var person = $("#person").part();
+      var span = $("#personDetails #span");
+      person.name.bindState(span);
+      
+      person.name.state("smith");
+      expect(span.state()).to(equal, "smith");
+    }); 
 
-		it("should update target just after setting binding", function() {
-			var person = $("#person").part();
-			var span = $("#personDetails #span");
-			person.name.bindState(span);
+    it("should update target just after setting binding", function() {
+      var person = $("#person").part();
+      var span = $("#personDetails #span");
+      person.name.bindState(span);
 
-			expect(span.state()).to(equal, "luning");
-		});	
-		
-		it("should apply converter while updating state", function() {
-			var person = $("#person").part();
-			var span = $("#personDetails #span");
-			person.name.bindState(span, function(s){
-				return s.toUpperCase();
-			});
+      expect(span.state()).to(equal, "luning");
+    }); 
+    
+    it("should apply converter while updating state", function() {
+      var person = $("#person").part();
+      var span = $("#personDetails #span");
+      person.name.bindState(span, function(s){
+        return s.toUpperCase();
+      });
 
-			expect(span.state()).to(equal, "LUNING");
-		});	
-		
-		it("should bind a compound object state of a part", function() {
-			var person = $("#person").part();
-			var span = $("#personDetails #span");
-			person.bindState(span, function(s){
-				return s.name + ":" + s.emails[0];
-			});
-			
-			person.emails[0].state("another@my.com");
+      expect(span.state()).to(equal, "LUNING");
+    }); 
+    
+    it("should bind a compound object state of a part", function() {
+      var person = $("#person").part();
+      var span = $("#personDetails #span");
+      person.bindState(span, function(s){
+        return s.name + ":" + s.emails[0];
+      });
+      
+      person.emails[0].state("another@my.com");
 
-			expect(span.state()).to(equal, "luning:another@my.com");
-		});	
-		
-		it("should bind state of an array field", function() {
-			var person = $("#person").part();
-			var span = $("#personDetails #span");
-			person.emails.bindState(span, function(s){
-				return "email count is " + s.length;
-			});
-			
-			person.emails[0].state("another@my.com");
+      expect(span.state()).to(equal, "luning:another@my.com");
+    }); 
+    
+    it("should bind state of an array field", function() {
+      var person = $("#person").part();
+      var span = $("#personDetails #span");
+      person.emails.bindState(span, function(s){
+        return "email count is " + s.length;
+      });
+      
+      person.emails[0].state("another@my.com");
 
-			expect(span.state()).to(equal, "email count is 1");
-		});	
-		
-		it("should work after dom element is added dynamicly", function() {
-			// TODO
-		});	
-		
-		it("should work after dom element is added to an array field dynamicly", function() {
-			// TODO
-		});	
+      expect(span.state()).to(equal, "email count is 1");
+    }); 
+    
+    it("should work after dom element is added dynamicly", function() {
+      // TODO
+    }); 
+    
+    it("should work after dom element is added to an array field dynamicly", function() {
+      // TODO
+    }); 
 
-		it("should work after dom element is removed dynamicly", function() {
-			// TODO
-		});	
-		
-		it("should work after dom element is removed from an array field dynamicly", function() {
-			// TODO
-		});	
-	});
+    it("should work after dom element is removed dynamicly", function() {
+      // TODO
+    }); 
+    
+    it("should work after dom element is removed from an array field dynamicly", function() {
+      // TODO
+    }); 
+  });
 
-	describe("Changing in Part", function() {
-		it("should listen to the CHANGE of a part", function() {
-			var person = $("#person").part();
-			var eventFired = false;
-			person.change(function(){
-				eventFired = true;
-			});
-			
-			expect(eventFired).to(be_false);
-			person.name.state("smith");
-			expect(eventFired).to(be_true);
-		});	
+  describe("Changing in Part", function() {
+    it("should listen to the CHANGE of a part", function() {
+      var person = $("#person").part();
+      var eventFired = false;
+      person.change(function(){
+        eventFired = true;
+      });
+      
+      expect(eventFired).to(be_false);
+      person.name.state("smith");
+      expect(eventFired).to(be_true);
+    }); 
 
-		it("should listen to the CHANGE of a non-array field", function() {
-			var person = $("#person").part();
-			var eventFired = false;
-			person.name.change(function(){
-				eventFired = true;
-			});
-			
-			expect(eventFired).to(be_false);
-			person.name.state("smith");
-			expect(eventFired).to(be_true);
-		});	
-		
-		it("should listen to the CHANGE of an array field", function() {
-			var person = $("#person").part();
-			var eventFired = false;
-			person.emails.change(function(){
-				eventFired = true;
-			});
-			
-			expect(eventFired).to(be_false);
-			person.emails[0].state("another@my.com");
-			expect(eventFired).to(be_true);
-		});	
-	});
+    it("should listen to the CHANGE of a non-array field", function() {
+      var person = $("#person").part();
+      var eventFired = false;
+      person.name.change(function(){
+        eventFired = true;
+      });
+      
+      expect(eventFired).to(be_false);
+      person.name.state("smith");
+      expect(eventFired).to(be_true);
+    }); 
+    
+    it("should listen to the CHANGE of an array field", function() {
+      var person = $("#person").part();
+      var eventFired = false;
+      person.emails.change(function(){
+        eventFired = true;
+      });
+      
+      expect(eventFired).to(be_false);
+      person.emails[0].state("another@my.com");
+      expect(eventFired).to(be_true);
+    }); 
+  });
 
-	describe("Adding Field", function() {
-		it("should listen to the ADDING of a field in part", function() {
-			// TODO
-		});	
-		
-		it("should listen to the ADDING of a sub field in an array field", function() {
-			// TODO
-		});	
-	});
+  describe("Adding Field", function() {
+    it("should listen to the ADDING of a field in part", function() {
+      // TODO
+    }); 
+    
+    it("should listen to the ADDING of a sub field in an array field", function() {
+      // TODO
+    }); 
+  });
 
-	describe("Removing Field", function() {
-		it("should listen to the REMOVING of a field in part", function() {
-			// TODO
-		});	
-		
-		it("should listen to the REMOVING of a sub field in an array field", function() {
-			// TODO
-		});	
-	});
+  describe("Removing Field", function() {
+    it("should listen to the REMOVING of a field in part", function() {
+      // TODO
+    }); 
+    
+    it("should listen to the REMOVING of a sub field in an array field", function() {
+      // TODO
+    }); 
+  });
 });
 </script>
 </body>

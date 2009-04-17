@@ -12,5 +12,5 @@ addScriptTag("lib/jquery.print.js");
 document.write("<link rel=\"stylesheet\" type=\"text/css\" href=\"lib/screw.css\"/>");
 
 function addScriptTag(file) {
-	document.write("<script src=\"" + file + "\"></script>");
+  document.write("<script src=\"" + file + "\"></script>");
 }
