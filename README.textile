@@ -1,4 +1,4 @@
-Coconut is a <b>jQuery plugin</b>, it is designed to simplify and guide the <b>Object-Oriented</b> encapsulation of client side Javascript code. It's specially useful when creating complicated <b>Form</b> based app with rich client side logic.
+Coconut is a <b>jQuery plugin</b>, it is designed to simplify and guide the <b>Object-Oriented</b> encapsulation of client side JavaScript code. It's specially useful when creating complicated <b>Form</b> based app with rich client side logic.
 
 h1. Get Started
 
@@ -24,7 +24,7 @@ Then:
 var person = $("#person").part();
 </pre>
 
-Will build a <b>PART</b> representing person with all <b>FIELD</b>s setted up automatically, you can do:
+Will build a <b>PART</b> representing person with all <b>FIELD</b>s set up automatically, you can do:
 
 h3. State and Field Operations
 
@@ -32,19 +32,19 @@ h3. State and Field Operations
 var theName = person.name.state();
 </pre>
 
-theName is "luning". "name" is one field of person, state() will return value of the field, similar as val() on jQuery object.
+_theName_ is _"luning"_. _name_ is one field of person, _state()_ will return value of the field, similar as _val()_ on jQuery object.
 
 <pre>
 person.name.state("smith");
 </pre>
 
-Set state of "name" field to new value, similar as val("smith") on jQuery but with proper events fired as what happens in real user interactions.
+Set state of _name_ field to new value, similar as _val("smith")_ on jQuery but with proper events fired as what happens in real user interactions.
 
 <pre>
 var theState = person.state();
 </pre>
 
-theState is an object { name: "smith", title: "Mr" }, this is the current state of the part.
+_theState_ is an object _{ name: "smith", title: "Mr" }_, this is the current state of the part.
 
 <pre>
 person.state( {name: "jessie", title: "Mrs"} );
@@ -56,13 +56,13 @@ Set new state of person part, with events(e.g. change, blur) fired, which will t
 var dirty = person.isDirty();
 </pre>
 
-dirty is true, since the state of person is changed after initialization.
+_dirty_ is _true_, since the state of person is changed after initialization.
 
 <pre>
 person.resetState();
 </pre>
 
-Set state back to the initial one { name: "luning", title: "Mr" }.
+Set state back to the initial one _{ name: "luning", title: "Mr" }_.
 
 h3. Binding and Event Operations
 
@@ -105,11 +105,11 @@ var person = $("#person").part(Person);
 var summary = person.summary();
 </pre>
 
-Define behavior Person as a function, build part with the behavior, and summary() method is mixed into the part.
+Define behavior _Person_ as a function, build part with the behavior, and _summary()_ method is mixed into the part.
 
-Behavior is actually the place you should arrange custom client side logic about person part.
+_**Behavior is actually the place you should arrange custom client side logic about person part.**_
 
-You can also specify the behavior(function) in Dom element by setting the custom "part" property:
+You can also specify the behavior(function) in Dom element by setting the custom _part_ property:
 
 <pre>
 <div id="person" part="Person">
@@ -128,9 +128,9 @@ Coconut will pick the behavior up and apply it for you automatically.
 
 h3. Build a Composite Part
 
-You are allowed to build a composite part with another part as field by setting up "part" property on any Dom element which can be used as a container.
+You are allowed to build a composite part with another part as field by setting up _part_ property on any Dom element which can be used as a container.
 
-With this dom:
+With this Dom:
 
 <pre>
 <div id="person">
@@ -152,15 +152,15 @@ var contactState = person.contact.state();
 var numberState = person.contact.number.state();
 </pre>
 
-personState is { name: "luning", title: "Mr", contact: {number: "", type: ""} }.
+_personState_ is _{ name: "luning", title: "Mr", contact: {number: "", type: ""} }_.
 
-contactState is {number: "", type: ""}.
+_contactState_ is _{number: "", type: ""}_.
 
-numberState is "".
+_numberState_ is _""_.
 
-Build a part with a field containing an array of sub-fields with the same name (e.g. person may have multiple emails) by setting "fieldtype" property to "array" on Dom element.
+Build a part with a field containing an array of sub-fields with the same name (e.g. person may have multiple emails) by setting _fieldtype_ property to _array_ on Dom element.
 
-With this dom:
+With this Dom:
 
 <pre>
 <div id="person">
@@ -180,17 +180,17 @@ var emailsState = person.emails.state();
 var firstEmailState = person.emails[0].state();
 </pre>
 
-personState is { name: "", title: "Mr", emails: ["a@my.com", "b@my.com"] }.
+_personState_ is _{ name: "", title: "Mr", emails: ["a@my.com", "b@my.com"] }_.
 
-emailsState is ["a@my.com", "b@my.com"].
+_emailsState_ is _["a@my.com", "b@my.com"]_.
 
-firstEmailState is "a@my.com"
+_firstEmailState_ is _"a@my.com"_.
 
 h3. Dynamic Behavior (Sync Between Dom and Part)
 
 Adding Dom element(s) dynamically will add corresponding field(s) as well, any event registered on part works for the newly added field(s).
 
-Given two emails in dom already, then:
+Given two emails in Dom already, then:
 
 <pre>
 var person = $("#person").part();
@@ -202,13 +202,13 @@ newEmail.sync();
 var emailCount = person.emails.length;
 </pre>
 
-emailCount is 3, reflects the added email. 
+_emailCount_ is _3_, reflects the added email. 
 
-Coconut extends jQuery with sync() method, call it after Dom is added.
+Coconut extends jQuery with _sync()_ method, call it after Dom is added.
 
 The same thing happens when removing Dom element(s) from Dom, field(s) will be removed.
 
-Given two emails in dom already, then:
+Given two emails in Dom already, then:
 
 <pre>
 var person = $("#person").part();
@@ -219,9 +219,9 @@ person.sync();
 var emailCount = person.emails.length;
 </pre>
 
-emailCount is 1, reflects the removal.
+_emailCount_ is _1_, reflects the removal.
 
-Call sync() on part after removing dom.
+Call _sync()_ on part after removing Dom.
 
 h1. Rationale
 
