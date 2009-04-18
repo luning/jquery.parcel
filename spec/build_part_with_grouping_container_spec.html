@@ -11,43 +11,18 @@
 <div id="fixture">
   <div id="person">
     <input type="text" value="luning" name="name"></input>
-    <select name="title">
-      <option selected="selected">please select</option>
-      <option>Mr</option>
-      <option>Mrs</option>
-    </select>
-    <div>
-      <input type="radio" value="Male" checked="checked" name="gender">Male</input>
-      <input type="radio" value="Female" name="gender">Female</input>
-    </div>
-    <div part="" name="dob">
-      <select name="day">
+    <div iscontainer="true" name="basicInfo">
+      <select name="title">
         <option selected="selected">please select</option>
-        <option>01</option>
-        <option>02</option>
+        <option>Mr</option>
+        <option>Mrs</option>
       </select>
-      <select name="month">
-        <option selected="selected">please select</option>
-        <option>Jan</option>
-        <option>Feb</option>
-      </select>
-      <select name="year">
-        <option selected="selected">please select</option>
-        <option>1990</option>
-        <option>1991</option>
-      </select>
-    </div>
-    <input id="nationality" type="text" someproperty="nationality"></input>
-    <input id="id_city" type="text" fieldname="city"></input>
-    <div class="emails">
-      <input type="text" fieldtype="array,.emails" value="luning.tw@gmail.com" name="email"></input>
-    </div>
-    <div part="" fieldtype="array" name="contact">
-      <input type="text" name="number"></input>
-      <input type="text" name="type"></input>
+      <div>
+        <input type="radio" value="Male" checked="checked" name="gender">Male</input>
+        <input type="radio" value="Female" name="gender">Female</input>
+      </div>
     </div>
   </div>
-  <input id="randomInput" type="text"></input>
 </div>
 
 <script type="text/javascript">
@@ -59,6 +34,63 @@ Screw.Unit(function() {
     $("#fixture").html(fixtureHtml);
   });
 
+  describe("Build Part with Grouping Container", function() {
+
+    it("should build a jQuery container for dom element if 'iscontainer' property is set to true in dom", function() {
+      var person = $("#person").part();
+
+      expect(person.basicInfo.jquery).to_not(be_undefined);
+    });
+    
+    it("should not build container if name conflicts with existing property of part", function() {
+      $("div[name=basicInfo]").attr("name", "container");
+    
+      try{
+        var person = $("#person").part();
+        expect(true).to(be_false);
+      } catch (ex) {
+        expect(ex.toString()).to(match, "CoconutError");
+      }
+    });  
+    
+    it("should use name specified by 'sname' property in dom", function() {
+      $("div[name=basicInfo]").attr("sname", "extInfo");
+    
+      var person = $("#person").part();
+      
+      expect(person.basicInfo).to(be_undefined);
+      expect(person.extInfo.jquery).to_not(be_undefined);
+    });
+    
+    it("should not build container if can not determine a name for it", function() {
+      $("div[name=basicInfo]").removeAttr("name");
+    
+      try{
+        var person = $("#person").part();
+        expect(true).to(be_false);
+      } catch (ex) {
+        expect(ex.toString()).to(match, "CoconutError");
+      }
+    });
+
+  });
+  
+  describe("Grouping Container", function() {
+
+    it("should reset fields in it", function() {
+      var person = $("#person").part();
+      person.state({ name: "smith", title: "Mr", gender: "Female" });
+      
+      person.basicInfo.resetState();
+      
+      expect(person.title.state()).to(equal, "please select");
+      expect(person.gender.state()).to(equal, "Male");
+      
+      expect(person.name.state()).to(equal, "smith");
+    });
+    
+  });
+  
 });
 </script>
 </body>

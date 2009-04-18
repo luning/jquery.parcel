@@ -38,10 +38,58 @@ Screw.Unit(function() {
     $("#fixture").html(fixtureHtml);
   });
 
-  describe("jQuery Field", function() {
+  describe("jQuery Object", function() {
+
+    it("should know the closest parent part", function() {
+      var person = $("#person").part();
+      
+      var elem = $("#person :radio:first");
+      
+      expect(elem.closestPart()).to(equal, person);
+    });
+    
+    it("should set state of hidden field", function() {
+      var person = $("#person").part();
+      person.name.hide();
+      person.name.state("smith");
+
+      expect(person.name.state()).to(equal, "smith");
+    });
+    
+    it("should reset state of this field in parent part", function() {
+      var person = $("#person").part();
+      person.name.state("smith");
+      person.name.resetState();
+      expect(person.name.state()).to(equal, "luning");
+    });
+
+  });
+  
+  describe("Part Field", function() {
+
+    it("should treat the closest parent part as itself", function() {
+      var person = $("#person").part();
+      
+      expect(person.locality.closestPart()).to(equal, person.locality);
+    });
+    
+    it("should reset state of this part as a field in parent part", function() {
+      var person = $("#person").part();
+      person.locality.state({ no: "290", street: "pitt" });
+      person.locality.resetState();
+      expect(person.locality.state()).to(contain_object, { no: "", street: "" });
+    });
+
   });
 
   describe("Array Field", function() {
+
+    it("should know the closest parent part", function() {
+      var person = $("#person").part();
+      
+      expect(person.emails.closestPart()).to(equal, person);
+    });
+
     it("should get all dom", function() {
       var f = $.newArrayField();
       
@@ -90,6 +138,13 @@ Screw.Unit(function() {
       f.state(s);
       
       expect(f.state()).to(equal_object, s);
+    });
+    
+    it("should reset state of this array as a field in parent part", function() {
+      var person = $("#person").part();
+      person.emails.state([ "1@my.com", "2@my.com" ]);
+      person.emails.resetState();
+      expect(person.emails.state()).to(contain_object, [ "first@my.com", "second@my.com" ]);
     });
   });
 });

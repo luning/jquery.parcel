@@ -81,6 +81,14 @@ Screw.Unit(function() {
       expect($.objectContain({ name: "luning" }, { })).to(be_true);
       expect($.objectContain({ dob: {day: "01", month: "Feb"} }, { dob: {day: "01"} })).to(be_true);
       expect($.objectContain({ dob: {day: "01", month: "Feb"} }, { dob: {month: "Jan"} })).to(be_false);
+    });
+  });
+  
+  describe("Array A contains B", function() {
+    it("requires A start with B", function() {
+      expect($.objectContain([1, 2, 3], [1, 2])).to(be_true);
+      expect($.objectContain([1, 2, 3], [2, 3])).to(be_false);
+      expect($.objectContain([1, 2], [1, 2, 3])).to(be_false);
     });       
   });
 

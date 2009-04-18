@@ -11,6 +11,11 @@
 <div id="fixture">
   <div id="person">
     <input type="text" value="luning" name="name"></input>
+    <input type="radio" value="No" checked="checked" name="marital">No</input>
+    <input type="radio" value="Yes" name="marital">Yes</input>
+    <div iscontainer="true" name="question">
+      <input type="text" name="spouseName"></input>
+    </div>
     <input type="text" fieldtype="array" value="luning.tw@gmail.com" name="email"></input>
   </div>
   <div id="personDetails">
@@ -109,7 +114,7 @@ Screw.Unit(function() {
       expect(eventFired).to(be_true);
     }); 
 
-    it("should listen to the CHANGE of a non-array field", function() {
+    it("should listen to the CHANGE of a jQuery field", function() {
       var person = $("#person").part();
       var eventFired = false;
       person.name.change(function(){
@@ -133,6 +138,46 @@ Screw.Unit(function() {
       expect(eventFired).to(be_true);
     }); 
   });
+  
+  describe("State Changing in Part", function() {
+    it("should listen to the STATE CHANGE of a part", function() {
+      var person = $("#person").part();
+      var eventFired = false;
+      person.stateChange(function(s){
+        eventFired = true;
+        expect(s).to(contain_object, { name: "smith" });
+      });
+      
+      expect(eventFired).to(be_false);
+      person.name.state("smith");
+      expect(eventFired).to(be_true);
+    }); 
+    it("should listen to the STATE CHANGE of a jQuery field", function() {
+      var person = $("#person").part();
+      var eventFired = false;
+      person.name.stateChange(function(s){
+        eventFired = true;
+        expect(s).to(equal, "smith");
+      });
+      
+      expect(eventFired).to(be_false);
+      person.name.state("smith");
+      expect(eventFired).to(be_true);
+    }); 
+    
+    it("should listen to the STATE CHANGE of an array field", function() {
+      var person = $("#person").part();
+      var eventFired = false;
+      person.emails.stateChange(function(s){
+        eventFired = true;
+        expect(s).to(contain_object, ["another@my.com"]);
+      });
+      
+      expect(eventFired).to(be_false);
+      person.emails[0].state("another@my.com");
+      expect(eventFired).to(be_true);
+    });
+  });
 
   describe("Adding Field", function() {
     it("should listen to the ADDING of a field in part", function() {
@@ -152,6 +197,77 @@ Screw.Unit(function() {
     it("should listen to the REMOVING of a sub field in an array field", function() {
       // TODO
     }); 
+  });
+  
+  describe("Show Hide", function() {
+
+    it("should show/hide a grouping container when condition is satisfied", function() {
+      var person = $("#person").part();
+      person.marital.showHide(person.question, "Yes");
+
+      person.marital.state("No");
+      expect(person.question).to_not(be_visible);
+      
+      person.marital.state("Yes");
+      expect(person.question).to(be_visible);
+    }); 
+    
+    it("should do show/hide soon after calling showHide", function() {
+      var person = $("#person").part();
+      person.marital.state("No");
+      person.question.hide();
+
+      person.marital.state("Yes");
+      person.marital.showHide(person.question, "Yes");
+      expect(person.question).to(be_visible);
+    }); 
+    
+    it("should apply a show up callback to showHide", function() {
+      var person = $("#person").part();
+      person.marital.showHide(person.question, function(s){
+              return s === "Yes";
+          });
+
+      person.marital.state("No");
+      expect(person.question).to_not(be_visible);
+      
+      person.marital.state("Yes");
+      expect(person.question).to(be_visible);
+    }); 
+
+    it("should be triggered by a part", function() {
+      var person = $("#person").part();
+      person.showHide(person.question, { marital: "Yes" });
+      
+      person.marital.state("No");
+      expect(person.question).to_not(be_visible);
+      
+      person.marital.state("Yes");
+      expect(person.question).to(be_visible);
+    }); 
+
+    it("should be triggered by an array field", function() {
+      var person = $("#person").part();
+      person.emails.showHide(person.question, ["another@my.com"]);
+      
+      person.emails[0].state("other@my.com");
+      expect(person.question).to_not(be_visible);
+      
+      person.emails[0].state("another@my.com");
+      expect(person.question).to(be_visible);
+    });
+    
+    it("should reset state of target if it becomes hidden", function() {
+      var person = $("#person").part();
+      person.marital.showHide(person.question, "Yes", true);
+
+      person.marital.state("Yes");
+      person.spouseName.state("jessie");
+      
+      person.marital.state("No");
+      expect(person.spouseName.state()).to(equal, "");
+    }); 
+    
   });
 });
 </script>

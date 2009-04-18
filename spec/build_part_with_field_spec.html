@@ -38,7 +38,7 @@
       </select>
     </div>
     <input id="nationality" type="text" someproperty="nationality"></input>
-    <input id="id_city" type="text" fieldname="city"></input>
+    <input id="id_city" type="text" sname="city"></input>
     <div class="emails">
       <input type="text" fieldtype="array,.emails" value="luning.tw@gmail.com" name="email"></input>
     </div>
@@ -94,7 +94,7 @@ Screw.Unit(function() {
       expect(person.nationality.state()).to(equal, "OZ");
     });
 
-    it("should use field name defined by 'fieldname' property in dom", function() {
+    it("should use field name defined by 'sname' property in dom", function() {
       var person = $("#person").part();
       expect(person.hasOwnProperty("id_city")).to(be_false);
 
@@ -245,6 +245,20 @@ Screw.Unit(function() {
       expect(finalState.gender).to(equal, tempState.gender);
       expect(finalState.nationality).to(equal, tempState.nationality);
       expect(finalState.city).to(equal, tempState.city);
+    });
+    
+    it("should reset initial state with fields in a jQuery container", function() {
+      var person = $("#person").part();
+      expect(person.gender.state()).to(equal, "Male");
+
+      var tempState = { name: "josh", title: "Mrs", gender: "Female", nationality: "OZ", city: "sydney" };
+      person.state(tempState);
+
+      person.resetState(person.gender.closest("div")); // the div contains the two gender radios
+
+      expect(person.gender.state()).to(equal, "Male");
+      delete tempState.gender;
+      expect(person.state()).to(contain_object, tempState);
     });
 
     it("should not reset state with non-exist field", function() {

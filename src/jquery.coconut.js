@@ -20,8 +20,8 @@
   // constructor for part
   $.part = function(container, behaviour) {
     this.container = $(container);
-    this.fields = [];
     this.initialState = {};
+    this._fields = [];
 
     this.init();
     this.addBehaviour(behaviour);
@@ -41,13 +41,59 @@
     // target - jquery selector, jquery, field or part, which have state() method
     bindState: function(target, converter){
       target = typeof(target) === "string" ? $(target) : target;
-      var doChange = function(){
-        var s = this.state();
-        target.state( converter ? converter(s) : s );
-      }.bind(this);
+      this.stateChange(function(state){
+        target.state( converter ? converter(state) : state );
+      }).stateChange();
+      return this;
+    },
 
-      this.change(doChange);
-      doChange();
+    // current state will be past to handler as the first parameter. 'this' in handler is the source dom element.
+    // fire event if no handler
+    stateChange: function(handler){
+      var self = this;
+      this.change(handler ? function(){
+          handler.apply(this, [self.state()]);
+        } :
+        handler);
+      return this;
+    },
+    
+    // change of this field(jQuery, part or array) will show/hide target
+    showHide: function(target, showUpStateOrCallback, resetStateIfHidden){
+      var showUp = $.isFunction(showUpStateOrCallback) ? showUpStateOrCallback : function(state){
+          return $.objectContain(state, showUpStateOrCallback);
+        };
+        
+      this.stateChange(function(state){
+        if(showUp(state)){
+          target.show();
+        } else {
+          target.hide();
+          if(resetStateIfHidden){
+            target.resetState();
+          }
+        }
+      }).stateChange();
+    },
+    
+    // a field resets it's state, or an arbitrary jQuery object(container) resets states of fields contained by it.
+    resetState: function(){
+      var part = this.closestPart();
+      if(part){
+        part.resetState(this);
+      }
+      return this;
+    },
+    
+    // find closest parent part
+    closestPart: function(){
+      var all = $(this.get(0)).parents().get();
+      for(var i = 0; i < all.length; i++){
+        var part = $(all[i]).data("linkedPart");
+        if(part){
+          return part;
+        }
+      }
     }
   };
 
@@ -73,19 +119,38 @@
       }.bind(this));
 
       this._buildFields(this.container);
+      this._buildContainers(this.container);
     },
 
+    _buildContainers: function(context){
+      var all = context.filter("[iscontainer=true]")
+            .add(context.find("[iscontainer=true]"))
+            .not(this.container);
+
+      all.each(function(i, dom){
+        var container = $(dom);
+        var containerName = this._name(container);
+        if(!containerName){
+          throw "CoconutError: failed to determine the name of grouping container.";
+        }
+        if(containerName in this){
+          throw "CoconutError: container [" + containerName + "] has name conflict with existing property of part.";
+        }
+        this[containerName] = container;
+      }.bind(this));
+    },
+    
     _buildFields: function(context, inferOrder){
       var all = context.filter(this.FIELD_SELECTOR)
             .add(context.find(this.FIELD_SELECTOR))
             .not(this.container);
 
-      all.each(function(i, e){
-        if(this.contains(e)){
+      all.each(function(i, dom){
+        if(this.contains(dom)){
           return;
         }
-        var element = $(e);
-        var fieldName = element.attr("fieldname") || element.attr("name") || element.attr("id");
+        var element = $(dom);
+        var fieldName = this._name(element);
         if(!fieldName){
           return; // ignore this dom element
         }
@@ -93,6 +158,11 @@
       }.bind(this));
     },
 
+    // infer a name for element
+    _name: function(element){
+      return element.attr("sname") || element.attr("name") || element.attr("id");
+    },
+    
     // sync with dom changes
     sync: function(element){
       if(element === undefined){ // dom removed
@@ -141,8 +211,8 @@
     },
     
     // field is an object with format: { name: "fieldName", it: theRealField }, theRealField may be jQuery, array or part.
-    // all fields are stored in this.fields array, and convenient field accessors on this are assigned if applicable(not conflict with existing property)
-    // inferOrder is only for efficency, will add new field to the end of this.fields by default, if not specified. can always be true.
+    // all fields are stored in this._fields array, and convenient field accessors on this are assigned if applicable(not conflict with existing property)
+    // inferOrder is only for efficency, will add new field to the end of this._fields by default, if not specified. can always be true.
     _addField: function(fieldName, element, inferOrder){
       var field = this._constructField(element);
       var isDirectFieldOfThisPart = true;
@@ -151,7 +221,7 @@
       var fieldTypeDef = this.fieldTypeDef(element);
 
       if(this.has(arrayFieldName, true)){ // add to existing array field
-        this.fields[this.index(arrayFieldName)].it.push(field);
+        this._fields[this.index(arrayFieldName)].it.push(field);
         isDirectFieldOfThisPart = false;
       } else if (fieldTypeDef.type === "array") { // create new array field
         if(this.has(arrayFieldName)){
@@ -172,29 +242,19 @@
       }
 
       if(isDirectFieldOfThisPart){
-        var insertIndex = inferOrder ? this._suggestedIndex(field) : this.fields.length;
-        this.fields.splice(insertIndex, 0, { name: fieldName, it: field });
+        var insertIndex = inferOrder ? this._suggestedIndex(field) : this._fields.length;
+        this._fields.splice(insertIndex, 0, { name: fieldName, it: field });
       }
     },
 
     // infer index of given field based on the occurance sequence in dom
     _suggestedIndex: function(field){
       var all = this.container.find(this.FIELD_SELECTOR);
-      var posOfField = all.index(field.get(0));
-
-      if($.browser.msie && posOfField === -1){
-        var dom = field.get(0);
-        for(var i = 0; i < all.length; i++){
-          if(all[i] == dom){
-            posOfField = i;
-            break;
-          }
-        }
-      }
+      var posOfField = $.indexInArray(field.get(0), all);
 
       var index = 0;
-      for(; index < this.fields.length; index++){
-        var pos = all.index(this.fields[index].it.get(0));
+      for(; index < this._fields.length; index++){
+        var pos = all.index(this._fields[index].it.get(0));
         if(pos > posOfField){
           break;
         }
@@ -216,7 +276,7 @@
     // remove fields if the corresponding dom element(s) is(are) no longer in dom tree.
     clean: function(){
       var deadFields = [];
-      $.each(this.fields, function(n, field) {
+      $.each(this._fields, function(n, field) {
         if(field.it.clean){
           field.it.clean();
         }
@@ -225,9 +285,9 @@
         }
       });
       $.each(deadFields, function(n, deadField){
-        for(var i = 0; i < this.fields.length; i++){
-          if(this.fields[i] === deadField){
-            this.fields.splice(i, 1);
+        for(var i = 0; i < this._fields.length; i++){
+          if(this._fields[i] === deadField){
+            this._fields.splice(i, 1);
             if(this[deadField.name] === deadField.it){
               delete this[deadField.name];
             }
@@ -245,15 +305,15 @@
       } else if (arrayOrNot === undefined) {
         return true;
       } else {
-        var isArray = this.fields[index].it instanceof Array;
+        var isArray = this._fields[index].it instanceof Array;
         return arrayOrNot ? isArray : !isArray ;
       }
     },
 
     // return index of the field
     index: function(fieldName) {
-      for(var i = 0; i < this.fields.length; i++){
-        if(this.fields[i].name === fieldName){
+      for(var i = 0; i < this._fields.length; i++){
+        if(this._fields[i].name === fieldName){
           return i;
         }
       }
@@ -306,9 +366,9 @@
         if(cur < next){
           continue;
         }
-        var nextField = this.fields[next];
-        this.fields.splice(next, 1);
-        this.fields.splice(this.index(arguments[i]) + 1, 0, nextField);
+        var nextField = this._fields[next];
+        this._fields.splice(next, 1);
+        this._fields.splice(this.index(arguments[i]) + 1, 0, nextField);
       }
       return this;
     },
@@ -317,14 +377,14 @@
     get: function(index){
       if(index === undefined){
         var all = [];
-        $.each(this.fields, function(i, field) {
+        $.each(this._fields, function(i, field) {
           all = all.concat(field.it.get());
         });
         return all;
       }
 
-      if(index === 0 && this.fields.length > 0){ // only for the efficiency of getting the first element
-          return this.fields[0].it.get(0);
+      if(index === 0 && this._fields.length > 0){ // only for the efficiency of getting the first element
+          return this._fields[0].it.get(0);
       } else {
         return this.get()[index];
       }
@@ -333,13 +393,13 @@
     state: function(s){
       if(s === undefined){
         var state = {};
-        $.each(this.fields, function(i, field){
+        $.each(this._fields, function(i, field){
           state[field.name] = field.it.state();
         });
         return state;
       }
 
-      $.each(this.fields, function(i, field){
+      $.each(this._fields, function(i, field){
         if(s.hasOwnProperty(field.name)){
           field.it.state(s[field.name]);
         }
@@ -351,23 +411,41 @@
       return !$.objectEqual(this.initialState, this.state());
     },
 
-    // optional parameter : fieldNames
-    // e.g. resetState("field1", "field2", "field3")
+    // optional parameter : fieldNames or container jQuery object(fields contained by it will be reset) or any type of field.
+    // e.g. resetState("field1", "field2", "field3"), resetState($("#dome_div_id")), resetState(part.field)
     resetState: function() {
-      if(arguments.length === 0){
+      if(arguments.length === 0){ // reset all
         this.state(this.initialState);
         return this;
       }
+      
+      var fieldNames = arguments;
+      if(arguments.length === 1 && typeof(arguments[0]) !== "string"){ // a field or a jQuery container
+        fieldNames = this._fieldNames(arguments[0]);
+      }
 
       var newState = {};
-      $.each(arguments, function(i, fieldName){
+      $.each(fieldNames, function(i, fieldName){
         if(!this.initialState.hasOwnProperty(fieldName)){
           throw "CoconutError: reset state with invalid field name.";
         }
         newState[fieldName] = this.initialState[fieldName];
       }.bind(this));
 
-      return this.state(newState);
+      this.state(newState);
+      return this;
+    },
+    
+    // find name(s) of a field, or fields contained by a jQuery object(container)
+    _fieldNames: function(context){
+      var contextDom = context.get(0);
+      var children = $(this._fields).filter(function(){
+        var parents = $(this.it.get(0)).parents().andSelf();
+        return $.indexInArray(contextDom, parents) >= 0;
+      });
+      return $.map(children, function(child){
+        return child.name;
+      });
     },
 
     // store current state as initial, used later for state resetting and dirty check
@@ -525,11 +603,26 @@
     return compare(whole, subset, $.objectContain);
   };
 
+  // return true if no direct property defined in object
   $.objectEmpty = function(o){
     for(var p in o){
       return false;
     }
     return true;
+  };
+  
+  // get index of dom in a dom array(can be jQuery object)
+  $.indexInArray = function(item, array){
+    if($.browser.msie){ // in IE, === will return false even when comparing the same dom, use == instead.
+      for(var i = 0; i < array.length; i++){
+        if(array[i] == item){
+          return i;
+        }
+      }
+      return -1;
+    } else {
+      return $.inArray(item, array);
+    }
   };
 
 })(jQuery);
