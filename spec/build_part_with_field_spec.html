@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>Build Part from Dom Spec</title>
+  <title>Build Part with Field Spec</title>
   <script src="../lib/jquery-1.3.2.js"></script>
   <script src="screw.unit.dependencies.js"></script>
   <script src="test_extensions.js"></script>
@@ -117,6 +117,17 @@ Screw.Unit(function() {
       expect($.isFunction(person.isDirty)).to(be_true);
     });
 
+    it("should capture hidden dom element", function() {
+      // TODO :
+    });
+
+    it("should ignore hidden template dom element", function() {
+      // TODO :
+    });
+  });
+
+  describe("Build Part with Array Type Field", function() {
+
     it("should build field of array type for element if 'fieldtype' property is setted to 'array' in dom", function() {
       var person = $("#person").part();
 
@@ -160,17 +171,9 @@ Screw.Unit(function() {
 
       expect(person.contacts.container).to(be_undefined);
     });
-
-    it("should capture hidden dom element", function() {
-      // TODO :
-    });
-
-    it("should ignore hidden template dom element", function() {
-      // TODO :
-    });
   });
 
-  describe("Build Part with another Part as Field", function() {
+  describe("Build Part with Another Part as Field", function() {
     it("should pick part specified in dom as field of parent part", function() {
       var person = $("#person").part();
       var dobState = {day: "01", month: "Feb", year: "1991"};
@@ -196,69 +199,6 @@ Screw.Unit(function() {
 
       expect(person.dob.description()).to(equal, "01 Feb 1991");
     });
-  });
-
-  describe("Build Part with Behaviour", function() {
-
-    it("should mixin method defined in behaviour", function() {
-      function Person(){};
-      Person.prototype = {
-        getNameAndGender: function(){
-          return this.name.state() + "," + this.gender.state();
-        }
-      };
-
-      var person = $("#person").part(Person);
-      person.state({name:"smith", gender:"Female"});
-
-      expect(person.getNameAndGender()).to(equal, "smith,Female");
-    });
-
-    it("should capture (initial) state after constructor behaviour is applied", function() {
-      function Person(){
-        this.name.state("smith");
-      };
-
-      var person = $("#person").part(Person);
-      person.resetState();
-
-      expect(person.name.state()).to(equal, "smith");
-    });
-
-    it("should pick behaviour specified in dom", function() {
-      $("#person").attr("part", "Person");
-
-      window.Person = function(){
-        this.getSomething = "something";
-      };
-
-      var person = $("#person").part();
-
-      expect(person.getSomething).to(equal, "something");
-    });
-
-    it("should be able to add behaviour after construction", function() {
-      function SayHello(){
-        this.helloMessage = "hello";
-      };
-
-      var person = $("#person").part().addBehaviour(SayHello);
-
-      expect(person.helloMessage).to(equal, "hello");
-    });
-
-    it("should not affect (initial) state for behaviour added after construction", function() {
-      function Person(){
-        this.name.state("smith");
-      };
-
-      var person = $("#person").part()
-              .addBehaviour(Person)
-              .resetState();
-
-      expect(person.name.state()).to(equal, "luning");
-    });
-
   });
 
   describe("State Operations", function() {
@@ -350,184 +290,6 @@ Screw.Unit(function() {
 
     });
 
-  });
-
-  describe("Part Dom Sync", function() {
-    describe("adding dom element dynamicly", function() {
-      it("should add field if applicable", function() {
-        var person = $("#person").part();
-        var edu = $("<input type='text' name='education'></input>");
-        person.title.after(edu);
-        edu.sync();
-
-        person.education.state("college");
-        expect(person.education.state()).to(equal, "college");
-      });
-
-      it("should add field once even if call sync twice", function() {
-        var person = $("#person").part();
-        var edu = $("<input type='text' name='education'></input>");
-        person.title.after(edu);
-        edu.sync();
-        edu.sync();
-
-        person.education.state("college");
-        expect(person.education.state()).to(equal, "college");
-      });
-
-      it("should add field with proper field order", function() {
-        var person = $("#person").part();
-        var edu = $("<input type='text' name='education'></input>");
-        person.title.after(edu);
-        edu.sync();
-
-        expect(person.index("education")).to(equal, person.index("title") + 1);
-      });
-
-      it("should add part type field if applicable, and in correct order", function() {
-        var person = $("#person").part();
-        var edu = $("<div part name='education'><input type='text' name='college'></input></div>");
-        person.title.after(edu);
-        edu.sync();
-
-        person.education.state({college: "UTS"});
-
-        expect(person.education.state()).to(equal_object, {college: "UTS"});
-        expect(person.index("education")).to(equal, person.index("title") + 1);
-      });
-
-      it("should create array field if 'fieldtype' is setted to 'array'", function() {
-        var person = $("#person").part();
-
-        var hobby = $("<input type='text' value='reading' fieldtype='array' name='hobby'></input>");
-        $("#person").append(hobby);
-        hobby.sync();
-
-        expect(person.hobby).to(be_undefined);
-        expect(person.hobbies).to_not(be_undefined);
-        expect(person.hobbies.length).to(equal, 1);
-        expect(person.hobbies[0].state()).to(equal, "reading");
-      });
-
-      it("should add field to array if the name is supposed to be of array type", function() {
-        var person = $("#person").part();
-        expect(person.emails.length).to(equal, 1);
-
-        var anotherEmail = $("<input type='text' value='another@my.com' name='email'></input>");
-        $("#person").append(anotherEmail);
-        anotherEmail.sync();
-
-        expect(person.email).to(be_undefined);
-        expect(person.emails.length).to(equal, 2);
-        expect(person.emails[1].state()).to(equal, "another@my.com");
-      });
-
-      it("should add field to array once even if call sync twice", function() {
-        var person = $("#person").part();
-        expect(person.emails.length).to(equal, 1);
-
-        var anotherEmail = $("<input type='text' value='another@my.com' name='email'></input>");
-        $("#person").append(anotherEmail);
-        anotherEmail.sync();
-        anotherEmail.sync();
-
-        expect(person.email).to(be_undefined);
-        expect(person.emails.length).to(equal, 2);
-      });
-
-      it("should add part type field to array if the name is supposed to be of array type", function() {
-        var person = $("#person").part();
-        expect(person.contacts.length).to(equal, 1);
-
-        var anotherContact = $("<div part='' name='contact'><input type='text' value='111' name='number'></input><input type='text' value='home' name='type'></input></div>");
-        $("#person").append(anotherContact);
-        anotherContact.sync();
-
-        expect(person.contact).to(be_undefined);
-        expect(person.contacts.length).to(equal, 2);
-        expect(person.contacts[1].state()).to(equal_object, {number: "111", type: "home"});
-      });
-
-    });
-
-    describe("removing dom element dynamicly", function() {
-
-      it("should remove field accordingly", function() {
-        var person = $("#person").part();
-        person.container.find("input[name=name]").remove();
-        person.sync();
-
-        expect(person.has("name")).to(be_false);
-        expect(person.name).to(be_undefined);
-      });
-
-      it("should remove item in array field accordingly", function() {
-        var anotherEmail = $("<input type='text' name='email'></input>");
-        $("#person").append(anotherEmail);
-
-        var person = $("#person").part();
-        expect(person.emails.length).to(equal, 2);
-
-        anotherEmail.remove();
-        person.sync();
-
-        expect(person.emails).to_not(be_undefined);
-        expect(person.emails.length).to(equal, 1);
-        expect(person.emails[0].state()).to(equal, "luning.tw@gmail.com");
-      });
-
-      it("should remove the array field associated with no container if it becomes empty", function() {
-        $("#person input[fieldtype='array,.emails']").attr("fieldtype", "array"); // removed container setting
-
-        var person = $("#person").part();
-        expect(person.emails.length).to(equal, 1);
-
-        person.container.find("input[name=email]").remove();
-        person.sync();
-
-        expect(person.has("emails")).to(be_false);
-        expect(person.emails).to(be_undefined);
-      });
-
-      it("should not remove the array field associated with a container even if it becomes empty", function() {
-        var person = $("#person").part();
-        expect(person.emails.length).to(equal, 1);
-
-        person.container.find("input[name=email]").remove();
-        person.sync();
-
-        expect(person.has("emails")).to(be_true);
-        expect(person.emails.length).to(equal, 0);
-      });
-
-      it("should remove part in array field accordingly", function() {
-        var anotherContact = $("<div part='' name='contact'><input type='text' value='111' name='number'></input><input type='text' value='home' name='type'></input></div>");
-        $("#person").append(anotherContact);
-
-        var person = $("#person").part();
-        expect(person.contacts.length).to(equal, 2);
-
-        anotherContact.remove();
-        person.sync();
-
-        expect(person.contacts.length).to(equal, 1);
-        expect(person.contacts[0].state()).to(equal_object, { number: "", type: "" });
-      });
-
-      it("should remove the array field containing parts if it becomes empty", function() {
-        $("#person").append("<div part='' name='contact'><input type='text' value='111' name='number'></input><input type='text' value='home' name='type'></input></div>");
-
-        var person = $("#person").part();
-        expect(person.contacts.length).to(equal, 2);
-
-        $("#person div[name=contact]").remove();
-        person.sync();
-
-        expect(person.has("contacts")).to(be_false);
-        expect(person.contacts).to(be_undefined);
-      });
-
-    });
   });
 
   describe("Field Operations", function() {

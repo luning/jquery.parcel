@@ -1,0 +1,65 @@
+<html>
+<head>
+  <title>Build Part with Grouping Container Spec</title>
+  <script src="../lib/jquery-1.3.2.js"></script>
+  <script src="screw.unit.dependencies.js"></script>
+  <script src="test_extensions.js"></script>
+  <script src="../src/jquery.coconut.js"></script>
+</head>
+<body>
+
+<div id="fixture">
+  <div id="person">
+    <input type="text" value="luning" name="name"></input>
+    <select name="title">
+      <option selected="selected">please select</option>
+      <option>Mr</option>
+      <option>Mrs</option>
+    </select>
+    <div>
+      <input type="radio" value="Male" checked="checked" name="gender">Male</input>
+      <input type="radio" value="Female" name="gender">Female</input>
+    </div>
+    <div part="" name="dob">
+      <select name="day">
+        <option selected="selected">please select</option>
+        <option>01</option>
+        <option>02</option>
+      </select>
+      <select name="month">
+        <option selected="selected">please select</option>
+        <option>Jan</option>
+        <option>Feb</option>
+      </select>
+      <select name="year">
+        <option selected="selected">please select</option>
+        <option>1990</option>
+        <option>1991</option>
+      </select>
+    </div>
+    <input id="nationality" type="text" someproperty="nationality"></input>
+    <input id="id_city" type="text" fieldname="city"></input>
+    <div class="emails">
+      <input type="text" fieldtype="array,.emails" value="luning.tw@gmail.com" name="email"></input>
+    </div>
+    <div part="" fieldtype="array" name="contact">
+      <input type="text" name="number"></input>
+      <input type="text" name="type"></input>
+    </div>
+  </div>
+  <input id="randomInput" type="text"></input>
+</div>
+
+<script type="text/javascript">
+Screw.Unit(function() {
+
+  var fixtureHtml = $("#fixture").html();
+
+  before(function() {
+    $("#fixture").html(fixtureHtml);
+  });
+
+});
+</script>
+</body>
+</html>
