@@ -9,7 +9,7 @@
     * Array: an extended Array containing other fields.
     * Part: a part can be a field as well
   and
-    * Virtual: an extended jQuery object of non inputable dom element, e.g. div or fieldset, it contains other fields and action like a normal field.
+    * Virtual: an extended jQuery object of non inputable dom element, e.g. div or fieldset, it contains other fields and acts like a normal field.
 */ 
  
 ;(function($) {
