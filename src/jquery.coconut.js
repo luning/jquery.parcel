@@ -3,6 +3,15 @@
  * http://www.github.com/luning/coconut
  */
 
+/* 
+  Field is the core concept in Coconut, a field in part can be of type:
+    * jQuery: an extended jQuery object of input, select, checkbox, or radios with the same name, ...
+    * Array: an extended Array containing other fields.
+    * Part: a part can be a field as well
+  and
+    * Virtual: an extended jQuery object of non inputable dom element, e.g. div or fieldset, it contains other fields and action like a normal field.
+*/ 
+ 
 ;(function($) {
   $.fn.extend({
     part: function(behaviour){
@@ -17,20 +26,8 @@
     }
   });
 
-  // constructor for part
-  $.part = function(container, behaviour) {
-    this.container = $(container);
-    this.initialState = {};
-    this._fields = [];
-
-    this.init();
-    this.addBehaviour(behaviour);
-    this.captureState();
-    this.container.data("linkedPart", this);
-  };
-
-  // applied to all field types(jQuery, Array, Part)
-  var fieldMixin = {
+  // applied to all field types(jQuery, Array, Part and Virtual)
+  var commonFieldMixin = {
     // determine if field is still in dom tree
     dead: function(){
       var context = this.container || $(this.get());
@@ -98,7 +95,7 @@
   };
 
   // applied to field types except jQuery (because jQuery already has the functionality)
-  var fieldMixinEx = {
+  var nonJQueryFieldMixin = {
     // similar as change method of jQuery
     change: function(handler){
       // container - part or array field, efficent and conceptually correct
@@ -109,7 +106,118 @@
     }
   };
 
-  $.extend($.part.prototype, fieldMixin, fieldMixinEx, {
+  // applied to array field only
+  var arrayFieldMixin = {
+    get: function(index) {
+      if(index === undefined){
+        var all = [];
+        $.each(this, function(i, field) {
+          all = all.concat(field.get());
+        });
+        return all;
+      }
+      
+      if(index === 0 && this.length > 0){ // only for the efficiency of getting the first element
+        return this[0].get(0);
+      } else {
+        return this.get()[index];
+      }
+    },
+
+    state: function(s) {
+      if(s === undefined){
+        var state = [];
+        $.each(this, function(i, field){
+          state.push(field.state());
+        });
+        return state;
+      }
+
+      $.each(s, function(i, s){
+        if(i < this.length){
+          this[i].state(s);
+        }
+      }.bind(this));
+      return this;
+    },
+
+    clean: function(){
+      var deadIndexex = [];
+      $.each(this, function(i, field) {
+        if(field.clean){
+          field.clean();
+        }
+        if(field.dead()){
+          deadIndexex.push(i);
+        }
+      });
+      deadIndexex.reverse();
+      $.each(deadIndexex, function(i, index){
+        this.splice(index, 1);
+      }.bind(this));
+    }
+  };
+
+  // create an array field
+  $.newArrayField = function(container){
+    var field = [];
+    // initilize this array with implicit parameters
+    for(var i = 1; i < arguments.length; i++){
+      field.push(arguments[i]);
+    }
+    // set prototype to [] does not work in IE, so use this unefficent way to extend Array.
+    return $.extend(field, commonFieldMixin, nonJQueryFieldMixin, arrayFieldMixin, {
+      container: container
+    });
+  };
+
+  // extend jQuery for jQuery field and Virtual field
+  $.extend($.fn, commonFieldMixin, {
+    state: function(s) {
+      if (s === undefined) {
+        if (this.is(":text, select")) {
+          return this.val();
+        } else if(this.is(":radio")) {
+          var checkedRadio = this.filter(":checked");
+          return (checkedRadio.length > 0) ? checkedRadio.val() : null;
+        } else {
+          return this.text();
+        }
+      } else if( s !== this.state() ){
+        if (this.is(":text, select")) {
+          this.focus()
+            .val(s)
+            .change()
+            .blur();
+        } else if (this.is(":radio")) {
+          if (s === null) {
+            this.removeAttr("checked").change();
+          } else {
+            this.filter("[value=" + s + "]")
+              .click()
+              .change();
+          }
+        } else {
+          this.text(s);
+        }
+        return this;
+      }
+    }
+  });
+
+  // constructor for part
+  $.part = function(container, behaviour) {
+    this.container = $(container);
+    this.initialState = {};
+    this._fields = [];
+
+    this.init();
+    this.addBehaviour(behaviour);
+    this.captureState();
+    this.container.data("linkedPart", this);
+  };
+
+  $.extend($.part.prototype, commonFieldMixin, nonJQueryFieldMixin, {
     FIELD_SELECTOR: ":input, [part], [part=]",
 
     init: function(){
@@ -164,11 +272,11 @@
     },
     
     // sync with dom changes
-    sync: function(element){
-      if(element === undefined){ // dom removed
+    sync: function(dom){
+      if(dom === undefined){ // dom removed
         this.clean();
       } else { // dom added
-        this._buildFields($(element), true);
+        this._buildFields($(dom), true);
       }
     },
 
@@ -436,15 +544,15 @@
       return this;
     },
     
-    // find name(s) of a field, or fields contained by a jQuery object(container)
+    // find name(s) of a field, or fields in a virtual field
     _fieldNames: function(context){
       var contextDom = context.get(0);
-      var children = $(this._fields).filter(function(){
+      var fieldsInContext = $(this._fields).filter(function(){
         var parents = $(this.it.get(0)).parents().andSelf();
         return $.indexInArray(contextDom, parents) >= 0;
       });
-      return $.map(children, function(child){
-        return child.name;
+      return $.map(fieldsInContext, function(field){
+        return field.name;
       });
     },
 
@@ -468,110 +576,9 @@
     // check if this part contains any dom in element
     contains: function(element){
       var all = this.get();
-      return $.grep($(element).get(), function(e){
-        return $.inArray(e, all) !== -1;
+      return $.grep($(element).get(), function(dom){
+        return $.indexInArray(dom, all) !== -1;
       }).length > 0;
-    }
-  });
-
-  var arrayFieldPrototype = {
-    get: function(index) {
-      if(index === undefined){
-        var all = [];
-        $.each(this, function(i, field) {
-          all = all.concat(field.get());
-        });
-        return all;
-      }
-      
-      if(index === 0 && this.length > 0){ // only for the efficiency of getting the first element
-        return this[0].get(0);
-      } else {
-        return this.get()[index];
-      }
-    },
-
-    state: function(s) {
-      if(s === undefined){
-        var state = [];
-        $.each(this, function(i, field){
-          state.push(field.state());
-        });
-        return state;
-      }
-
-      $.each(s, function(i, s){
-        if(i < this.length){
-          this[i].state(s);
-        }
-      }.bind(this));
-      return this;
-    },
-
-    clean: function(){
-      var deadIndexex = [];
-      $.each(this, function(i, field) {
-        if(field.clean){
-          field.clean();
-        }
-        if(field.dead()){
-          deadIndexex.push(i);
-        }
-      });
-      deadIndexex.reverse();
-      $.each(deadIndexex, function(i, index){
-        this.splice(index, 1);
-      }.bind(this));
-    }
-  };
-
-  // part field of array type, which may contain an array of other fields.
-  // IE does not work with __proto__, so use this unefficent way to extend Array.
-  // TODO : improve the efficency
-  $.newArrayField = function(container){
-    var result = [];
-
-    for(var i = 1; i < arguments.length; i++){
-      result.push(arguments[i]);
-    }
-
-    $.extend(result, arrayFieldPrototype, fieldMixin, fieldMixinEx, {
-      container: container
-    });
-    return result;
-  };
-
-  // extension for jQuery field type of part
-  $.extend($.fn, fieldMixin, {
-    state: function(s) {
-      if (s === undefined) {
-        if (this.is(":text, select")) {
-          return this.val();
-        } else if(this.is(":radio")) {
-          var checkedRadio = this.filter(":checked");
-          return (checkedRadio.length > 0) ? checkedRadio.val() : null;
-        } else {
-          return this.text();
-        }
-      } else if( s !== this.state() ){
-        if (this.is(":text, select")) {
-          this.focus()
-            .val(s)
-            .change()
-            .blur();
-        } else if (this.is(":radio")) {
-          if (s === null) {
-            this.removeAttr("checked").change();
-          } else {
-            this.filter("[value=" + s + "]")
-              .click()
-              .change();
-          }
-        } else {
-          this.text(s);
-        }
-        return this;
-      }
     }
   });
 
