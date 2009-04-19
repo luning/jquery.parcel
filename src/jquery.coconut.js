@@ -483,11 +483,11 @@
         });
         return all;
       }
-      if(index !== 0){
-        throw "CoconutError: index can only be 0 under current implementation.";
-      }
-      if(this.length > 0){
+      
+      if(index === 0 && this.length > 0){ // only for the efficiency of getting the first element
         return this[0].get(0);
+      } else {
+        return this.get()[index];
       }
     },
 
@@ -591,15 +591,18 @@
   // do value equality check recursively
   // CAUTION: only suitable for tree structured simple object. cycle reference will cause infinite recursion.
   $.objectEqual = function(one, another) {
-    if(!one && another){
-      return $.objectEmpty(another)? true : false;
-    }
-    return compare(one, another, $.objectEqual) && compare(another, one, $.objectEqual);
+    return $.objectContain(one, another) && $.objectContain(another, one);
   };
 
   // do value check recursively
   // CAUTION: only suitable for tree structured simple object. cycle reference will cause infinite recursion.
   $.objectContain = function(whole, subset) {
+    if(!whole && subset){
+      return $.objectEmpty(subset)? true : false;
+    }
+    if(typeof(whole) !== "object" || typeof(subset) !== "object"){
+      return whole === subset;
+    }
     return compare(whole, subset, $.objectContain);
   };
 

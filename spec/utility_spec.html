@@ -1,7 +1,7 @@
 <html>
 
 <head>
-  <title>Part Utility Spec</title>
+  <title>Utility Spec</title>
   <script src="../lib/jquery-1.3.2.js"></script>
   <script src="screw.unit.dependencies.js"></script>
   <script src="test_extensions.js"></script>
@@ -44,6 +44,11 @@ Screw.Unit(function() {
       expect($.objectEqual({ dob: null }, { })).to(be_false);
       expect($.objectEqual({  }, { dob: null })).to(be_false);
     });   
+    
+    it("should ignore property if it's an empty array", function() {
+      expect($.objectEqual({ emails: [] }, { })).to(be_true);
+      expect($.objectEqual({  }, { emails: [] })).to(be_true);
+    });   
 
     it("should ignore property if it's an empty object", function() {
       expect($.objectEqual({ dob: {} }, { })).to(be_true);
@@ -72,26 +77,81 @@ Screw.Unit(function() {
       expect($.objectEqual([1, {name:"lu"}], [1, {name:"lu"}])).to(be_true);
       expect($.objectEqual([1, {name:"lu"}], [1, {name:"smith"}])).to(be_false);
     }); 
+    
+    it("should compare primative types", function() {
+      expect($.objectEqual(1, 1)).to(be_true);
+      expect($.objectEqual("1", "1")).to(be_true);
+      expect($.objectEqual("", "")).to(be_true);
+      
+      expect($.objectEqual("", "1")).to(be_false);
+      expect($.objectEqual("1", "")).to(be_false);
+      expect($.objectEqual("0", 0)).to(be_false);
+      expect($.objectEqual(1, "1")).to(be_false);
+    }); 
+    
+    it("should compare primative type with undefined or null", function() {
+      expect($.objectEqual(0, undefined)).to(be_false);
+      expect($.objectEqual(0, null)).to(be_false);
+      expect($.objectEqual("", undefined)).to(be_false);
+      expect($.objectEqual("", null)).to(be_false);
+
+      expect($.objectEqual(undefined, 0)).to(be_false);
+      expect($.objectEqual(null, 0)).to(be_false);
+      expect($.objectEqual(undefined, "")).to(be_false);
+      expect($.objectEqual(null, "")).to(be_false);
+    }); 
   });
 
-  describe("Object A contains B", function() {
-    it("requires B is a subset of A", function() {
+  describe("A Contains B", function() {
+    it("requires B is a subset of A if they are objects", function() {
       expect($.objectContain({ name: "luning" }, { name: "luning" })).to(be_true);
       expect($.objectContain({ name: "luning" }, { name: "smith"  })).to(be_false);
       expect($.objectContain({ name: "luning" }, { })).to(be_true);
       expect($.objectContain({ dob: {day: "01", month: "Feb"} }, { dob: {day: "01"} })).to(be_true);
       expect($.objectContain({ dob: {day: "01", month: "Feb"} }, { dob: {month: "Jan"} })).to(be_false);
+      expect($.objectContain({ }, { name: "luning" })).to(be_false);
+      expect($.objectContain({ }, { emails: ["1@my.com"] })).to(be_false);
     });
-  });
-  
-  describe("Array A contains B", function() {
-    it("requires A start with B", function() {
+
+    it("should ignore property if it is undefined, an empty object or an empty array", function() {
+      expect($.objectContain({ }, { name: undefined })).to(be_true);
+      expect($.objectContain({ }, { contact: {} })).to(be_true);
+      expect($.objectContain({ }, { emails: [] })).to(be_true);
+    });
+    
+    it("should not ignore property if it is null", function() {
+      expect($.objectContain({ }, { name: null })).to(be_false);
+    });  
+    
+    it("should do equality check for primative types", function() {
+      expect($.objectContain("", "")).to(be_true);
+      expect($.objectContain("1", "1")).to(be_true);
+      expect($.objectContain(1, 1)).to(be_true);
+      
+      expect($.objectContain("q", "")).to(be_false);
+      expect($.objectContain(1, 2)).to(be_false);
+      expect($.objectContain(1, "1")).to(be_false);
+      expect($.objectContain("1", 1)).to(be_false);
+    });
+            
+    it("should check primative type with undefined or null", function() {
+      expect($.objectContain(0, undefined)).to(be_false);
+      expect($.objectContain(0, null)).to(be_false);
+      expect($.objectContain("", undefined)).to(be_false);
+      expect($.objectContain("", null)).to(be_false);
+
+      expect($.objectContain(undefined, 0)).to(be_false);
+      expect($.objectContain(null, 0)).to(be_false);
+      expect($.objectContain(undefined, "")).to(be_false);
+      expect($.objectContain(null, "")).to(be_false);
+    }); 
+
+    it("requires A start with B if they are arrays", function() {
       expect($.objectContain([1, 2, 3], [1, 2])).to(be_true);
       expect($.objectContain([1, 2, 3], [2, 3])).to(be_false);
       expect($.objectContain([1, 2], [1, 2, 3])).to(be_false);
     });       
   });
-
 });
 </script>
 </body>

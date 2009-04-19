@@ -1,0 +1,222 @@
+<html>
+<head>
+  <title>Generic Field Operation Spec</title>
+  <script src="../lib/jquery-1.3.2.js"></script>
+  <script src="screw.unit.dependencies.js"></script>
+  <script src="test_extensions.js"></script>
+  <script src="../src/jquery.coconut.js"></script>
+</head>
+<body>
+
+<div id="fixture">
+  <div id="person">
+    <input type="text" value="luning" name="name"></input>
+    <select name="title">
+      <option selected="selected">please select</option>
+      <option>Mr</option>
+      <option>Mrs</option>
+    </select>
+    <div>
+      <input type="radio" value="Male" checked="checked" name="gender">Male</input>
+      <input type="radio" value="Female" name="gender">Female</input>
+    </div>
+    <div part="" name="dob">
+      <select name="day">
+        <option selected="selected">please select</option>
+        <option>01</option>
+        <option>02</option>
+      </select>
+      <select name="month">
+        <option selected="selected">please select</option>
+        <option>Jan</option>
+        <option>Feb</option>
+      </select>
+      <select name="year">
+        <option selected="selected">please select</option>
+        <option>1990</option>
+        <option>1991</option>
+      </select>
+    </div>
+    <input id="nationality" type="text" someproperty="nationality"></input>
+    <input id="id_city" type="text" sname="city"></input>
+    <div part="" name="locality">
+      <input type="text" name="no"></input>
+      <input type="text" name="street"></input>
+    </div>
+    <div iscontainer="true" name="contactInfo">
+      <div class="emails">
+        <input type="text" fieldtype="array,.emails" value="first@my.com" name="email"></input>
+        <input type="text" value="second@my.com" name="email"></input>
+      </div>
+      <div part="" fieldtype="array" name="contact">
+        <input type="text" name="number"></input>
+        <input type="text" name="type"></input>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+Screw.Unit(function() {
+
+  var fixtureHtml = $("#fixture").html();
+
+  before(function() {
+    $("#fixture").html(fixtureHtml);
+  });
+
+  describe("Get Dom Element", function() {
+    it("of an Array field should get all dom elements of sub fields", function() {
+      var person = $("#person").part();
+      var all = person.emails.get();
+      expect(all.length).to(equal, 2);
+      
+      var twoEmails = $("#person input[name=email]");
+      expect(all[0]).to(equal, twoEmails[0]);
+      expect(all[1]).to(equal, twoEmails[1]);
+    });
+
+    it("of an Array field should get by index", function() {
+      var person = $("#person").part();
+      
+      var twoEmails = $("#person input[name=email]");
+      expect(person.emails.get(0)).to(equal, twoEmails[0]);
+      expect(person.emails.get(1)).to(equal, twoEmails[1]);
+    });
+  });
+
+  describe("State", function() {
+
+    it("of a jQuery should be set even when it is hidden", function() {
+      var person = $("#person").part();
+      person.name.hide();
+      person.name.state("smith");
+
+      expect(person.name.state()).to(equal, "smith");
+    });
+
+    it("of a Part should be got/set", function() {
+      var person = $("#person").part();
+      var state = { name: "josh", title: "Mrs", gender: "Male", nationality: "OZ", city: "sydney" };
+      person.state(state);
+      expect(person.state()).to(contain_object, state);
+    });
+
+    it("of a Part should be got/set", function() {
+      var person = $("#person").part();
+      var dobState = {day: "01", month: "Feb", year: "1991"};
+
+      person.state({ dob: dobState });
+      expect(person.state()).to(contain_object, {dob: dobState});
+    });
+
+    it("of a Part should be got/set by flaten object", function() {
+        // TODO : expect(true).to(be_false);
+    });
+
+    it("of an Array field should be got", function() {
+      var person = $("#person").part();
+      expect(person.emails.state()).to(equal_object, ["first@my.com", "second@my.com"]);
+    });
+    
+    it("of an Array field should be set", function() {
+      var person = $("#person").part();
+      
+      var s = ["first@my.org", "second@my.org"];
+      person.emails.state(s);
+      
+      expect(person.emails.state()).to(equal_object, s);
+    });
+
+  });
+
+  describe("Is Dirty", function() {
+
+    it("of a Part should know if any field is changed after creating the Part", function() {
+      var person = $("#person").part();
+      expect(person.isDirty()).to(be_false);
+
+      person.name.state(person.name.state()); // setting without change
+      expect(person.isDirty()).to(be_false);
+
+      person.name.state("smith");
+      expect(person.isDirty()).to(be_true);
+    });
+    
+  });
+  
+  describe("Need Update State", function() {
+  
+    it("of a Part should know is there any diff between current state and given state", function() {
+      var person = $("#person").part();
+
+      expect(person.needUpdateWith({name: "smith"})).to(be_true);
+      expect(person.needUpdateWith({name: "luning"})).to(be_false);
+    });
+    
+  });
+  
+  describe("Reset State", function() {
+
+    it("on a jQuery field should reset state of it in parent part", function() {
+      var person = $("#person").part();
+      person.name.state("smith");
+      person.name.resetState();
+      expect(person.name.state()).to(equal, "luning");
+    });
+
+    it("on a Part should reset state of it as a field in parent part", function() {
+      var person = $("#person").part();
+      var localityPart = person.locality;
+      
+      localityPart.state({ no: "290", street: "pitt" });
+      localityPart.resetState();
+      expect(localityPart.state()).to(contain_object, { no: "", street: "" });
+    });
+ 
+    it("on an Array field should reset state of it in parent part", function() {
+      var person = $("#person").part();
+      person.emails.state([ "1@my.com", "2@my.com" ]);
+      person.emails.resetState();
+      expect(person.emails.state()).to(contain_object, [ "first@my.com", "second@my.com" ]);
+    });
+    
+    it("on a Virtual field(jQuery container) should reset all fields in it", function() {
+      var person = $("#person").part();
+      person.state({ name: "smith", title: "Mr", emails: ["1@my.com", "2@my.com"], contacts: [{number: "1234", type: "home"}] });
+      
+      person.contactInfo.resetState();
+      
+      console.log(person.state());
+      expect(person.state()).to(contain_object, { emails: ["first@my.com", "second@my.com"], contacts: [{number: "", type: ""}] });
+      
+      expect(person.name.state()).to(equal, "smith");
+      expect(person.title.state()).to(equal, "Mr");
+    });
+
+  });
+  
+  describe("Closest Part", function() {
+
+    it("of a jQuery should be the closest parent part", function() {
+      var person = $("#person").part();
+      
+      var elem = $("#person :radio:first");
+      expect(elem.closestPart()).to(equal, person);
+    });
+
+    it("of a Part should be itself", function() {
+      var person = $("#person").part();
+      expect(person.locality.closestPart()).to(equal, person.locality);
+    });
+
+    it("of an Array field should be the closest parent part", function() {
+      var person = $("#person").part();
+      expect(person.emails.closestPart()).to(equal, person);
+    });
+  });
+  
+});
+</script>
+</body>
+</html>
