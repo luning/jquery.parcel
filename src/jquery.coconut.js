@@ -55,12 +55,13 @@
       return this;
     },
     
-    // change of this field(jQuery, part or array) will show/hide target
+    // change of this field(jQuery, part or array) will show/hide target, which is a jQuery or selector
     showHide: function(target, showUpStateOrCallback, resetStateIfHidden){
       var showUp = $.isFunction(showUpStateOrCallback) ? showUpStateOrCallback : function(state){
           return $.objectContain(state, showUpStateOrCallback);
         };
         
+      target = $(target);
       this.stateChange(function(state){
         if(showUp(state)){
           target.show();
@@ -175,7 +176,14 @@
   $.extend($.fn, commonFieldMixin, {
     state: function(s) {
       if (s === undefined) {
-        if (this.is(":text, select")) {
+        if(this.is("div, fieldset")){
+          var part = this.closestPart();
+          if(part){
+            return part.getState(this);
+          } else {
+            return this.val();
+          }
+        } else if (this.is(":text, select")) {
           return this.val();
         } else if(this.is(":radio")) {
           var checkedRadio = this.filter(":checked");
@@ -183,22 +191,31 @@
         } else {
           return this.text();
         }
-      } else if( s !== this.state() ){
-        if (this.is(":text, select")) {
-          this.focus()
-            .val(s)
-            .change()
-            .blur();
-        } else if (this.is(":radio")) {
-          if (s === null) {
-            this.removeAttr("checked").change();
+      } else {
+        if(this.is("div, fieldset")){
+          var part = this.closestPart();
+          if(part){
+            part.setState(s, this);
           } else {
-            this.filter("[value=" + s + "]")
-              .click()
-              .change();
+            this.val(s);
           }
-        } else {
-          this.text(s);
+        } else if( s !== this.state() ){
+          if (this.is(":text, select")) {
+            this.focus()
+              .val(s)
+              .change()
+              .blur();
+          } else if (this.is(":radio")) {
+            if (s === null) {
+              this.removeAttr("checked").change();
+            } else {
+              this.filter("[value=" + s + "]")
+                .click()
+                .change();
+            }
+          } else {
+            this.text(s);
+          }
         }
         return this;
       }
@@ -231,8 +248,8 @@
     },
 
     _buildContainers: function(context){
-      var all = context.filter("[iscontainer=true]")
-            .add(context.find("[iscontainer=true]"))
+      var all = context.filter("[fieldtype=virtual]")
+            .add(context.find("[fieldtype=virtual]"))
             .not(this.container);
 
       all.each(function(i, dom){
@@ -268,7 +285,7 @@
 
     // infer a name for element
     _name: function(element){
-      return element.attr("sname") || element.attr("name") || element.attr("id");
+      return element.attr("fieldname") || element.attr("name") || element.attr("id");
     },
     
     // sync with dom changes
@@ -417,7 +434,7 @@
         return arrayOrNot ? isArray : !isArray ;
       }
     },
-
+   
     // return index of the field
     index: function(fieldName) {
       for(var i = 0; i < this._fields.length; i++){
@@ -500,14 +517,22 @@
 
     state: function(s){
       if(s === undefined){
-        var state = {};
-        $.each(this._fields, function(i, field){
-          state[field.name] = field.it.state();
-        });
-        return state;
+        return this.getState();
       }
-
-      $.each(this._fields, function(i, field){
+      this.setState(s);
+      return this;
+    },
+    
+    getState: function(context){
+      var state = {};
+      $.each(this._findFields(context), function(i, field){
+        state[field.name] = field.it.state();
+      });
+      return state;
+    },
+    
+    setState: function(s, context){
+      $.each(this._findFields(context), function(i, field){
         if(s.hasOwnProperty(field.name)){
           field.it.state(s[field.name]);
         }
@@ -529,7 +554,7 @@
       
       var fieldNames = arguments;
       if(arguments.length === 1 && typeof(arguments[0]) !== "string"){ // a field or a jQuery container
-        fieldNames = this._fieldNames(arguments[0]);
+        fieldNames = this._findFieldNames(arguments[0]);
       }
 
       var newState = {};
@@ -544,16 +569,24 @@
       return this;
     },
     
-    // find name(s) of a field, or fields in a virtual field
-    _fieldNames: function(context){
-      var contextDom = context.get(0);
-      var fieldsInContext = $(this._fields).filter(function(){
-        var parents = $(this.it.get(0)).parents().andSelf();
-        return $.indexInArray(contextDom, parents) >= 0;
-      });
-      return $.map(fieldsInContext, function(field){
+    // find names of fields in context
+    _findFieldNames: function(context){
+      return $.map(this._findFields(context), function(field){
         return field.name;
       });
+    },
+
+    // find fields in context
+    _findFields: function(context){
+      if(context){
+        var contextDom = context.get(0);
+        return $(this._fields).filter(function(){
+          var parents = $(this.it.get(0)).parents().andSelf();
+          return $.indexInArray(contextDom, parents) >= 0;
+        }).get();
+      } else {
+        return $.makeArray(this._fields);
+      }
     },
 
     // store current state as initial, used later for state resetting and dirty check

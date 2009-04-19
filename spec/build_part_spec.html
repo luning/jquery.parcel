@@ -38,8 +38,8 @@
       </select>
     </div>
     <input id="nationality" type="text" someproperty="nationality"></input>
-    <input id="id_city" type="text" sname="city"></input>
-    <div iscontainer="true" name="contactInfo">
+    <input id="id_city" type="text" fieldname="city"></input>
+    <div fieldtype="virtual" name="contactInfo">
       <div class="emails">
         <input type="text" fieldtype="array,.emails" value="luning.tw@gmail.com" name="email"></input>
       </div>
@@ -176,7 +176,7 @@ Screw.Unit(function() {
       expect(person.nationality.state()).to(equal, "OZ");
     });
 
-    it("should use field name defined by 'sname' property in dom", function() {
+    it("should use field name defined by 'fieldname' property in dom", function() {
       var person = $("#person").part();
       expect(person.hasOwnProperty("id_city")).to(be_false);
 
@@ -210,7 +210,7 @@ Screw.Unit(function() {
   
   describe("Build with Virtual Field", function() {
 
-    it("should build a jQuery container(virtual field) for dom element if 'iscontainer' property is set to true in dom", function() {
+    it("should build a jQuery container(virtual field) for dom element if 'fieldtype' property is 'virtual' in dom", function() {
       var person = $("#person").part();
 
       expect(person.contactInfo.jquery).to_not(be_undefined);
@@ -227,8 +227,8 @@ Screw.Unit(function() {
       }
     });  
     
-    it("should use name specified by 'sname' property in dom", function() {
-      $("div[name=contactInfo]").attr("sname", "extInfo");
+    it("should use name specified by 'fieldname' property in dom", function() {
+      $("div[name=contactInfo]").attr("fieldname", "extInfo");
     
       var person = $("#person").part();
       

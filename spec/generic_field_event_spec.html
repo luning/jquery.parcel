@@ -13,7 +13,7 @@
     <input type="text" value="luning" name="name"></input>
     <input type="radio" value="No" checked="checked" name="marital">No</input>
     <input type="radio" value="Yes" name="marital">Yes</input>
-    <div iscontainer="true" name="question">
+    <div fieldtype="virtual" name="spouseInfo">
       <input type="text" name="spouseName"></input>
     </div>
     <input type="text" fieldtype="array" value="luning.tw@gmail.com" name="email"></input>
@@ -83,6 +83,18 @@ Screw.Unit(function() {
       expect(span.state()).to(equal, "email count is 1");
     }); 
     
+    it("should update target if source Virtual field state changes", function() {
+      var person = $("#person").part();
+      var span = $("#personDetails #span");
+      person.spouseInfo.bindState(span, function(s){
+        return s.spouseName;
+      });
+      
+      person.spouseName.state("jessie");
+
+      expect(span.state()).to(equal, "jessie");
+    }); 
+    
     it("should work after dom element is added dynamicly", function() {
       // TODO
     }); 
@@ -136,6 +148,18 @@ Screw.Unit(function() {
       person.emails[0].state("another@my.com");
       expect(eventFired).to(be_true);
     }); 
+    
+    it("should listen event on a Virtual field", function() {
+      var person = $("#person").part();
+      var eventFired = false;
+      person.spouseInfo.change(function(){
+        eventFired = true;
+      });
+      
+      expect(eventFired).to(be_false);
+      person.spouseName.state("jessie");
+      expect(eventFired).to(be_true);
+    }); 
   });
   
   describe("State Change", function() {
@@ -170,11 +194,24 @@ Screw.Unit(function() {
       var eventFired = false;
       person.emails.stateChange(function(s){
         eventFired = true;
-        expect(s).to(contain_object, ["another@my.com"]);
+        expect(s).to(equal_object, ["another@my.com"]);
       });
       
       expect(eventFired).to(be_false);
       person.emails[0].state("another@my.com");
+      expect(eventFired).to(be_true);
+    });
+    
+    it("should listen event on a Virtual field", function() {
+      var person = $("#person").part();
+      var eventFired = false;
+      person.spouseInfo.stateChange(function(s){
+        eventFired = true;
+        expect(s).to(equal_object, { spouseName: "jessie" });
+      });
+      
+      expect(eventFired).to(be_false);
+      person.spouseName.state("jessie");
       expect(eventFired).to(be_true);
     });
   });
@@ -183,63 +220,74 @@ Screw.Unit(function() {
 
     it("should show/hide a jQuery container(virtual field) when condition is satisfied", function() {
       var person = $("#person").part();
-      person.marital.showHide(person.question, "Yes");
+      person.marital.showHide(person.spouseInfo, "Yes");
 
       person.marital.state("No");
-      expect(person.question).to_not(be_visible);
+      expect(person.spouseInfo).to_not(be_visible);
       
       person.marital.state("Yes");
-      expect(person.question).to(be_visible);
+      expect(person.spouseInfo).to(be_visible);
     }); 
     
     it("should do show/hide soon after calling showHide", function() {
       var person = $("#person").part();
       person.marital.state("No");
-      person.question.hide();
+      person.spouseInfo.hide();
 
       person.marital.state("Yes");
-      person.marital.showHide(person.question, "Yes");
-      expect(person.question).to(be_visible);
+      person.marital.showHide(person.spouseInfo, "Yes");
+      expect(person.spouseInfo).to(be_visible);
     }); 
     
     it("should apply a show up checking callback to showHide", function() {
       var person = $("#person").part();
-      person.marital.showHide(person.question, function(s){
+      person.marital.showHide(person.spouseInfo, function(s){
               return s === "Yes";
           });
 
       person.marital.state("No");
-      expect(person.question).to_not(be_visible);
+      expect(person.spouseInfo).to_not(be_visible);
       
       person.marital.state("Yes");
-      expect(person.question).to(be_visible);
+      expect(person.spouseInfo).to(be_visible);
     }); 
 
     it("should be triggered by a Part", function() {
       var person = $("#person").part();
-      person.showHide(person.question, { marital: "Yes" });
+      person.showHide(person.spouseInfo, { marital: "Yes" });
       
       person.marital.state("No");
-      expect(person.question).to_not(be_visible);
+      expect(person.spouseInfo).to_not(be_visible);
       
       person.marital.state("Yes");
-      expect(person.question).to(be_visible);
+      expect(person.spouseInfo).to(be_visible);
     }); 
 
     it("should be triggered by an Array field", function() {
       var person = $("#person").part();
-      person.emails.showHide(person.question, ["another@my.com"]);
+      person.emails.showHide(person.spouseInfo, ["another@my.com"]);
       
       person.emails[0].state("other@my.com");
-      expect(person.question).to_not(be_visible);
+      expect(person.spouseInfo).to_not(be_visible);
       
       person.emails[0].state("another@my.com");
-      expect(person.question).to(be_visible);
+      expect(person.spouseInfo).to(be_visible);
+    });
+    
+    it("should be triggered by a Virtual field", function() {
+      var person = $("#person").part();
+      person.spouseInfo.showHide("#personDetails", { spouseName: "jessie" });
+      
+      person.spouseName.state("mary");
+      expect($("#personDetails")).to_not(be_visible);
+      
+      person.spouseName.state("jessie");
+      expect($("#personDetails")).to(be_visible);
     });
     
     it("should reset state of target if it becomes hidden", function() {
       var person = $("#person").part();
-      person.marital.showHide(person.question, "Yes", true);
+      person.marital.showHide(person.spouseInfo, "Yes", true);
 
       person.marital.state("Yes");
       person.spouseName.state("jessie");

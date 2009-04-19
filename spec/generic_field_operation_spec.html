@@ -38,12 +38,12 @@
       </select>
     </div>
     <input id="nationality" type="text" someproperty="nationality"></input>
-    <input id="id_city" type="text" sname="city"></input>
+    <input id="id_city" type="text" fieldname="city"></input>
     <div part="" name="locality">
       <input type="text" name="no"></input>
       <input type="text" name="street"></input>
     </div>
-    <div iscontainer="true" name="contactInfo">
+    <div fieldtype="virtual" name="contactInfo">
       <div class="emails">
         <input type="text" fieldtype="array,.emails" value="first@my.com" name="email"></input>
         <input type="text" value="second@my.com" name="email"></input>
@@ -126,6 +126,21 @@ Screw.Unit(function() {
       person.emails.state(s);
       
       expect(person.emails.state()).to(equal_object, s);
+    });
+
+    it("of Virtual field should be got", function() {
+      var person = $("#person").part();
+      
+      expect(person.contactInfo.state()).to(equal_object, { emails: ["first@my.com", "second@my.com"], contacts: [{number: "", type: ""}] });
+    });
+    
+    it("of Virtual field should be set", function() {
+      var person = $("#person").part();
+      
+      var s = { emails: ["1@my.com", "2@my.com"], contacts: [{number: "1234", type: "home"}] };
+      person.contactInfo.state(s);
+      
+      expect(person.state()).to(contain_object, s);
     });
 
   });
