@@ -1,6 +1,6 @@
-Coconut is a *jQuery plugin* designed to simplify working with complex forms. It provides an *Object-Oriented* encapsulation of forms and their field groups using a straighforward declarative syntax. It enables some very powerful ways for decomposing forms into conceptual parts, and provides meaningful abstractions for these parts.
+h1. Coconut
 
-h1. Get Started
+Coconut is a *jQuery plugin* designed to simplify working with complex forms. It provides an *Object-Oriented* encapsulation of forms and their field groups using a straighforward declarative syntax. It enables some very powerful ways for decomposing forms into conceptual parts, and provides meaningful abstractions for these parts.
 
 h2. Two Minute Tour
 
@@ -19,15 +19,15 @@ Given an HTML snippet:
   </div>
 </pre>
 
-Then you create a *part* like this:
+You create a *part* like this:
 
 <pre>
   var person = $("#person").part();
 </pre>
 
-This builds a *part* representing _person_ with all *fields* set up automatically from their *name* attribute of the input field.
+This builds a *part* representing @person@ with all *fields* set up automatically from their *name* attribute of the input field.
 
-The fields are actually jQuery wrappers of each input in the *part*.
+(The fields are actually jQuery wrappers of each form field element in the specified *part*)
 
 <pre>
   person.title;
@@ -38,20 +38,20 @@ The fields are actually jQuery wrappers of each input in the *part*.
 
 h3. State and Field Operations
 
-_firstname_ is a person field and calling _state()_ will simply return the field value, just like _val()_ on a jQuery object.
+@firstname@ is a person field and calling @state()@ will simply return the field value, just like @val()@ on a jQuery object.
 
 <pre>
   person.firstname.state();
   #=> "Jane"
 </pre>
 
-To change _firstname_ to new value, just pass the value into the _state()_ method. 
+To change @firstname@ to new value, just pass the value into the @state()@ method. 
 
 <pre>
   person.firstname.state("John");
 </pre>
 
-This is just like _person.firstname.val("John")_ in jQuery, but with the appropriate events are fired as if a real user typed the value into the field.
+This is just like @person.firstname.val("John")@ in jQuery, but with the appropriate events are fired as if a real user typed the value into the field.
 
 Setting the values of the entire person part is just as easy!
 
@@ -61,14 +61,14 @@ Setting the values of the entire person part is just as easy!
 
 Remember that all the user events get fired (ie. change, blur, click, etc).
 
-Calling _state()_ on the person part simply returns the current state of the part as an object:
+Calling @state()@ on the person part simply returns the current state of the part as an object:
 
 <pre>
   person.state();
   #=> { title: "Mr", firstname: "John", lastname: "Smith"}
 </pre>
 
-You can tell if the state has changed with _isDirty()_:
+You can tell if the state has changed with @isDirty()@:
 
 <pre>
   person.isDirty();
@@ -77,7 +77,7 @@ You can tell if the state has changed with _isDirty()_:
 
 Person is flagged as dirty, since the state of person has been changed since initialization.
 
-Set the original state to the part with _resetState()_
+Set the original state to the part with @resetState()@
 
 <pre>
   person.resetState();
@@ -85,52 +85,56 @@ Set the original state to the part with _resetState()_
 </pre>
 
 
-h3. Binding and Event Operations
+h3. Showing the field values somewhere else
+
+Let's say you want to have a @label@ element update with changes in the value of a field. Use the @bindState()@ method passing in the CSS selector:
 
 <pre>
-  person.name.bindState("#id_of_a_label");
+  person.firstname.bindState("#first_name_label");
 </pre>
 
-Any change of name will update the value of target label specified by jQuery selector.
+Now any change of @firstname@ will update the value of the label you specified.
+
+But what if you wanted a single label to reflect all of the fields? Simply pass a transformation function as the second argument to @bindState()@ like so. The state will be passed in as a parameter to this function so you can easily extract what you need.
 
 <pre>
-  person.bindState("#id_of_summary_span", function(s){
-      return "summary: " + s.title + " " + s.name + " (" + s.gender + ")";
+  person.bindState("#id_of_summary_span", function(s) {
+    return s.title + " " + s.firstname + " " + s.lastname;
   });
 </pre>
 
-Any field change in person will update the summary span by applying a converter function.
+Any changes to person fields will now update the summary span using the specified transformation function.
 
 <pre>
-  person.name.change(function(){ /* custom logic */});
-  person.change(function(){ /* custom logic */});
+  person.firstname.change(function() { /* custom logic */});
+  person.change(function() { /* custom logic */});
 </pre>
 
-Change of field or person part will trigger custom handlers.
+Change of the @firstname@ field or @person@ part will trigger the custom handlers.
 
 h2. Learn More
 
 h3. Mixin Behaviors
 
-You can extend part by mixing in behavior(s).
+You can extend a part by mixing in new behaviour.
 
 <pre>
-  function Person(){
-      this.summary = function(){
-          var s = this.state();
-          return s.title + " " + s.name + " (" + s.gender + ")";
-      }
+  function Person() {
+    this.summary = function() {
+      var s = this.state();
+      return s.title + " " + s.firstname + " " + s.lastname;
+    }
   }
 
   var person = $("#person").part(Person);
-  var summary = person.summary();
+  person.summary();
 </pre>
 
-Define behavior _Person_ as a function, build part with the behavior, and _summary()_ method is mixed into the part.
+Define behaviour @Person@ as a function, build part with the behaviour, and the @summary()@ method will be mixed into the part.
 
-_**Behavior is actually the place you should arrange custom client side logic about person part.**_
+_**Behaviour mixins are the recommended way to include custom logic for a specific part.**_
 
-You can also specify the behavior(function) in Dom element by setting the custom _part_ property:
+You can also specify the behaviour function in the containing DOM element by supplying a @part@ attribute:
 
 <pre>
   <div id="person" part="Person">
@@ -142,23 +146,23 @@ Then:
 
 <pre>
   var person = $("#person").part();
-  var summary = person.summary();
+  person.summary();
 </pre>
 
-Coconut will pick the behavior up and apply it for you automatically.
+Coconut will mixin the @Person@ behaviour for you automatically.
 
-h3. Build a Composite Part
+h3. Building Composite Parts
 
-You are allowed to build a composite part with another part as field by setting up _part_ property on any Dom element which can be used as a container.
+You can build a composite part with another part as field by setting up @part@ property on any DOM element which can be used as a container (typically _div_s, _fieldset_s, etc).
 
-With this Dom:
+With this HTML:
 
 <pre>
   <div id="person">
     ...
     <div part="" name="contact">
-      <input type="text" name="number"/>
-      <input type="text" name="type"/>
+      <input type="text" name="number" value="+61 2 9555 0123" />
+      <input type="text" name="type" value="work" />
     </div>
   </div>
 </pre>
@@ -167,27 +171,24 @@ Then:
 
 <pre>
   var person = $("#person").part();
-  
-  var personState = person.state();
-  var contactState = person.contact.state();
-  var numberState = person.contact.number.state();
+
+  person.state();  #=> { title: "Mr", firstname: "John", lastname: "Smith", contact: { number: "+61 2 9555 0123", type: "work" } }
+
+  person.contact.state();  #=> { number: "+61 2 9555 0123", type: "work" }
+
+  person.contact.number.state();  #=> "+61 2 9555 0123"
 </pre>
 
-_personState_ is _{ name: "luning", title: "Mr", contact: {number: "", type: ""} }_.
 
-_contactState_ is _{number: "", type: ""}_.
+Build a part with a field containing an array of sub-fields with the same name (e.g. person may have multiple emails) by setting @fieldtype@ property to @array@ on the first field element.
 
-_numberState_ is _""_.
-
-Build a part with a field containing an array of sub-fields with the same name (e.g. person may have multiple emails) by setting _fieldtype_ property to _array_ on Dom element.
-
-With this Dom:
+Given this HTML:
 
 <pre>
   <div id="person">
     ...
-    <input type="text" fieldtype="array" value="a@my.com" name="email"/>
-    <input type="text" value="b@my.com" name="email"/>
+    <input type="text" name="email" fieldtype="array" value="a@my.com" />
+    <input type="text" name="email" value="b@my.com" />
   </div>
 </pre>
 
@@ -196,22 +197,19 @@ Then:
 <pre>
   var person = $("#person").part();
 
-  var personState = person.state();
-  var emailsState = person.emails.state();
-  var firstEmailState = person.emails[0].state();
+  person.state();  #=> { title: "Mr", firstname: "John", lastname: "Smith", emails: ["a@my.com", "b@my.com"] }
+
+  person.emails.state();  #=> ["a@my.com", "b@my.com"]
+
+  person.emails[0].state();  #=> "a@my.com"
 </pre>
 
-_personState_ is _{ name: "", title: "Mr", emails: ["a@my.com", "b@my.com"] }_.
 
-_emailsState_ is _["a@my.com", "b@my.com"]_.
+h3. Dynamic Behaviour (Syncing between the DOM and the Part)
 
-_firstEmailState_ is _"a@my.com"_.
+Adding a new DOM element dynamically will add the corresponding field. Any event registered on a part works for the newly added field too. (Pretty much like jQuery live events).
 
-h3. Dynamic Behavior (Sync Between Dom and Part)
-
-Adding Dom element(s) dynamically will add corresponding field(s) as well, any event registered on part works for the newly added field(s).
-
-Given two emails in Dom already, then:
+Given two emails in the DOM already, then:
 
 <pre>
   var person = $("#person").part();
@@ -223,13 +221,13 @@ Given two emails in Dom already, then:
   var emailCount = person.emails.length;
 </pre>
 
-_emailCount_ is _3_, reflects the added email. 
+@emailCount@ is @3@, reflects the added email. 
 
-Coconut extends jQuery with _sync()_ method, call it after Dom is added.
+*Coconut* extends jQuery with the @sync()@ method. Just call it after the new elements are added.
 
-The same thing happens when removing Dom element(s) from Dom, field(s) will be removed.
+The same thing happens when removing DOM elements, the fields will be removed.
 
-Given two emails in Dom already, then:
+Say we have two emails in the DOM already, and we remove the last one:
 
 <pre>
   var person = $("#person").part();
@@ -240,9 +238,9 @@ Given two emails in Dom already, then:
   var emailCount = person.emails.length;
 </pre>
 
-_emailCount_ is _1_, reflects the removal.
+@emailCount@ is now @1@, reflecting the removal.
 
-Call _sync()_ on part after removing Dom.
+Call @sync()@ on a part after removing DOM elements.
 
 h1. Rationale
 
