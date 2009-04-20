@@ -6,7 +6,7 @@ h2. Two Minute Tour
 
 h3. Build a Part
 
-Given partial page as below:
+Given an HTML snippet:
 
 <pre>
   <div id="person">
@@ -19,13 +19,15 @@ Given partial page as below:
   </div>
 </pre>
 
-Then:
+Then you create a *part* like this:
 
 <pre>
   var person = $("#person").part();
 </pre>
 
-Will build a *part* representing person with all *fields* set up automatically from their *name* attribute:
+This builds a *part* representing _person_ with all *fields* set up automatically from their *name* attribute of the input field.
+
+The fields are actually jQuery wrappers of each input in the *part*.
 
 <pre>
   person.title;
@@ -33,7 +35,6 @@ Will build a *part* representing person with all *fields* set up automatically f
   person.lastname;
 </pre>
 
-These fields are jQuery wrappers of each input in the *part*.
 
 h3. State and Field Operations
 
@@ -50,8 +51,7 @@ To change _firstname_ to new value, just pass the value into the _state()_ metho
   person.firstname.state("John");
 </pre>
 
-This is just like _val("John")_ in jQuery, but with the appropriate events are fired as if a real user typed the value into the field.
-
+This is just like _person.firstname.val("John")_ in jQuery, but with the appropriate events are fired as if a real user typed the value into the field.
 
 Setting the values of the entire person part is just as easy!
 
@@ -68,7 +68,7 @@ Calling _state()_ on the person part simply returns the current state of the par
   #=> { title: "Mr", firstname: "John", lastname: "Smith"}
 </pre>
 
-
+You can tell if the state has changed with _isDirty()_:
 
 <pre>
   person.isDirty();
