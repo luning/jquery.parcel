@@ -145,6 +145,30 @@ Screw.Unit(function() {
 
   });
 
+  describe("Get Initial State", function() {
+
+    it("should work for a jQuery field", function() {
+      var person = $("#person").part();
+      expect(person.name.initialState()).to(equal, "luning");
+    });
+    
+    it("shuold work for a Part field", function() {
+      var person = $("#person").part();
+      expect(person.locality.initialState()).to(equal_object, { no: "", street: "" });
+    });
+    
+    it("should work for an Array field", function() {
+      var person = $("#person").part();
+      expect(person.emails.initialState()).to(equal_object, ["first@my.com", "second@my.com"]);
+    });
+    
+    it("should work for a Virtual field", function() {
+      var person = $("#person").part();
+      expect(person.contactInfo.initialState()).to(equal_object, { emails: ["first@my.com", "second@my.com"], contacts: [{number: "", type: ""}]});
+    });
+    
+  });
+  
   describe("Is Dirty", function() {
 
     it("of a Part should know if any field is changed after creating the Part", function() {
@@ -156,6 +180,14 @@ Screw.Unit(function() {
 
       person.name.state("smith");
       expect(person.isDirty()).to(be_true);
+    });
+	
+    it("of a jQuery field should know if it changed after creating it's parent Part", function() {
+      var person = $("#person").part();
+      expect(person.name.isDirty()).to(be_false);
+
+      person.name.state("smith");
+      expect(person.name.isDirty()).to(be_true);
     });
     
   });

@@ -92,6 +92,17 @@
           return part;
         }
       }
+    },	
+	
+    isDirty: function() {
+      return !$.objectEqual(this.initialState(), this.state());
+    },
+	
+    initialState: function(){
+      var part = this.closestPart();
+      if(part){
+        return part.initialState(this);
+      }
     }
   };
 
@@ -225,7 +236,7 @@
   // constructor for part
   $.part = function(container, behaviour) {
     this.container = $(container);
-    this.initialState = {};
+    this._initialState = {};
     this._fields = [];
 
     this.init();
@@ -539,16 +550,30 @@
       });
       return this;
     },
-
-    isDirty: function() {
-      return !$.objectEqual(this.initialState, this.state());
+    
+    initialState: function(context){
+      var targetState = {};
+      var targetFields = this._findFields(context);
+      $.each(targetFields, function(i, field){
+        if(this._initialState.hasOwnProperty(field.name)){
+          targetState[field.name] = this._initialState[field.name];
+        }
+      }.bind(this));
+      
+      if(context
+        && targetFields.length === 1
+        && (context.container || context).get(0) == (targetFields[0].it.container || targetFields[0].it).get(0)) {// context is a non-virtual field
+        return targetState[targetFields[0].name];
+      } else {
+        return $.extend(true, {}, targetState);
+      }
     },
 
     // optional parameter : fieldNames or container jQuery object(fields contained by it will be reset) or any type of field.
     // e.g. resetState("field1", "field2", "field3"), resetState($("#dome_div_id")), resetState(part.field)
     resetState: function() {
       if(arguments.length === 0){ // reset all
-        this.state(this.initialState);
+        this.state(this._initialState);
         return this;
       }
       
@@ -559,10 +584,10 @@
 
       var newState = {};
       $.each(fieldNames, function(i, fieldName){
-        if(!this.initialState.hasOwnProperty(fieldName)){
+        if(!this._initialState.hasOwnProperty(fieldName)){
           throw "CoconutError: reset state with invalid field name.";
         }
-        newState[fieldName] = this.initialState[fieldName];
+        newState[fieldName] = this._initialState[fieldName];
       }.bind(this));
 
       this.state(newState);
@@ -579,7 +604,7 @@
     // find fields in context
     _findFields: function(context){
       if(context){
-        var contextDom = context.get(0);
+        var contextDom = (context.container || context).get(0);
         return $(this._fields).filter(function(){
           var parents = $(this.it.get(0)).parents().andSelf();
           return $.indexInArray(contextDom, parents) >= 0;
@@ -591,7 +616,7 @@
 
     // store current state as initial, used later for state resetting and dirty check
     captureState: function() {
-      this.initialState = this.state();
+      this._initialState = this.state();
       return this;
     },
 

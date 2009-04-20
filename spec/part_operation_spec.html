@@ -205,6 +205,13 @@ Screw.Unit(function() {
       }
     });
   });
+  
+  describe("getState", function() {
+    it("should get state of this part by passing in this part as context", function() {
+      var person = $("#person").part();
+      expect(person.getState(person)).to(equal_object, person.state());
+    });
+  });
 
 });
 </script>
