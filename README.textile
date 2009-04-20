@@ -29,7 +29,7 @@ Will build a *part* representing person with all *field*s set up automatically, 
 h3. State and Field Operations
 
 <pre>
-var theName = person.name.state();
+  var theName = person.name.state();
 </pre>
 
 _theName_ is _"luning"_. _name_ is one field of person, _state()_ will return value of the field, similar as _val()_ on jQuery object.
