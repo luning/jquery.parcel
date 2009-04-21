@@ -185,7 +185,7 @@ Screw.Unit(function() {
   
   describe("Is Dirty", function() {
 
-    it("of a Part should know if any field is changed after creating the Part", function() {
+    it("of a Part should know if any field is changed after creation of this Part", function() {
       var person = $("#person").part();
       expect(person.isDirty()).to(be_false);
 
@@ -196,7 +196,7 @@ Screw.Unit(function() {
       expect(person.isDirty()).to(be_true);
     });
 	
-    it("of a jQuery field should know if it changed after creating it's parent Part", function() {
+    it("of a jQuery field should know if it changed after creation of parent Part", function() {
       var person = $("#person").part();
       expect(person.name.isDirty()).to(be_false);
 
@@ -204,15 +204,20 @@ Screw.Unit(function() {
       expect(person.name.isDirty()).to(be_true);
     });
     
-  });
-  
-  describe("Need Update State", function() {
-  
-    it("of a Part should know is there any diff between current state and given state", function() {
+    it("of an Array field should know if any field in it is changed after creation of parent Part", function() {
       var person = $("#person").part();
+      expect(person.emails.isDirty()).to(be_false);
 
-      expect(person.needUpdateWith({name: "smith"})).to(be_true);
-      expect(person.needUpdateWith({name: "luning"})).to(be_false);
+      person.emails[0].state("1@my.com");
+      expect(person.emails.isDirty()).to(be_true);
+    });
+    
+    it("of a Virtual field should know if any field in it's scope is changed after creation of parent Part", function() {
+      var person = $("#person").part();
+      expect(person.contactInfo.isDirty()).to(be_false);
+
+      person.emails[0].state("1@my.com");
+      expect(person.contactInfo.isDirty()).to(be_true);
     });
     
   });

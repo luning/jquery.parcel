@@ -434,7 +434,7 @@
       }
       
       var fieldNames = arguments;
-      if(arguments.length === 1 && typeof(arguments[0]) !== "string"){ // a field or a jQuery container
+      if(arguments.length === 1 && typeof(arguments[0]) !== "string"){ // a context(a field or a jQuery container)
         fieldNames = this._findFieldNames(arguments[0]);
       }
 
@@ -455,17 +455,6 @@
       this._initialState = this.state();
       return this;
     },
-
-    // check is there any diff between current state and the state passed in
-    needUpdateWith: function(state) {
-      var thisState = this.state();
-      for (var fieldName in thisState) {
-        if (state.hasOwnProperty(fieldName) && state[fieldName] !== thisState[fieldName]) {
-          return true;
-        }
-      }
-      return false;
-    },
     
     // check if this part contains any dom in element
     contains: function(element){
@@ -474,7 +463,6 @@
         return $.indexInArray(dom, all) !== -1;
       }).length > 0;
     },
-
         
     // find names of fields in context
     _findFieldNames: function(context){
