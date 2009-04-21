@@ -152,6 +152,46 @@ Screw.Unit(function() {
       expect($.objectContain([1, 2], [1, 2, 3])).to(be_false);
     });       
   });
+
+  describe("Clone State", function() {
+    it("should clone primative types", function() {
+      expect($.cloneState("a")).to(equal_object, "a");
+      expect($.cloneState(1)).to(equal_object, 1);
+    }); 
+
+    it("should do deep clone for array", function() {
+      var origin = [1, 2];
+      var clone = $.cloneState(origin);
+      expect(clone instanceof Array).to(be_true);
+      expect(clone).to(equal_object, origin);
+
+      clone[0] = 3;
+      expect(origin).to(equal_object, [1, 2]);
+    });
+    
+    it("should do deep clone for object", function() {
+      var origin = { locality: { no: "1234" } };
+      var clone = $.cloneState(origin);
+      expect(clone).to(equal_object, origin);
+      
+      clone.locality.no = "300";
+      expect(origin.locality.no).to(equal, "1234");
+    });  
+    
+    it("should do deep clone for object with field of an array of objects", function() {
+      var origin = { contacts: [{ number: "1234" }, { number: "0000"}] };
+      var clone = $.cloneState(origin);
+      expect(clone).to(equal_object, origin);
+      
+      clone.contacts[0].number = "300";
+      expect(origin.contacts[0].number).to(equal, "1234");
+    });
+    
+    it("should clone null or undefined", function() {
+      expect($.cloneState(undefined)).to(equal_object, undefined);
+      expect($.cloneState(null)).to(equal_object, null);
+    });
+  });
 });
 </script>
 </body>

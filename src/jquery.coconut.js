@@ -419,9 +419,9 @@
       }.bind(this));
       
       if(targetFields.length === 1 && this._contextMatchField(context, targetFields[0].it)){
-        return targetState[targetFields[0].name];
+        return $.cloneState(targetState[targetFields[0].name]);
       } else {
-        return $.extend(true, {}, targetState);
+        return $.cloneState(targetState);
       }
     },
 
@@ -687,6 +687,16 @@
     }
     return true;
   };
+  
+  $.cloneState = function(s){
+    if(!s || typeof(s) === "string" || typeof(s) === "number"){
+      return s;
+    } else if(s instanceof Array){
+      return $.extend(true, [], s);
+    } else {
+      return $.extend(true, {}, s);
+    }
+  }
   
   // get index of dom in a dom array(can be jQuery object)
   $.indexInArray = function(item, array){

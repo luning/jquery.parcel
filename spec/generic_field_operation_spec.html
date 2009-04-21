@@ -167,6 +167,20 @@ Screw.Unit(function() {
       expect(person.contactInfo.initialState()).to(equal_object, { emails: ["first@my.com", "second@my.com"], contacts: [{number: "", type: ""}]});
     });
     
+    it("should return a deep copy of initial state for a Part", function() {
+      var person = $("#person").part();
+      var s = person.initialState();
+      s.locality.no = "300";
+      expect(person.initialState().locality.no).to(equal, "");
+    });
+    
+    it("should return a deep copy of initial state for an Array field", function() {
+      var person = $("#person").part();
+      var s = person.emails.initialState();
+      s[0] = "1@my.com";
+      expect(person.emails.initialState()[0]).to(equal, "first@my.com");
+    });
+    
   });
   
   describe("Is Dirty", function() {
