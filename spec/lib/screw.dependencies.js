@@ -8,6 +8,7 @@ addScriptTag("lib/smoke.mock.js");
 addScriptTag("lib/smoke.stub.js");
 addScriptTag("lib/jquery.fn.js");
 addScriptTag("lib/jquery.print.js");
+addScriptTag("lib/custom.matchers.js");
 
 document.write("<link rel=\"stylesheet\" type=\"text/css\" href=\"lib/screw.css\"/>");
 
