@@ -18,8 +18,7 @@
       return new $.part(this, behaviour);
     },
     sync: function(){
-      this.trigger("sync");
-      return this;
+      return this.trigger("sync");
     },
     linkedPart: function(){
       return this.data("linkedPart");
@@ -48,10 +47,7 @@
     // fire event if no handler
     stateChange: function(handler){
       var self = this;
-      this.change(handler ? function(){
-          handler.apply(this, [self.state()]);
-        } :
-        handler);
+      this.change(handler ? function(){ handler.apply(this, [self.state()]); } : handler);
       return this;
     },
     
