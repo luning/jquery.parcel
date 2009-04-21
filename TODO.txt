@@ -1,5 +1,4 @@
 TODO
----------
 
-[ ] Sample todo
-[x] Example done
+[ ] use smoke mocks rather than roll our own
+[ ] consider renaming initialState() => initial or pristine?, resetState() => reset, captureState() => save
