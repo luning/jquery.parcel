@@ -6,7 +6,7 @@
 					$('.passed').length + $('.failed').length + ' test(s), ' + $('.failed').length + ' failure(s)'
 				);
 				if ($('.failed').length > 0) {
-					$('title').text($('title').text() + ' FAIL(' + $('.failed').length + ')');
+					document.title = document.title + ' FAIL(' + $('.failed').length + ')';
 				}
 			}
 		});
