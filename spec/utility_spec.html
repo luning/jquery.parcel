@@ -13,166 +13,166 @@
 <script type="text/javascript">
 Screw.Unit(function() {
 
-  describe("Object Equality", function() {
+  describe("State Equal", function() {
     it("should have same property and value", function() {
-      expect($.objectEqual({ name: "luning" }, { name: "luning" })).to(be_true);
+      expect($.stateEqual({ name: "luning" }, { name: "luning" })).to(be_true);
     });       
     
     it("should have same amount of properties", function() {
-      expect($.objectEqual({ name: "luning", age: "20" }, { name: "luning" })).to(be_false);
-      expect($.objectEqual({ name: "luning" }, { name: "luning", age: "20" })).to(be_false);
+      expect($.stateEqual({ name: "luning", age: "20" }, { name: "luning" })).to(be_false);
+      expect($.stateEqual({ name: "luning" }, { name: "luning", age: "20" })).to(be_false);
     });     
     
     it("should be equal if only have different property order", function() {
-      expect($.objectEqual({ name: "luning", age: "20" }, { age: "20", name: "luning" })).to(be_true);
+      expect($.stateEqual({ name: "luning", age: "20" }, { age: "20", name: "luning" })).to(be_true);
     });     
     
     it("should compare objects recursively", function() {
-      expect($.objectEqual({ dob: {year: "1990"} }, { dob: {year: "1990"} })).to(be_true);
-      expect($.objectEqual({ dob: {year: "1990"} }, { dob: {year: "2009"} })).to(be_false); 
-      expect($.objectEqual({ dob: {year: "1990"} }, { })).to(be_false); 
-      expect($.objectEqual({ person: { dob: { year: "1990"} } }, { person: { dob: { year: "1990" } } })).to(be_true);
-      expect($.objectEqual({ person: { dob: { year: "1990"} } }, { person: { dob: { month: "Jan" } } })).to(be_false);
+      expect($.stateEqual({ dob: {year: "1990"} }, { dob: {year: "1990"} })).to(be_true);
+      expect($.stateEqual({ dob: {year: "1990"} }, { dob: {year: "2009"} })).to(be_false); 
+      expect($.stateEqual({ dob: {year: "1990"} }, { })).to(be_false); 
+      expect($.stateEqual({ person: { dob: { year: "1990"} } }, { person: { dob: { year: "1990" } } })).to(be_true);
+      expect($.stateEqual({ person: { dob: { year: "1990"} } }, { person: { dob: { month: "Jan" } } })).to(be_false);
     });   
     
     it("should ignore property if it's value is undefined", function() {
-      expect($.objectEqual({ dob: undefined }, { })).to(be_true);
-      expect($.objectEqual({ }, { dob: undefined })).to(be_true);
+      expect($.stateEqual({ dob: undefined }, { })).to(be_true);
+      expect($.stateEqual({ }, { dob: undefined })).to(be_true);
     });   
     
     it("should not ignore property if it's value is null", function() {
-      expect($.objectEqual({ dob: null }, { })).to(be_false);
-      expect($.objectEqual({  }, { dob: null })).to(be_false);
+      expect($.stateEqual({ dob: null }, { })).to(be_false);
+      expect($.stateEqual({  }, { dob: null })).to(be_false);
     });   
     
     it("should ignore property if it's an empty array", function() {
-      expect($.objectEqual({ emails: [] }, { })).to(be_true);
-      expect($.objectEqual({  }, { emails: [] })).to(be_true);
+      expect($.stateEqual({ emails: [] }, { })).to(be_true);
+      expect($.stateEqual({  }, { emails: [] })).to(be_true);
     });   
 
     it("should ignore property if it's an empty object", function() {
-      expect($.objectEqual({ dob: {} }, { })).to(be_true);
-      expect($.objectEqual({ }, { dob: {} })).to(be_true);
+      expect($.stateEqual({ dob: {} }, { })).to(be_true);
+      expect($.stateEqual({ }, { dob: {} })).to(be_true);
     }); 
     
     it("array property should contain same value and in same order", function() {
-      expect($.objectEqual({ numbers: [1, 2] }, { numbers: [1, 2]})).to(be_true);
-      expect($.objectEqual({ numbers: [1, 2] }, { numbers: [2, 1]})).to(be_false);
-      expect($.objectEqual({ numbers: [1, 2] }, { numbers: [1]})).to(be_false);
+      expect($.stateEqual({ numbers: [1, 2] }, { numbers: [1, 2]})).to(be_true);
+      expect($.stateEqual({ numbers: [1, 2] }, { numbers: [2, 1]})).to(be_false);
+      expect($.stateEqual({ numbers: [1, 2] }, { numbers: [1]})).to(be_false);
     }); 
     
     it("should compare directly against two arrays", function() {
-      expect($.objectEqual([1, 2], [1, 2])).to(be_true);
-      expect($.objectEqual([1, 2], [2, 1])).to(be_false);
-      expect($.objectEqual([1, 2], [1])).to(be_false);
+      expect($.stateEqual([1, 2], [1, 2])).to(be_true);
+      expect($.stateEqual([1, 2], [2, 1])).to(be_false);
+      expect($.stateEqual([1, 2], [1])).to(be_false);
     }); 
     
     it("should compare arrays recursively", function() {
-      expect($.objectEqual([1, [1, 2]], [1, [1, 2]])).to(be_true);
-      expect($.objectEqual([1, [1, 2]], [1, [2, 1]])).to(be_false);
-      expect($.objectEqual([1, [2]], [[2], 1])).to(be_false);
+      expect($.stateEqual([1, [1, 2]], [1, [1, 2]])).to(be_true);
+      expect($.stateEqual([1, [1, 2]], [1, [2, 1]])).to(be_false);
+      expect($.stateEqual([1, [2]], [[2], 1])).to(be_false);
     }); 
     
     it("should compare arrays mixed with objects recursively", function() {
-      expect($.objectEqual([1, {name:"lu"}], [1, {name:"lu"}])).to(be_true);
-      expect($.objectEqual([1, {name:"lu"}], [1, {name:"smith"}])).to(be_false);
+      expect($.stateEqual([1, {name:"lu"}], [1, {name:"lu"}])).to(be_true);
+      expect($.stateEqual([1, {name:"lu"}], [1, {name:"smith"}])).to(be_false);
     }); 
     
     it("should compare primative types", function() {
-      expect($.objectEqual(1, 1)).to(be_true);
-      expect($.objectEqual("1", "1")).to(be_true);
-      expect($.objectEqual("", "")).to(be_true);
+      expect($.stateEqual(1, 1)).to(be_true);
+      expect($.stateEqual("1", "1")).to(be_true);
+      expect($.stateEqual("", "")).to(be_true);
       
-      expect($.objectEqual("", "1")).to(be_false);
-      expect($.objectEqual("1", "")).to(be_false);
-      expect($.objectEqual("0", 0)).to(be_false);
-      expect($.objectEqual(1, "1")).to(be_false);
+      expect($.stateEqual("", "1")).to(be_false);
+      expect($.stateEqual("1", "")).to(be_false);
+      expect($.stateEqual("0", 0)).to(be_false);
+      expect($.stateEqual(1, "1")).to(be_false);
     }); 
     
     it("should compare primative type with undefined or null", function() {
-      expect($.objectEqual(0, undefined)).to(be_false);
-      expect($.objectEqual(0, null)).to(be_false);
-      expect($.objectEqual("", undefined)).to(be_false);
-      expect($.objectEqual("", null)).to(be_false);
+      expect($.stateEqual(0, undefined)).to(be_false);
+      expect($.stateEqual(0, null)).to(be_false);
+      expect($.stateEqual("", undefined)).to(be_false);
+      expect($.stateEqual("", null)).to(be_false);
 
-      expect($.objectEqual(undefined, 0)).to(be_false);
-      expect($.objectEqual(null, 0)).to(be_false);
-      expect($.objectEqual(undefined, "")).to(be_false);
-      expect($.objectEqual(null, "")).to(be_false);
+      expect($.stateEqual(undefined, 0)).to(be_false);
+      expect($.stateEqual(null, 0)).to(be_false);
+      expect($.stateEqual(undefined, "")).to(be_false);
+      expect($.stateEqual(null, "")).to(be_false);
     }); 
   });
 
-  describe("A Contains B", function() {
+  describe("State of A Contain State of B", function() {
     it("requires B is a subset of A if they are objects", function() {
-      expect($.objectContain({ name: "luning" }, { name: "luning" })).to(be_true);
-      expect($.objectContain({ name: "luning" }, { name: "smith"  })).to(be_false);
-      expect($.objectContain({ name: "luning" }, { })).to(be_true);
-      expect($.objectContain({ dob: {day: "01", month: "Feb"} }, { dob: {day: "01"} })).to(be_true);
-      expect($.objectContain({ dob: {day: "01", month: "Feb"} }, { dob: {month: "Jan"} })).to(be_false);
-      expect($.objectContain({ }, { name: "luning" })).to(be_false);
-      expect($.objectContain({ }, { emails: ["1@my.com"] })).to(be_false);
+      expect($.stateContain({ name: "luning" }, { name: "luning" })).to(be_true);
+      expect($.stateContain({ name: "luning" }, { name: "smith"  })).to(be_false);
+      expect($.stateContain({ name: "luning" }, { })).to(be_true);
+      expect($.stateContain({ dob: {day: "01", month: "Feb"} }, { dob: {day: "01"} })).to(be_true);
+      expect($.stateContain({ dob: {day: "01", month: "Feb"} }, { dob: {month: "Jan"} })).to(be_false);
+      expect($.stateContain({ }, { name: "luning" })).to(be_false);
+      expect($.stateContain({ }, { emails: ["1@my.com"] })).to(be_false);
     });
 
     it("should ignore property if it is undefined, an empty object or an empty array", function() {
-      expect($.objectContain({ }, { name: undefined })).to(be_true);
-      expect($.objectContain({ }, { contact: {} })).to(be_true);
-      expect($.objectContain({ }, { emails: [] })).to(be_true);
+      expect($.stateContain({ }, { name: undefined })).to(be_true);
+      expect($.stateContain({ }, { contact: {} })).to(be_true);
+      expect($.stateContain({ }, { emails: [] })).to(be_true);
     });
     
     it("should not ignore property if it is null", function() {
-      expect($.objectContain({ }, { name: null })).to(be_false);
+      expect($.stateContain({ }, { name: null })).to(be_false);
     });  
     
     it("should do equality check for primative types", function() {
-      expect($.objectContain("", "")).to(be_true);
-      expect($.objectContain("1", "1")).to(be_true);
-      expect($.objectContain(1, 1)).to(be_true);
+      expect($.stateContain("", "")).to(be_true);
+      expect($.stateContain("1", "1")).to(be_true);
+      expect($.stateContain(1, 1)).to(be_true);
       
-      expect($.objectContain("q", "")).to(be_false);
-      expect($.objectContain(1, 2)).to(be_false);
-      expect($.objectContain(1, "1")).to(be_false);
-      expect($.objectContain("1", 1)).to(be_false);
+      expect($.stateContain("q", "")).to(be_false);
+      expect($.stateContain(1, 2)).to(be_false);
+      expect($.stateContain(1, "1")).to(be_false);
+      expect($.stateContain("1", 1)).to(be_false);
     });
             
     it("should check primative type with undefined or null", function() {
-      expect($.objectContain(0, undefined)).to(be_false);
-      expect($.objectContain(0, null)).to(be_false);
-      expect($.objectContain("", undefined)).to(be_false);
-      expect($.objectContain("", null)).to(be_false);
+      expect($.stateContain(0, undefined)).to(be_false);
+      expect($.stateContain(0, null)).to(be_false);
+      expect($.stateContain("", undefined)).to(be_false);
+      expect($.stateContain("", null)).to(be_false);
 
-      expect($.objectContain(undefined, 0)).to(be_false);
-      expect($.objectContain(null, 0)).to(be_false);
-      expect($.objectContain(undefined, "")).to(be_false);
-      expect($.objectContain(null, "")).to(be_false);
+      expect($.stateContain(undefined, 0)).to(be_false);
+      expect($.stateContain(null, 0)).to(be_false);
+      expect($.stateContain(undefined, "")).to(be_false);
+      expect($.stateContain(null, "")).to(be_false);
     }); 
 
     it("requires A start with B if they are arrays", function() {
-      expect($.objectContain([1, 2, 3], [1, 2])).to(be_true);
-      expect($.objectContain([1, 2, 3], [2, 3])).to(be_false);
-      expect($.objectContain([1, 2], [1, 2, 3])).to(be_false);
+      expect($.stateContain([1, 2, 3], [1, 2])).to(be_true);
+      expect($.stateContain([1, 2, 3], [2, 3])).to(be_false);
+      expect($.stateContain([1, 2], [1, 2, 3])).to(be_false);
     });       
   });
 
   describe("Clone State", function() {
     it("should clone primative types", function() {
-      expect($.cloneState("a")).to(equal_object, "a");
-      expect($.cloneState(1)).to(equal_object, 1);
+      expect($.cloneState("a")).to(equal_state, "a");
+      expect($.cloneState(1)).to(equal_state, 1);
     }); 
 
     it("should do deep clone for array", function() {
       var origin = [1, 2];
       var clone = $.cloneState(origin);
       expect(clone instanceof Array).to(be_true);
-      expect(clone).to(equal_object, origin);
+      expect(clone).to(equal_state, origin);
 
       clone[0] = 3;
-      expect(origin).to(equal_object, [1, 2]);
+      expect(origin).to(equal_state, [1, 2]);
     });
     
     it("should do deep clone for object", function() {
       var origin = { locality: { no: "1234" } };
       var clone = $.cloneState(origin);
-      expect(clone).to(equal_object, origin);
+      expect(clone).to(equal_state, origin);
       
       clone.locality.no = "300";
       expect(origin.locality.no).to(equal, "1234");
@@ -181,15 +181,15 @@ Screw.Unit(function() {
     it("should do deep clone for object with field of an array of objects", function() {
       var origin = { contacts: [{ number: "1234" }, { number: "0000"}] };
       var clone = $.cloneState(origin);
-      expect(clone).to(equal_object, origin);
+      expect(clone).to(equal_state, origin);
       
       clone.contacts[0].number = "300";
       expect(origin.contacts[0].number).to(equal, "1234");
     });
     
     it("should clone null or undefined", function() {
-      expect($.cloneState(undefined)).to(equal_object, undefined);
-      expect($.cloneState(null)).to(equal_object, null);
+      expect($.cloneState(undefined)).to(equal_state, undefined);
+      expect($.cloneState(null)).to(equal_state, null);
     });
   });
 });

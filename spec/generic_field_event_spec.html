@@ -181,7 +181,7 @@ Screw.Unit(function() {
       var eventFired = false;
       person.stateChange(function(s){
         eventFired = true;
-        expect(s).to(contain_object, { name: "smith" });
+        expect(s).to(contain_state, { name: "smith" });
       });
       
       expect(eventFired).to(be_false);
@@ -194,7 +194,7 @@ Screw.Unit(function() {
       var eventFired = false;
       person.emails.stateChange(function(s){
         eventFired = true;
-        expect(s).to(equal_object, ["another@my.com"]);
+        expect(s).to(equal_state, ["another@my.com"]);
       });
       
       expect(eventFired).to(be_false);
@@ -207,7 +207,7 @@ Screw.Unit(function() {
       var eventFired = false;
       person.spouseInfo.stateChange(function(s){
         eventFired = true;
-        expect(s).to(equal_object, { spouseName: "jessie" });
+        expect(s).to(equal_state, { spouseName: "jessie" });
       });
       
       expect(eventFired).to(be_false);

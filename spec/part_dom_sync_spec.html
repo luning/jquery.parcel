@@ -98,7 +98,7 @@ Screw.Unit(function() {
 
       person.education.state({college: "UTS"});
 
-      expect(person.education.state()).to(equal_object, {college: "UTS"});
+      expect(person.education.state()).to(equal_state, {college: "UTS"});
       expect(person.index("education")).to(equal, person.index("title") + 1);
     });
 
@@ -151,7 +151,7 @@ Screw.Unit(function() {
 
       expect(person.contact).to(be_undefined);
       expect(person.contacts.length).to(equal, 2);
-      expect(person.contacts[1].state()).to(equal_object, {number: "111", type: "home"});
+      expect(person.contacts[1].state()).to(equal_state, {number: "111", type: "home"});
     });
 
   });
@@ -217,7 +217,7 @@ Screw.Unit(function() {
       person.sync();
 
       expect(person.contacts.length).to(equal, 1);
-      expect(person.contacts[0].state()).to(equal_object, { number: "", type: "" });
+      expect(person.contacts[0].state()).to(equal_state, { number: "", type: "" });
     });
 
     it("should remove the array field containing parts if it becomes empty", function() {

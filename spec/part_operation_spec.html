@@ -70,7 +70,7 @@ Screw.Unit(function() {
         person.state({ name: "josh", title: "Mrs", gender: "Male", nationality: "OZ", city: "sydney" });
 
         person.resetState();
-        expect(person.state()).to(equal_object, initialState);
+        expect(person.state()).to(equal_state, initialState);
       });
 
       it("should reset initial state with specific fields", function() {
@@ -102,7 +102,7 @@ Screw.Unit(function() {
 
         expect(person.gender.state()).to(equal, "Male");
         delete tempState.gender;
-        expect(person.state()).to(contain_object, tempState);
+        expect(person.state()).to(contain_state, tempState);
       });
 
       it("should not reset state with non-exist field", function() {
@@ -209,7 +209,7 @@ Screw.Unit(function() {
   describe("getState", function() {
     it("should get state of this part by passing in this part as context", function() {
       var person = $("#person").part();
-      expect(person.getState(person)).to(equal_object, person.state());
+      expect(person.getState(person)).to(equal_state, person.state());
     });
   });
 

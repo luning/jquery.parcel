@@ -91,7 +91,7 @@ Screw.Unit(function() {
       expect(person.emails.length).to(equal, 1);
       expect(person.emails[0].state()).to(equal, "luning.tw@gmail.com");
 
-      expect(person.state()).to(contain_object, {emails:["luning.tw@gmail.com"]});
+      expect(person.state()).to(contain_state, {emails:["luning.tw@gmail.com"]});
     });
 
     it("should add the following fields to array if the name is supposed to be of array type", function() {
@@ -103,7 +103,7 @@ Screw.Unit(function() {
 
       var s = {emails: ["one@my.com", "another@my.com"]};
       person.state(s);
-      expect(person.state()).to(contain_object, s);
+      expect(person.state()).to(contain_state, s);
     });
 
     it("should build array field of part type", function() {
@@ -113,7 +113,7 @@ Screw.Unit(function() {
 
       var s = {contacts: [{number: "123456789", type: "office"}]};
       person.state(s)
-      expect(person.state()).to(contain_object, s);
+      expect(person.state()).to(contain_state, s);
     });
 
     it("should build array field with container if specified in 'fieldtype' property", function() {
@@ -135,7 +135,7 @@ Screw.Unit(function() {
       var dobState = {day: "01", month: "Feb", year: "1991"};
       person.dob.state(dobState);
 
-      expect(person.dob.state()).to(equal_object, dobState);
+      expect(person.dob.state()).to(equal_state, dobState);
       expect(person.day).to(be_undefined);
       expect(person.month).to(be_undefined);
       expect(person.year).to(be_undefined);

@@ -99,7 +99,7 @@ Screw.Unit(function() {
       var person = $("#person").part();
       var state = { name: "josh", title: "Mrs", gender: "Male", nationality: "OZ", city: "sydney" };
       person.state(state);
-      expect(person.state()).to(contain_object, state);
+      expect(person.state()).to(contain_state, state);
     });
 
     it("of a Part should be got/set", function() {
@@ -107,7 +107,7 @@ Screw.Unit(function() {
       var dobState = {day: "01", month: "Feb", year: "1991"};
 
       person.state({ dob: dobState });
-      expect(person.state()).to(contain_object, {dob: dobState});
+      expect(person.state()).to(contain_state, {dob: dobState});
     });
 
     it("of a Part should be got/set by flaten object", function() {
@@ -116,7 +116,7 @@ Screw.Unit(function() {
 
     it("of an Array field should be got", function() {
       var person = $("#person").part();
-      expect(person.emails.state()).to(equal_object, ["first@my.com", "second@my.com"]);
+      expect(person.emails.state()).to(equal_state, ["first@my.com", "second@my.com"]);
     });
     
     it("of an Array field should be set", function() {
@@ -125,13 +125,13 @@ Screw.Unit(function() {
       var s = ["first@my.org", "second@my.org"];
       person.emails.state(s);
       
-      expect(person.emails.state()).to(equal_object, s);
+      expect(person.emails.state()).to(equal_state, s);
     });
 
     it("of Virtual field should be got", function() {
       var person = $("#person").part();
       
-      expect(person.contactInfo.state()).to(equal_object, { emails: ["first@my.com", "second@my.com"], contacts: [{number: "", type: ""}] });
+      expect(person.contactInfo.state()).to(equal_state, { emails: ["first@my.com", "second@my.com"], contacts: [{number: "", type: ""}] });
     });
     
     it("of Virtual field should be set", function() {
@@ -140,7 +140,7 @@ Screw.Unit(function() {
       var s = { emails: ["1@my.com", "2@my.com"], contacts: [{number: "1234", type: "home"}] };
       person.contactInfo.state(s);
       
-      expect(person.state()).to(contain_object, s);
+      expect(person.state()).to(contain_state, s);
     });
 
   });
@@ -154,17 +154,17 @@ Screw.Unit(function() {
     
     it("shuold work for a Part field", function() {
       var person = $("#person").part();
-      expect(person.locality.initialState()).to(equal_object, { no: "", street: "" });
+      expect(person.locality.initialState()).to(equal_state, { no: "", street: "" });
     });
     
     it("should work for an Array field", function() {
       var person = $("#person").part();
-      expect(person.emails.initialState()).to(equal_object, ["first@my.com", "second@my.com"]);
+      expect(person.emails.initialState()).to(equal_state, ["first@my.com", "second@my.com"]);
     });
     
     it("should work for a Virtual field", function() {
       var person = $("#person").part();
-      expect(person.contactInfo.initialState()).to(equal_object, { emails: ["first@my.com", "second@my.com"], contacts: [{number: "", type: ""}]});
+      expect(person.contactInfo.initialState()).to(equal_state, { emails: ["first@my.com", "second@my.com"], contacts: [{number: "", type: ""}]});
     });
     
     it("should return a deep copy of initial state for a Part", function() {
@@ -232,14 +232,14 @@ Screw.Unit(function() {
       
       localityPart.state({ no: "290", street: "pitt" });
       localityPart.resetState();
-      expect(localityPart.state()).to(contain_object, { no: "", street: "" });
+      expect(localityPart.state()).to(contain_state, { no: "", street: "" });
     });
  
     it("on an Array field should reset state of it in parent part", function() {
       var person = $("#person").part();
       person.emails.state([ "1@my.com", "2@my.com" ]);
       person.emails.resetState();
-      expect(person.emails.state()).to(contain_object, [ "first@my.com", "second@my.com" ]);
+      expect(person.emails.state()).to(contain_state, [ "first@my.com", "second@my.com" ]);
     });
     
     it("on a Virtual field(jQuery container) should reset all fields in it", function() {
@@ -249,7 +249,7 @@ Screw.Unit(function() {
       person.contactInfo.resetState();
       
       console.log(person.state());
-      expect(person.state()).to(contain_object, { emails: ["first@my.com", "second@my.com"], contacts: [{number: "", type: ""}] });
+      expect(person.state()).to(contain_state, { emails: ["first@my.com", "second@my.com"], contacts: [{number: "", type: ""}] });
       
       expect(person.name.state()).to(equal, "smith");
       expect(person.title.state()).to(equal, "Mr");

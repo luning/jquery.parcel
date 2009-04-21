@@ -58,7 +58,7 @@
     // change of this field(jQuery, part or array) will show/hide target, which is a jQuery or selector
     showHide: function(target, showUpStateOrCallback, resetStateIfHidden){
       var showUp = $.isFunction(showUpStateOrCallback) ? showUpStateOrCallback : function(state){
-          return $.objectContain(state, showUpStateOrCallback);
+          return $.stateContain(state, showUpStateOrCallback);
         };
         
       target = $(target);
@@ -95,7 +95,7 @@
     },	
 	
     isDirty: function() {
-      return !$.objectEqual(this.initialState(), this.state());
+      return !$.stateEqual(this.initialState(), this.state());
     },
 	
     initialState: function(){
@@ -662,32 +662,33 @@
     return true;
   };
 
-  // do value equality check recursively
-  // CAUTION: only suitable for tree structured simple object. cycle reference will cause infinite recursion.
-  $.objectEqual = function(one, another) {
-    return $.objectContain(one, another) && $.objectContain(another, one);
+  // do state equality check recursively
+  // CAUTION: only for state object, not supposed to work with circular referenced object.
+  $.stateEqual = function(one, another) {
+    return $.stateContain(one, another) && $.stateContain(another, one);
   };
 
-  // do value check recursively
-  // CAUTION: only suitable for tree structured simple object. cycle reference will cause infinite recursion.
-  $.objectContain = function(whole, subset) {
+  // do state check recursively
+  // CAUTION: only for state object, not supposed to work with circular referenced object.
+  $.stateContain = function(whole, subset) {
     if(!whole && subset){
-      return $.objectEmpty(subset)? true : false;
+      return $.stateEmpty(subset)? true : false;
     }
     if(typeof(whole) !== "object" || typeof(subset) !== "object"){
       return whole === subset;
     }
-    return compare(whole, subset, $.objectContain);
+    return compare(whole, subset, $.stateContain);
   };
 
   // return true if no direct property defined in object
-  $.objectEmpty = function(o){
+  $.stateEmpty = function(o){
     for(var p in o){
       return false;
     }
     return true;
   };
   
+  // do deep clone of state
   $.cloneState = function(s){
     if(!s || typeof(s) === "string" || typeof(s) === "number"){
       return s;
