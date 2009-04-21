@@ -67,7 +67,7 @@ Screw.Unit(function() {
         var person = $("#person").part();
         var initialState = person.state();
 
-        person.state({ name: "josh", title: "Mrs", gender: "Male", nationality: "OZ", city: "sydney" });
+        person.state({ name: "Josh", title: "Mr", gender: "Male", nationality: "OZ", city: "sydney" });
 
         person.resetState();
         expect(person.state()).to(equal_object, initialState);
@@ -76,7 +76,7 @@ Screw.Unit(function() {
       it("should reset initial state with specific fields", function() {
         var person = $("#person").part();
         var initialState = person.state();
-        var tempState = { name: "josh", title: "Mrs", gender: "Male", nationality: "OZ", city: "sydney" };
+        var tempState = { name: "Josh", title: "Mr", gender: "Male", nationality: "OZ", city: "sydney" };
         person.state(tempState);
 
         person.resetState("name", "title");
@@ -94,7 +94,7 @@ Screw.Unit(function() {
         var person = $("#person").part();
         expect(person.gender.state()).to(equal, "Male");
 
-        var tempState = { name: "josh", title: "Mrs", gender: "Female", nationality: "OZ", city: "sydney" };
+        var tempState = { name: "Jane", title: "Mrs", gender: "Female", nationality: "OZ", city: "sydney" };
         person.state(tempState);
 
         var genderContainer = person.gender.closest("div"); // the div contains the two gender radios
