@@ -107,6 +107,7 @@ Any changes to person fields will now update the summary span using the specifie
 
 <pre>
   person.firstname.stateChange(function(state) { /* custom logic */});
+  
   person.stateChange(function(state) { /* custom logic */});
 </pre>
 
@@ -246,7 +247,7 @@ h3. Virtual Field
 
 A virtual field in Coconut is a jQuery object of a div, fieldset or other container like dom element, which contains all Fields in it's scope.
 
-You can treat virtual field as a normal Field, that means you can call @state()@, @isDirty()@, @resetState()@, and do event operations like @bindState()@, @stateChange@ on it...
+It represents a partial of part. You can treat a virtual field as a normal Field, that means you can call @state()@, @isDirty()@, @resetState()@, and do event operations like @bindState()@, @stateChange()@ on it.
 
 Given this HTML:
 
@@ -287,5 +288,73 @@ h1. Rationale
 h1. Design Suggestions
 
 h1. API Reference
+
+h2. Part
+
+h3. Building a Part
+
+* Common
+
+* With jQuery Field
+
+* With Array Field
+
+* With Part as Field
+
+* With Virtual Field
+
+* With Behaviour
+
+h3. Part Operations
+
+* sync(context)
+
+* captureState()
+
+* orderFields(fieldName1, fieldName2, ...)
+
+* addFields(context)
+
+* addBahaviour(behaviour)
+
+h2. Field
+
+Field in part is the core concept in Coconut, it can be an extended *jQuery* object, an extended *Array* contains other fields or another *Part*. *Virtual Field* is not necessarily being stored internally in its parent part, but can be treated as a normal field. All these forms the concept Field and all field operations and events are availiable to them.
+
+h3. Field Operations
+
+* get(index)
+
+* state(s)
+
+* initialState()
+
+* isDirty()
+
+* resetState()
+
+* closestPart()
+
+* sync()
+
+h3. Field Events
+
+* bindState(context, converter)
+
+* change(handler)
+
+* stateChange(handler)
+
+* showHide(context, showState[showStateCallback], needReset) 
+
+h2. Part Dom Sync
+
+h2. Utility
+
+* $.stateEqual(s1, s2)
+
+* $.stateContain(whole, partial)
+
+* $.cloneState(s)
 
 h1. Q&A
