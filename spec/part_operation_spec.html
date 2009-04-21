@@ -55,15 +55,17 @@
 Screw.Unit(function() {
 
   var fixtureHtml = $("#fixture").html();
+  var person;
 
   before(function() {
     $("#fixture").html(fixtureHtml);
+
+    person = $("#person").part();
   });
 
   describe("Reset State", function() {
   
       it("should reset initial state", function() {
-        var person = $("#person").part();
         var initialState = person.state();
 
         person.state({ name: "Josh", title: "Mr", gender: "Male", nationality: "OZ", city: "sydney" });
@@ -73,7 +75,6 @@ Screw.Unit(function() {
       });
 
       it("should reset initial state with specific fields", function() {
-        var person = $("#person").part();
         var initialState = person.state();
         var tempState = { name: "Josh", title: "Mr", gender: "Male", nationality: "OZ", city: "sydney" };
         person.state(tempState);
@@ -90,7 +91,6 @@ Screw.Unit(function() {
       });
       
       it("should reset initial state with fields in a jQuery container(Virtual Field)", function() {
-        var person = $("#person").part();
         expect(person.gender.state()).to(equal, "Male");
 
         var tempState = { name: "Jane", title: "Mrs", gender: "Female", nationality: "OZ", city: "sydney" };
@@ -105,8 +105,6 @@ Screw.Unit(function() {
       });
 
       it("should not reset state with non-exist field", function() {
-        var person = $("#person").part();
-
         try{
           person.resetState("notexist");
           expect(true).to(be_false);
@@ -119,10 +117,9 @@ Screw.Unit(function() {
   
   describe("Capture State", function() {
     it("should be able to capture state even after construction", function() {
-      var person = $("#person").part()
-              .state({name: "smith"})
-              .captureState()
-              .resetState();
+      person.state({name: "smith"})
+            .captureState()
+            .resetState();
 
       expect(person.name.state()).to(equal, "smith");
     });
@@ -130,7 +127,7 @@ Screw.Unit(function() {
   
   describe("Order Fields", function() {
     it("should set up field order", function() {
-      var person = $("#person").part(function Person(){
+      person = $("#person").part(function Person(){
         this.orderFields("gender", "title", "name");
       });
       expect(person.index("gender")).to(equal, person.index("title") - 1);
@@ -139,7 +136,7 @@ Screw.Unit(function() {
 
     it("should not set up field order with invalid names", function() {
       try{
-        var person = $("#person").part(function Person(){
+        $("#person").part(function Person(){
           this.orderFields("gender", "invalidname");
         });
         expect(true).to(be_false);
@@ -153,7 +150,7 @@ Screw.Unit(function() {
     it("should add field ignored during construction", function() {
       $("#nationality").removeAttr("id"); // #nationality will be ignored
 
-      var person = $("#person").part(function Person(){
+      person = $("#person").part(function Person(){
         this.addFields({
           nationality: "input[someproperty=nationality]"
         });
@@ -165,7 +162,7 @@ Screw.Unit(function() {
 
     it("should not add field for dom element which is already captured by other field", function() {
       try{
-        var person = $("#person").part(function Person(){
+        $("#person").part(function Person(){
           this.addFields({
             myField: "#nationality"
           });
@@ -178,7 +175,7 @@ Screw.Unit(function() {
 
     it("should not add field without matched dom element", function() {
       try{
-        var person = $("#person").part(function Person(){
+        $("#person").part(function Person(){
           this.addFields({
             notexist: "#notexist"
           });
@@ -193,7 +190,7 @@ Screw.Unit(function() {
       $("#nationality").removeAttr("id"); // #nationality will be ignored
 
       try{
-        var person = $("#person").part(function Person(){
+        $("#person").part(function Person(){
           this.addFields({
             name: "[someproperty=nationality]"
           });
@@ -207,7 +204,6 @@ Screw.Unit(function() {
   
   describe("getState", function() {
     it("should get state of this part by passing in this part as context", function() {
-      var person = $("#person").part();
       expect(person.getState(person)).to(equal_state, person.state());
     });
   });
