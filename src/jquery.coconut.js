@@ -177,7 +177,7 @@
     for(var i = 1; i < arguments.length; i++){
       field.push(arguments[i]);
     }
-    // set prototype to [] does not work in IE, so use this unefficent way to extend Array.
+    // set prototype to [] does not work in IE6, have to use this unefficent way to extend Array.
     return $.extend(field, commonFieldMixin, nonJQueryFieldMixin, arrayFieldMixin, {
       container: container
     });
@@ -685,11 +685,11 @@
     } else {
       return $.extend(true, {}, s);
     }
-  }
+  };
   
   // get index of dom in a dom array(can be jQuery object)
   $.indexInArray = function(item, array){
-    if($.browser.msie){ // in IE, === will return false even when comparing the same dom, use == instead.
+    if($.browser.msie){ // in IE6, === will return false even when comparing the same dom, use == instead.
       for(var i = 0; i < array.length; i++){
         if(array[i] == item){
           return i;
