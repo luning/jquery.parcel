@@ -85,7 +85,7 @@ Set the original state to the part with @resetState()@
 </pre>
 
 
-h3. Showing the field values somewhere else
+h3. Events Operations
 
 Let's say you want to have a @label@ element update with changes in the value of a field. Use the @bindState()@ method passing in the CSS selector:
 
@@ -106,11 +106,11 @@ But what if you wanted a single label to reflect all of the fields? Simply pass 
 Any changes to person fields will now update the summary span using the specified transformation function.
 
 <pre>
-  person.firstname.change(function() { /* custom logic */});
-  person.change(function() { /* custom logic */});
+  person.firstname.stateChange(function(state) { /* custom logic */});
+  person.stateChange(function(state) { /* custom logic */});
 </pre>
 
-Change of the @firstname@ field or @person@ part will trigger the custom handlers.
+State change of the @firstname@ field or @person@ part will trigger the custom handlers and pass in the latest state object.
 
 h2. Learn More
 
@@ -241,6 +241,46 @@ Say we have two emails in the DOM already, and we remove the last one:
 @emailCount@ is now @1@, reflecting the removal.
 
 Call @sync()@ on a part after removing DOM elements.
+
+h3. Virtual Field
+
+A virtual field in Coconut is a jQuery object of a div, fieldset or other container like dom element, which contains all Fields in it's scope.
+
+You can treat virtual field as a normal Field, that means you can call @state()@, @isDirty()@, @resetState()@, and do event operations like @bindState()@, @stateChange@ on it...
+
+Given this HTML:
+
+<pre>
+  <div id="person">
+    <div id="basicInfo">
+      <input type="text" name="firstname" value="Jane"/>
+      <input type="text" name="lastname" value="Doe"/>
+      ...
+    </div>
+    ...
+  </div>
+</pre>
+
+Then:
+
+<pre>
+  var person = $("#person").part();
+  
+  var basicInfo = $("#basicInfo");
+  
+  basicInfo.state();  #=> { firstname: "Jane", lastname: "Doe", ... }
+
+  basicInfo.state({ firstname: "Mary" });  #=> { firstname: "Mary", lastname: "Doe", ... }
+  
+  basicInfo.resetState();  #=> { firstname: "Jane", lastname: "Doe", ... }
+
+  basicInfo.bindState("#id_of_some_label", function(state){ /* compose a string from state */ });
+
+  basicInfo.stateChange(function(state){ /* play with the new state */ });
+  ...
+</pre>
+
+The flexibility of virtual field makes the event wiring up much more expressive and easier.
 
 h1. Rationale
 

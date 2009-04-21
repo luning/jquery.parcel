@@ -28,18 +28,18 @@ Screw.Matchers.not_be_visible = {
   }
 };
 
-Screw.Matchers.contain_object = {
+Screw.Matchers.contain_state = {
   match: function(expected, actual) {
-    return $.objectContain(actual, expected);
+    return $.stateContain(actual, expected);
   },
   failure_message: function(expected, actual, not) {
     return 'expected ' + $.print(actual) + (not ? ' to not contain ' : ' to contain ') + $.print(expected);
   }
 };
 
-Screw.Matchers.equal_object = {
+Screw.Matchers.equal_state = {
   match: function(expected, actual) {
-    return $.objectEqual(actual, expected);
+    return $.stateEqual(actual, expected);
   },
   failure_message: function(expected, actual, not) {
     return 'expected ' + $.print(actual) + (not ? ' to not equal ' : ' to equal ') + $.print(expected);
