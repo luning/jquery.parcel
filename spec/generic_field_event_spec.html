@@ -90,25 +90,25 @@ Screw.Unit(function() {
       expect(span.state()).to(equal, "jessie");
     }); 
     
-    it("should work after dom element is added dynamicly", function() {
+    it("should work after dom element is added dynamically", function() {
       // TODO
     }); 
     
-    it("should work after dom element is added to an array field dynamicly", function() {
+    it("should work after dom element is added to an array field dynamically", function() {
       // TODO
     }); 
 
-    it("should work after dom element is removed dynamicly", function() {
+    it("should work after dom element is removed dynamically", function() {
       // TODO
     }); 
     
-    it("should work after dom element is removed from an array field dynamicly", function() {
+    it("should work after dom element is removed from an array field dynamically", function() {
       // TODO
     }); 
   });
 
-  describe("Change", function() {
-    it("should listen event on a jQuery", function() {
+  describe("Change Event", function() {
+    it("should fire on a jQuery field change", function() {
       var eventFired = false;
       person.name.change(function(){
         eventFired = true;
@@ -119,7 +119,7 @@ Screw.Unit(function() {
       expect(eventFired).to(be_true);
     }); 
     
-    it("should listen event on a Part", function() {
+    it("should fire on a Part field change", function() {
       var eventFired = false;
       person.change(function(){
         eventFired = true;
@@ -130,7 +130,7 @@ Screw.Unit(function() {
       expect(eventFired).to(be_true);
     }); 
 
-    it("should listen event on an Array field", function() {
+    it("should fire on an Array field change", function() {
       var eventFired = false;
       person.emails.change(function(){
         eventFired = true;
@@ -141,7 +141,7 @@ Screw.Unit(function() {
       expect(eventFired).to(be_true);
     }); 
     
-    it("should listen event on a Virtual field", function() {
+    it("should fire on a Virtual field change", function() {
       var eventFired = false;
       person.spouseInfo.change(function(){
         eventFired = true;
@@ -153,11 +153,10 @@ Screw.Unit(function() {
     }); 
   });
 
-  // TODO should probably use smoke mocks rather than roll our own
-  describe("State Change", function() {
-    it("should listen event on a jQuery", function() {
+  describe("State Change Event", function() {
+    it("should fire on a jQuery", function() {
       var eventFired = false;
-      person.name.stateChange(function(s){
+      person.name.stateChange(function(s){ // TODO is this setup right on person.name?
         eventFired = true;
         expect(s).to(equal, "smith");
       });
@@ -167,7 +166,7 @@ Screw.Unit(function() {
       expect(eventFired).to(be_true);
     }); 
   
-    it("should listen event on a Part", function() {
+    it("should fire on a Part", function() {
       var eventFired = false;
       person.stateChange(function(s){
         eventFired = true;
@@ -179,7 +178,7 @@ Screw.Unit(function() {
       expect(eventFired).to(be_true);
     }); 
     
-    it("should listen event on an Array field", function() {
+    it("should fire on an Array field", function() {
       var eventFired = false;
       person.emails.stateChange(function(s){
         eventFired = true;
@@ -191,7 +190,7 @@ Screw.Unit(function() {
       expect(eventFired).to(be_true);
     });
     
-    it("should listen event on a Virtual field", function() {
+    it("should fire on a Virtual field", function() {
       var eventFired = false;
       person.spouseInfo.stateChange(function(s){
         eventFired = true;

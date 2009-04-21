@@ -43,7 +43,7 @@
       return this;
     },
 
-    // current state will be past to handler as the first parameter. 'this' in handler is the source dom element.
+    // current state will be passed to handler as the first parameter. 'this' in handler is the source dom element.
     // fire event if no handler
     stateChange: function(handler){
       var self = this;
