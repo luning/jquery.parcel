@@ -146,6 +146,22 @@ Screw.Unit(function() {
       expect(person.contacts.length).to(equal, 2);
       expect(person.contacts[1].state()).to(equal_state, {number: "111", type: "home"});
     });
+    
+    it("should trigger state change event handler on part if it's changed", function() {
+      var count = 0;
+      person.stateChange(function(s){
+        expect(s.education).to(equal, "college");
+        count++;
+      })
+      
+      var edu = $("<select name='education'><option selected>high school</option><option>college</option></select>");
+      person.title.after(edu);
+      edu.sync();
+      expect(count).to(equal, 0);
+      
+      person.education.state("college");
+      expect(count).to(equal, 1);
+    });
 
   });
 

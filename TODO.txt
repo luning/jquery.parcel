@@ -1,4 +1,4 @@
 TODO
 
 [ ] use smoke mocks rather than roll our own
-[ ] consider renaming initialState() => initial or pristine?, resetState() => reset, captureState() => save
+[ ] consider renaming initialState() => initial or pristine?, resetState() => reset or revert, captureState() => save

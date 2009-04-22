@@ -18,6 +18,7 @@
       return new $.part(this, behaviour);
     },
     sync: function(){
+      $.fixBubblingForIE6(this);
       return this.trigger("sync");
     },
     linkedPart: function(){
@@ -43,7 +44,7 @@
       return this;
     },
 
-    // current state will be passed to handler as the first parameter. 'this' in handler is the source dom element.
+    // current state will be passed to handler as the first parameter. 'this' in handler is the target dom element.
     // fire event if no handler
     stateChange: function(handler){
       var self = this;
@@ -695,6 +696,26 @@
     } else {
       return $.inArray(item, array);
     }
+  };
+  
+  // bubble change event for IE6, this is necessary for live event or event delegation
+  $.fixBubblingForIE6 = function(context){
+    if(!$.browser.msie){ 
+      return;
+    }
+    var all = context.find(":input").add(context.filter(":input"));
+    all.each(function(i, dom){
+      var element = $(dom);
+      if(!element.data("fixBubblingForIE6")){ // do this only once for the same dom element
+        element.data("fixBubblingForIE6", true);
+        element.change(function(e){
+          if(e.hasOwnProperty("altKey")){ // is triggered by user instead of code
+            var event = $.extend(true, {}, e); // clone the event passed in
+            $.event.trigger(event, [event], this.parentNode || this.ownerDocument, true);
+          }
+        });
+      }
+    });
   };
 
 })(jQuery);
