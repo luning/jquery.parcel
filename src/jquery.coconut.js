@@ -706,19 +706,24 @@
     var all = context.find(":input").add(context.filter(":input"));
     all.each(function(i, dom){
       var element = $(dom);
-      if(!element.data("bubbleOnChange")){ // do this only once for the same dom element
+      // do this only once for the same dom element
+      if(!element.data("bubbleOnChange")){
         element.data("bubbleOnChange", true);
         element.change(function(e){
-          if(e.hasOwnProperty("altKey")){ // an indicator that this is triggered by user instead of code
-            var event = $.extend(true, {}, e); // clone the event passed in
+          // only need to simulate bubbling for real user interaction, event will bubble up if triggered by jQuery trigger() method.
+          if(e.hasOwnProperty("altKey")){ 
+            // clone the event passed in
+            var event = $.extend(true, {}, e);
             $.event.trigger(event, [event], this.parentNode || this.ownerDocument, true);
           }
         });
       }
     });
     
-    $.support.bubbleOnChange = !$.browser.msie; // change event in IE doesn't bubble.
-    $.support.trippleEqualOnDom = !$.browser.msie; // in IE, === will return false even when comparing the same dom, use == instead.
+    // change event in IE doesn't bubble.
+    $.support.bubbleOnChange = !$.browser.msie;
+    // in IE, === will return false even when comparing the same dom, use == instead.
+    $.support.trippleEqualOnDom = !$.browser.msie;
   };
 
 })(jQuery);
