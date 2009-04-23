@@ -18,7 +18,6 @@
       return new $.part(this, behaviour);
     },
     sync: function(){
-      $.fixBubblingForIE6(this);
       return this.trigger("sync");
     },
     linkedPart: function(){
@@ -174,7 +173,7 @@
     for(var i = 1; i < arguments.length; i++){
       field.push(arguments[i]);
     }
-    // set prototype to [] does not work in IE6, have to use this unefficent way to extend Array.
+    // set prototype to [] does not work in IE, have to use this unefficent way to extend Array.
     return $.extend(field, commonFieldMixin, nonJQueryFieldMixin, arrayFieldMixin, {
       container: container
     });
@@ -523,6 +522,7 @@
     // all fields are stored in this._fields array, and convenient field accessors on this are assigned if applicable(not conflict with existing property)
     // inferOrder is only for efficency, will add new field to the end of this._fields by default, if not specified. can always be true.
     _addField: function(fieldName, element, inferOrder){
+      $.ensureBubbleOnChange(element);
       var field = this._constructField(element);
       var isDirectFieldOfThisPart = true;
 
@@ -625,7 +625,7 @@
     
     // check if the context if for a non-virtual field
     _contextMatchField: function(context, field){
-      // compare Dom with ==, === does not work in IE6
+      // compare Dom with ==, === does not work in IE
       return context && this._primaryDomOf(context) == this._primaryDomOf(field);
     },
     
@@ -686,36 +686,39 @@
   
   // get index of dom in a dom array(can be jQuery object)
   $.indexInArray = function(item, array){
-    if($.browser.msie){ // in IE6, === will return false even when comparing the same dom, use == instead.
+    if($.support.trippleEqualOnDom){
+      return $.inArray(item, array);
+    } else {
       for(var i = 0; i < array.length; i++){
         if(array[i] == item){
           return i;
         }
       }
       return -1;
-    } else {
-      return $.inArray(item, array);
     }
   };
   
-  // bubble change event for IE6, this is necessary for live event or event delegation
-  $.fixBubblingForIE6 = function(context){
-    if(!$.browser.msie){ 
+  // ensure change event will bubble up dom tree, this is necessary for live event or event delegation
+  $.ensureBubbleOnChange = function(context){
+    if($.support.bubbleOnChange){ 
       return;
     }
     var all = context.find(":input").add(context.filter(":input"));
     all.each(function(i, dom){
       var element = $(dom);
-      if(!element.data("fixBubblingForIE6")){ // do this only once for the same dom element
-        element.data("fixBubblingForIE6", true);
+      if(!element.data("bubbleOnChange")){ // do this only once for the same dom element
+        element.data("bubbleOnChange", true);
         element.change(function(e){
-          if(e.hasOwnProperty("altKey")){ // is triggered by user instead of code
+          if(e.hasOwnProperty("altKey")){ // an indicator that this is triggered by user instead of code
             var event = $.extend(true, {}, e); // clone the event passed in
             $.event.trigger(event, [event], this.parentNode || this.ownerDocument, true);
           }
         });
       }
     });
+    
+    $.support.bubbleOnChange = !$.browser.msie; // change event in IE doesn't bubble.
+    $.support.trippleEqualOnDom = !$.browser.msie; // in IE, === will return false even when comparing the same dom, use == instead.
   };
 
 })(jQuery);
