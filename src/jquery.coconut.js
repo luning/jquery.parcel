@@ -137,7 +137,8 @@
         return all;
       }
       
-      if(index === 0 && this.length > 0){ // only for the efficiency of getting the first element
+      // only for the efficiency of getting the first element
+      if(index === 0 && this.length > 0){
         return this[0].get(0);
       } else {
         return this.get()[index];
@@ -261,11 +262,11 @@
       if(!$.support.bubbleOnChange){ 
         var all = this.find(":input").add(this.filter(":input"));
         all.each(function(i, dom){
-          var element = $(dom);
+          var elem = $(dom);
           // do this only once for the same dom element
-          if(!element.data("bubbleOnChange")){
-            element.data("bubbleOnChange", true);
-            element.change(function(e){
+          if(!elem.data("bubbleOnChange")){
+            elem.data("bubbleOnChange", true);
+            elem.change(function(e){
               // only need to simulate bubbling for real user interaction, event will bubble up if triggered by jQuery trigger() method.
               if(e.hasOwnProperty("altKey")){ 
                 // clone the event passed in
@@ -354,8 +355,8 @@
     },
 
     // return true if the field is defined by this part
-    has: function(fieldName, arrayOrNot){
-      var index = this.index(fieldName);
+    has: function(fname, arrayOrNot){
+      var index = this.index(fname);
       if(index === -1){
         return false;
       } else if (arrayOrNot === undefined) {
@@ -367,9 +368,9 @@
     },
    
     // return index of the field
-    index: function(fieldName) {
+    index: function(fname) {
       for(var i = 0; i < this._fields.length; i++){
-        if(this._fields[i].name === fieldName){
+        if(this._fields[i].name === fname){
           return i;
         }
       }
@@ -396,18 +397,18 @@
     // fieldDefs = { fieldName1: "selector1", fieldName2: "selector2" }, fields are ordered.
     // TODO: this method is not useful, consider to remove it.
     addFields: function(fieldDefs){
-      $.each(fieldDefs, function(fieldName, selector){
-        var element = $(selector, this.container);
-        if(element.length === 0){
+      $.each(fieldDefs, function(fname, selector){
+        var elem = $(selector, this.container);
+        if(elem.length === 0){
           throw "CoconutError: can not find [" + selector + "] in container.";
         }
-        if(this.contains(element)){
+        if(this.contains(elem)){
           throw "CoconutError: field for element [" + selector + "] is already defined.";
         }
-        if(this.has(fieldName)){
-          throw "CoconutError: field with name [" + fieldName + "] already exist in part.";
+        if(this.has(fname)){
+          throw "CoconutError: field with name [" + fname + "] already exist in part.";
         }
-        this._addField(fieldName, element);
+        this._addField(fname, elem);
       }.bind(this));
     },
 
@@ -456,14 +457,14 @@
     
     getState: function(context){
       var state = {};
-      $.each(this._findFields(context), function(i, field){
+      $.each(this._fieldsIn(context), function(i, field){
         state[field.name] = field.it.state();
       });
       return state;
     },
     
     setState: function(s, context){
-      $.each(this._findFields(context), function(i, field){
+      $.each(this._fieldsIn(context), function(i, field){
         if(s.hasOwnProperty(field.name)){
           field.it.state(s[field.name]);
         }
@@ -473,7 +474,7 @@
     
     initialState: function(context){
       var targetState = {};
-      var targetFields = this._findFields(context);
+      var targetFields = this._fieldsIn(context);
       $.each(targetFields, function(i, field){
         if(this._initialState.hasOwnProperty(field.name)){
           targetState[field.name] = this._initialState[field.name];
@@ -495,17 +496,17 @@
         return this;
       }
       
-      var fieldNames = arguments;
+      var fnames = arguments;
       if(arguments.length === 1 && typeof(arguments[0]) !== "string"){ // a context(a field or a jQuery container)
-        fieldNames = this._findFieldNames(arguments[0]);
+        fnames = this._fnamesIn(arguments[0]);
       }
 
       var newState = {};
-      $.each(fieldNames, function(i, fieldName){
-        if(!this._initialState.hasOwnProperty(fieldName)){
+      $.each(fnames, function(i, fname){
+        if(!this._initialState.hasOwnProperty(fname)){
           throw "CoconutError: reset state with invalid field name.";
         }
-        newState[fieldName] = this._initialState[fieldName];
+        newState[fname] = this._initialState[fname];
       }.bind(this));
 
       this.state(newState);
@@ -519,22 +520,22 @@
     },
     
     // check if this part contains any dom in element
-    contains: function(element){
+    contains: function(elem){
       var all = this.get();
-      return $.grep($(element).get(), function(dom){
+      return $.grep($(elem).get(), function(dom){
         return $.indexInArray(dom, all) !== -1;
       }).length > 0;
     },
         
     // find names of fields in context
-    _findFieldNames: function(context){
-      return $.map(this._findFields(context), function(field){
+    _fnamesIn: function(context){
+      return $.map(this._fieldsIn(context), function(field){
         return field.name;
       });
     },
 
     // find fields in context
-    _findFields: function(context){
+    _fieldsIn: function(context){
       if(context){
         var contextDom = this._primaryDomOf(context);
         return $(this._fields).filter(function(){
@@ -548,8 +549,8 @@
 
     // parse fieldtype property specified in dom.
     // format: "type_of_field,container_selector_of_this_field_optional"
-    _fieldTypeDef: function(element){
-      var def = element.attr("fieldtype");
+    _fieldTypeDef: function(elem){
+      var def = elem.attr("fieldtype");
       if(!def){
         return {};
       }
@@ -560,7 +561,7 @@
       } else {
         var container;
         if(match[2]){
-          var containerDom = element.closest(match[2])[0];
+          var containerDom = elem.closest(match[2])[0];
           if(!containerDom){
             throw "CoconutError: parent container selector [" + match[2] + "] specified in 'fieldtype' property in dom matchs nothing.";
           }
@@ -574,50 +575,50 @@
     },
 
     // construct field for jQuery element
-    _constructField: function(element) {
-      if(element.attr("part") !== undefined) {
-        return element.part();
-      } else if (element.is(":radio")) {
-        return this.container.find(":radio[name=" + element.attr("name") + "]")._preparingAsField();
+    _constructField: function(elem) {
+      if(elem.attr("part") !== undefined) {
+        return elem.part();
+      } else if (elem.is(":radio")) {
+        return this.container.find(":radio[name=" + elem.attr("name") + "]")._preparingAsField();
       } else {
-        return element.ensureBubbleOnChange()._preparingAsField();
+        return elem.ensureBubbleOnChange()._preparingAsField();
       }
     },
     
     // field is an object with format: { name: "fieldName", it: theRealField }, theRealField may be jQuery, array or part.
     // all fields are stored in this._fields array, and convenient field accessors on this are assigned if applicable(not conflict with existing property)
     // inferOrder is only for efficency, will add new field to the end of this._fields by default, if not specified. can always be true.
-    _addField: function(fieldName, element, inferOrder){
-      var field = this._constructField(element);
+    _addField: function(fname, elem, inferOrder){
+      var field = this._constructField(elem);
       var isDirectFieldOfThisPart = true;
 
-      var arrayFieldName = this._plural(fieldName);
-      var fieldTypeDef = this._fieldTypeDef(element);
+      var fnameOfArray = this._plural(fname);
+      var fieldTypeDef = this._fieldTypeDef(elem);
 
-      if(this.has(arrayFieldName, true)){ // add to existing array field
-        this._fields[this.index(arrayFieldName)].it.push(field);
+      if(this.has(fnameOfArray, true)){ // add to existing array field
+        this._fields[this.index(fnameOfArray)].it.push(field);
         isDirectFieldOfThisPart = false;
       } else if (fieldTypeDef.type === "array") { // create new array field
-        if(this.has(arrayFieldName)){
-          throw "CoconutError: nonarray field [" + arrayFieldName + "] already exists, failed to create array field.";
+        if(this.has(fnameOfArray)){
+          throw "CoconutError: nonarray field [" + fnameOfArray + "] already exists, failed to create array field.";
         }
-        fieldName = arrayFieldName;
+        fname = fnameOfArray;
         field = $.newArrayField(fieldTypeDef.container, field);
-        if(!(fieldName in this)){
-          this[fieldName] = field;
+        if(!(fname in this)){
+          this[fname] = field;
         }
       } else { // non-array field
-        if (this.has(fieldName)){
-          throw "CoconutError: field with name [" + fieldName + "] already exists.";
+        if (this.has(fname)){
+          throw "CoconutError: field with name [" + fname + "] already exists.";
         }
-        if(!(fieldName in this)){
-          this[fieldName] = field;
+        if(!(fname in this)){
+          this[fname] = field;
         }
       }
 
       if(isDirectFieldOfThisPart){
         var insertIndex = inferOrder ? this._suggestedIndex(field) : this._fields.length;
-        this._fields.splice(insertIndex, 0, { name: fieldName, it: field });
+        this._fields.splice(insertIndex, 0, { name: fname, it: field });
       }
     },
 
@@ -648,7 +649,7 @@
     },
 
     _buildContainers: function(context){
-      var all = this._matchedInContext(context, "[fieldtype=virtual]");
+      var all = this._selectInContext(context, "[fieldtype=virtual]");
       all.each(function(i, dom){
         var container = $(dom);
         var containerName = this._name(container);
@@ -662,30 +663,30 @@
       }.bind(this));
     },
     
-    _matchedInContext: function(context, matcher){
-      return context.filter(matcher)
-            .add(context.find(matcher))
+    _selectInContext: function(context, selector){
+      return context.filter(selector)
+            .add(context.find(selector))
             .not(this.container);    
     },
 
     _buildFields: function(context, inferOrder){
-      var all = this._matchedInContext(context, this.FIELD_SELECTOR);
+      var all = this._selectInContext(context, this.FIELD_SELECTOR);
       all.each(function(i, dom){
         if(this.contains(dom)){
           return;
         }
-        var element = $(dom);
-        var fieldName = this._name(element);
-        if(!fieldName){
+        var elem = $(dom);
+        var fname = this._name(elem);
+        if(!fname){
           return; // ignore this dom element
         }
-        this._addField(fieldName, element, inferOrder);
+        this._addField(fname, elem, inferOrder);
       }.bind(this));
     },
 
     // infer a name for element
-    _name: function(element){
-      return element.attr("fieldname") || element.attr("name") || element.attr("id");
+    _name: function(elem){
+      return elem.attr("fieldname") || elem.attr("name") || elem.attr("id");
     },
     
     // check if the context if for a non-virtual field
