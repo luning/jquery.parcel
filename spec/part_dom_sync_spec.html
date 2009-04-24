@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>Part Dom Sync Spec</title>
+  <title>Part DOM Sync Spec</title>
   <script src="../lib/jquery-1.3.2.js"></script>
   <script src="lib/screw.dependencies.js"></script>
   <script src="lib/test.helper.js"></script>
@@ -46,6 +46,8 @@
       <input type="text" name="number"></input>
       <input type="text" name="type"></input>
     </div>
+    <div id="adiv">
+    </div>
   </div>
   <input id="randomInput" type="text"></input>
 </div>
@@ -54,16 +56,14 @@
 Screw.Unit(function() {
 
   var fixtureHtml = $("#fixture").html();
-  var person;
 
   before(function() {
     $("#fixture").html(fixtureHtml);
-    
-    person = $("#person").part();
   });
 
-  describe("Add Dom Dynamicly", function() {
+  describe("Add DOM Dynamicly", function() {
     it("should add field if applicable", function() {
+      var person = $("#person").part();
       var edu = $("<input type='text' name='education'></input>");
       person.title.after(edu);
       edu.sync();
@@ -73,6 +73,7 @@ Screw.Unit(function() {
     });
 
     it("should add field once even if call sync twice", function() {
+      var person = $("#person").part();
       var edu = $("<input type='text' name='education'></input>");
       person.title.after(edu);
       edu.sync();
@@ -83,6 +84,7 @@ Screw.Unit(function() {
     });
 
     it("should add field with proper field order", function() {
+      var person = $("#person").part();
       var edu = $("<input type='text' name='education'></input>");
       person.title.after(edu);
       edu.sync();
@@ -91,6 +93,7 @@ Screw.Unit(function() {
     });
 
     it("should add part type field if applicable, and in correct order", function() {
+      var person = $("#person").part();
       var edu = $("<div part name='education'><input type='text' name='college'></input></div>");
       person.title.after(edu);
       edu.sync();
@@ -102,6 +105,7 @@ Screw.Unit(function() {
     });
 
     it("should create array field if 'fieldtype' is setted to 'array'", function() {
+      var person = $("#person").part();
       var hobby = $("<input type='text' value='reading' fieldtype='array' name='hobby'></input>");
       $("#person").append(hobby);
       hobby.sync();
@@ -113,6 +117,7 @@ Screw.Unit(function() {
     });
 
     it("should add field to array if the name is supposed to be of array type", function() {
+      var person = $("#person").part();
       expect(person.emails.length).to(equal, 1);
 
       var anotherEmail = $("<input type='text' value='another@my.com' name='email'></input>");
@@ -125,6 +130,7 @@ Screw.Unit(function() {
     });
 
     it("should add field to array once even if call sync twice", function() {
+      var person = $("#person").part();
       expect(person.emails.length).to(equal, 1);
 
       var anotherEmail = $("<input type='text' value='another@my.com' name='email'></input>");
@@ -137,6 +143,7 @@ Screw.Unit(function() {
     });
 
     it("should add part type field to array if the name is supposed to be of array type", function() {
+      var person = $("#person").part();
       expect(person.contacts.length).to(equal, 1);
 
       var anotherContact = $("<div part='' name='contact'><input type='text' value='111' name='number'></input><input type='text' value='home' name='type'></input></div>");
@@ -147,29 +154,47 @@ Screw.Unit(function() {
       expect(person.contacts.length).to(equal, 2);
       expect(person.contacts[1].state()).to(equal_state, {number: "111", type: "home"});
     });
-    
-    it("should trigger state change event handler on part if it's changed", function() {
+
+    it("should fire change event on the DOM soon after its adding", function() {
+      var person = $("#person").part();
       var count = 0;
-      person.stateChange(function(s){
-        expect(s.education).to(equal, "college");
+      person.change(function(e){
+        expect($(e.target).val()).to(equal, "high school");
         count++;
       })
       
       var edu = $("<select name='education'><option selected>high school</option><option>college</option></select>");
       person.title.after(edu);
       edu.sync();
-      expect(count).to(equal, 0);
-      
-      person.education.state("college");
       
       expect(count).to(equal, 1);
     });
+    
+    it("should trigger state change event handler on part after the newly added DOM is changed", function() {
+      var person = $("#person").part();
+      var added = false;
+      var count = 0;
+      person.stateChange(function(s){
+        if(added){
+          expect(s.education).to(equal, "college");
+          count++;
+        }
+      })
+      
+      var edu = $("<select name='education'><option selected>high school</option><option>college</option></select>");
+      person.title.after(edu);
+      edu.sync();
 
+      added = true;
+      person.education.state("college");
+      expect(count).to(equal, 1);
+    });    
   });
 
-  describe("Remove Dom Dynamically", function() {
+  describe("Remove DOM Dynamically", function() {
 
     it("should remove field accordingly", function() {
+      var person = $("#person").part();
       person.container.find("input[name=name]").remove();
       person.sync();
 
@@ -181,7 +206,7 @@ Screw.Unit(function() {
       var anotherEmail = $("<input type='text' name='email'></input>");
       $("#person").append(anotherEmail);
 
-      person = $("#person").part();
+      var person = $("#person").part();
       expect(person.emails.length).to(equal, 2);
 
       anotherEmail.remove();
@@ -195,7 +220,7 @@ Screw.Unit(function() {
     it("should remove the array field associated with no container if it becomes empty", function() {
       $("#person input[fieldtype='array,.emails']").attr("fieldtype", "array"); // removed container setting
 
-      person = $("#person").part();
+      var person = $("#person").part();
       expect(person.emails.length).to(equal, 1);
 
       person.container.find("input[name=email]").remove();
@@ -206,6 +231,7 @@ Screw.Unit(function() {
     });
 
     it("should not remove the array field associated with a container even if it becomes empty", function() {
+      var person = $("#person").part();
       expect(person.emails.length).to(equal, 1);
 
       person.container.find("input[name=email]").remove();
@@ -219,7 +245,7 @@ Screw.Unit(function() {
       var anotherContact = $("<div part='' name='contact'><input type='text' value='111' name='number'></input><input type='text' value='home' name='type'></input></div>");
       $("#person").append(anotherContact);
 
-      person = $("#person").part();
+      var person = $("#person").part();
       expect(person.contacts.length).to(equal, 2);
 
       anotherContact.remove();
@@ -232,7 +258,7 @@ Screw.Unit(function() {
     it("should remove the array field containing parts if it becomes empty", function() {
       $("#person").append("<div part='' name='contact'><input type='text' value='111' name='number'></input><input type='text' value='home' name='type'></input></div>");
 
-      person = $("#person").part();
+      var person = $("#person").part();
       expect(person.contacts.length).to(equal, 2);
 
       $("#person div[name=contact]").remove();
@@ -240,6 +266,56 @@ Screw.Unit(function() {
 
       expect(person.has("contacts")).to(be_false);
       expect(person.contacts).to(be_undefined);
+    });
+
+    it("should fire change event on the closest original parent which is still alive soon after the removal", function() {
+      var aDiv = $("#person div[id=adiv]").append("<select name='education'><option selected>high school</option><option>college</option></select>");
+
+      var person = $("#person").part();
+
+      var count = 0;
+      person.change(function(e){
+        expect(e.target).to(equal, aDiv[0]);
+        count++;
+      })
+      
+      person.education.remove();
+      person.sync();
+      
+      expect(count).to(equal, 1);
+    });
+    
+    it("should fire change event on the Array field container after one of its sub fields is removed", function() {
+      // has 2 emails
+      var emailsDiv = $("#person div.emails").append("<input type=text name=email></input>");
+      var person = $("#person").part();
+
+      var count = 0;
+      person.change(function(e){
+        expect(e.target).to(equal, emailsDiv[0]);
+        count++;
+      })
+      
+      person.emails[0].remove();
+      person.sync();
+      
+      expect(count).to(equal, 1);
+    });
+    
+    it("should fire change event on the Array field container if exists after removing the last sub field", function() {
+      var person = $("#person").part();
+
+      var count = 0;
+      person.change(function(e){
+        expect(e.target).to(equal, person.emails.container[0]);
+        count++;
+      })
+      
+      person.emails[0].remove();
+      person.sync();
+      
+      expect(person.emails.length).to(equal, 0);
+      expect(count).to(equal, 1);
     });
   });
 });

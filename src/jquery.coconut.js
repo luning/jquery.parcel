@@ -99,6 +99,18 @@
       if(part){
         return part.initialState(this);
       }
+    },
+        
+    // fire change event after removal
+    _removed: function(){
+      // need not fire change event if it's a container(Part or Array), already done for its sub fields.
+      var firstDom;
+      var originalParents = !this.container && (firstDom = this.get(0)) && firstDom._parentsSnap;
+      if(originalParents){
+        var closestAliveParent = $.first(originalParents, function(i, p){ return !$(p).dead(); });
+        $(closestAliveParent).change();
+      }
+      return this;
     }
   };
 
@@ -161,7 +173,9 @@
       });
       deadIndexex.reverse();
       $.each(deadIndexex, function(i, index){
+        var deadField = this[index];
         this.splice(index, 1);
+        deadField._removed();
       }.bind(this));
     }
   };
@@ -263,6 +277,18 @@
         });
       }
       return this;
+    },
+    
+    _preparingAsField: function(){
+      return this.ensureBubbleOnChange()._snapParents();
+    },
+
+    // snap parent list, just for fire change event on proper original parent DOM after dynamicly removing a DOM
+    _snapParents: function(){
+      this.each(function(){
+        this._parentsSnap = $(this).parents().get();
+      });
+      return this;
     }
   });
 
@@ -296,7 +322,9 @@
       if(dom === undefined){ // dom removed
         this.clean();
       } else { // dom added
-        this._buildFields($(dom), true);
+        var elem = $(dom);
+        this._buildFields(elem, true);
+        elem.change();
       }
     },
 
@@ -318,6 +346,7 @@
             if(this[deadField.name] === deadField.it){
               delete this[deadField.name];
             }
+            deadField.it._removed();
             break;
           }
         }
@@ -549,9 +578,9 @@
       if(element.attr("part") !== undefined) {
         return element.part();
       } else if (element.is(":radio")) {
-        return this.container.find(":radio[name=" + element.attr("name") + "]").ensureBubbleOnChange();
+        return this.container.find(":radio[name=" + element.attr("name") + "]")._preparingAsField();
       } else {
-        return element.ensureBubbleOnChange();
+        return element.ensureBubbleOnChange()._preparingAsField();
       }
     },
     
@@ -731,6 +760,15 @@
         }
       }
       return -1;
+    }
+  };
+  
+  // find the first item in array that matchs the filter fn.
+  $.first = function(array, fn){
+    for(var i = 0; i < array.length; i++){
+      if(fn(i, array[i])){
+        return array[i];
+      }
     }
   };
   
