@@ -39,7 +39,7 @@ Screw.Unit(function() {
       var span = $("#personDetails #span");
       person.name.bindState(span);
       
-      person.name.val("smith").fireNativeEvent("change");
+      person.name.state("smith");
       expect(span.state()).to(equal, "smith");
     });
 
@@ -65,7 +65,7 @@ Screw.Unit(function() {
         return s.name + ":" + s.emails[0];
       });
       
-      person.emails[0].val("another@my.com").fireNativeEvent("change");
+      person.emails[0].state("another@my.com");
       expect(span.state()).to(equal, "luning:another@my.com");
     }); 
     
@@ -75,7 +75,7 @@ Screw.Unit(function() {
         return "email count is " + s.length;
       });
       
-      person.emails[0].val("another@my.com").fireNativeEvent("change");
+      person.emails[0].state("another@my.com");
 
       expect(span.state()).to(equal, "email count is 1");
     }); 
@@ -86,7 +86,7 @@ Screw.Unit(function() {
         return s.spouseName;
       });
       
-      person.spouseName.val("jessie").fireNativeEvent("change");
+      person.spouseName.state("jessie");
 
       expect(span.state()).to(equal, "jessie");
     }); 
@@ -116,7 +116,7 @@ Screw.Unit(function() {
       });
       
       expect(eventFired).to(be_false);
-      person.name.val("smith").fireNativeEvent("change");
+      person.name.state("smith");
       expect(eventFired).to(be_true);
     }); 
     
@@ -127,7 +127,7 @@ Screw.Unit(function() {
       });
       
       expect(eventFired).to(be_false);
-      person.name.val("smith").fireNativeEvent("change");
+      person.name.state("smith");
       expect(eventFired).to(be_true);
     }); 
 
@@ -138,7 +138,7 @@ Screw.Unit(function() {
       });
       
       expect(eventFired).to(be_false);
-      person.emails[0].val("another@my.com").fireNativeEvent("change");
+      person.emails[0].state("another@my.com");
       expect(eventFired).to(be_true);
     }); 
     
@@ -149,7 +149,7 @@ Screw.Unit(function() {
       });
       
       expect(eventFired).to(be_false);
-      person.spouseName.val("jessie").fireNativeEvent("change");
+      person.spouseName.state("jessie");
       expect(eventFired).to(be_true);
     }); 
   });
@@ -163,7 +163,7 @@ Screw.Unit(function() {
       });
       
       expect(eventFired).to(be_false);
-      person.name.val("smith").fireNativeEvent("change");
+      person.name.state("smith");
       expect(eventFired).to(be_true);
     }); 
   
@@ -175,7 +175,7 @@ Screw.Unit(function() {
       });
       
       expect(eventFired).to(be_false);
-      person.name.val("smith").fireNativeEvent("change");
+      person.name.state("smith");
       expect(eventFired).to(be_true);
     }); 
     
@@ -187,7 +187,7 @@ Screw.Unit(function() {
       });
       
       expect(eventFired).to(be_false);
-      person.emails[0].val("another@my.com").fireNativeEvent("change");
+      person.emails[0].state("another@my.com");
       expect(eventFired).to(be_true);
     });
     
@@ -199,7 +199,7 @@ Screw.Unit(function() {
       });
       
       expect(eventFired).to(be_false);
-      person.spouseName.val("jessie").fireNativeEvent("change");
+      person.spouseName.state("jessie");
       expect(eventFired).to(be_true);
     });
   });
@@ -209,18 +209,18 @@ Screw.Unit(function() {
     it("should show/hide a jQuery container(virtual field) when condition is satisfied", function() {
       person.marital.showHide(person.spouseInfo, "Yes");
 
-      person.marital.val("No").fireNativeEvent("change");
+      person.marital.state("No");
       expect(person.spouseInfo).to_not(be_visible);
       
-      person.marital.val("Yes").fireNativeEvent("change");
+      person.marital.state("Yes");
       expect(person.spouseInfo).to(be_visible);
     }); 
     
     it("should do show/hide soon after calling showHide", function() {
-      person.marital.val("No").fireNativeEvent("change");
+      person.marital.state("No");
       person.spouseInfo.hide();
 
-      person.marital.val("Yes").fireNativeEvent("change");
+      person.marital.state("Yes");
       person.marital.showHide(person.spouseInfo, "Yes");
       expect(person.spouseInfo).to(be_visible);
     }); 
@@ -230,50 +230,50 @@ Screw.Unit(function() {
               return s === "Yes";
           });
 
-      person.marital.val("No").fireNativeEvent("change");
+      person.marital.state("No");
       expect(person.spouseInfo).to_not(be_visible);
       
-      person.marital.val("Yes").fireNativeEvent("change");
+      person.marital.state("Yes");
       expect(person.spouseInfo).to(be_visible);
     }); 
 
     it("should be triggered by a Part", function() {
       person.showHide(person.spouseInfo, { marital: "Yes" });
       
-      person.marital.val("No").fireNativeEvent("change");
+      person.marital.state("No");
       expect(person.spouseInfo).to_not(be_visible);
       
-      person.marital.val("Yes").fireNativeEvent("change");
+      person.marital.state("Yes");
       expect(person.spouseInfo).to(be_visible);
     }); 
 
     it("should be triggered by an Array field", function() {
       person.emails.showHide(person.spouseInfo, ["another@my.com"]);
       
-      person.emails[0].val("other@my.com").fireNativeEvent("change");
+      person.emails[0].state("other@my.com");
       expect(person.spouseInfo).to_not(be_visible);
       
-      person.emails[0].val("another@my.com").fireNativeEvent("change");
+      person.emails[0].state("another@my.com");
       expect(person.spouseInfo).to(be_visible);
     });
     
     it("should be triggered by a Virtual field", function() {
       person.spouseInfo.showHide("#personDetails", { spouseName: "jessie" });
       
-      person.spouseName.val("mary").fireNativeEvent("change");
+      person.spouseName.state("mary");
       expect($("#personDetails")).to_not(be_visible);
       
-      person.spouseName.val("jessie").fireNativeEvent("change");
+      person.spouseName.state("jessie");
       expect($("#personDetails")).to(be_visible);
     });
     
     it("should reset state of target if it becomes hidden", function() {
       person.marital.showHide(person.spouseInfo, "Yes", true);
 
-      person.marital.val("Yes").fireNativeEvent("change");
-      person.spouseName.val("jessie").fireNativeEvent("change");
+      person.marital.state("Yes");
+      person.spouseName.state("jessie");
       
-      person.marital.val("No").fireNativeEvent("change");
+      person.marital.state("No");
       expect(person.spouseName.state()).to(equal, "");
     }); 
     

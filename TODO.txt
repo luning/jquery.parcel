@@ -3,6 +3,7 @@ TODO
 [ ] use smoke mocks rather than roll our own
 [ ] consider renaming initialState() => initial or pristine?, resetState() => reset or revert, captureState() => save. 4 actions: get the last saved state, reset to blank, revert to the last saved state, save state.
 [ ] dynamiclly adding/removing DOM should fire change event
+[ ] build part with state
 [ ] work with hidden template for array type field
 [ ] add behaviour with parameters
 [ ] jQuery object out of the scope of all parts may listen to state change of below parts some how

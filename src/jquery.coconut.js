@@ -210,15 +210,17 @@
           if (this.is(":text, select")) {
             this.focus()
               .val(s)
-              .change()
+              .triggerNative("change")
               .blur();
           } else if (this.is(":radio")) {
             if (s === null) {
-              this.removeAttr("checked").change();
+              this.filter("[checked]")
+                .removeAttr("checked")
+                .triggerNative("change");
             } else {
               this.filter("[value=" + s + "]")
                 .click()
-                .change();
+                .triggerNative("change");
             }
           } else {
             this.text(s);
@@ -226,6 +228,41 @@
         }
         return this;
       }
+    },
+    // trigger event with browser native behaviour, e.g. change does not bubble up in IE, but firefox does.
+    triggerNative: function(event) {
+      this.each(function(){
+        if ($.browser.msie) {
+          this.fireEvent("on" + event);
+        } else {
+          var e = document.createEvent("HTMLEvents");
+          e.initEvent(event, true, true);
+          this.dispatchEvent(e);
+        }
+      });
+      return this;
+    },
+    // ensure change event will bubble up dom tree, this is necessary for live event or event delegation
+    ensureBubbleOnChange: function(){
+      if(!$.support.bubbleOnChange){ 
+        var all = this.find(":input").add(this.filter(":input"));
+        all.each(function(i, dom){
+          var element = $(dom);
+          // do this only once for the same dom element
+          if(!element.data("bubbleOnChange")){
+            element.data("bubbleOnChange", true);
+            element.change(function(e){
+              // only need to simulate bubbling for real user interaction, event will bubble up if triggered by jQuery trigger() method.
+              if(e.hasOwnProperty("altKey")){ 
+                // clone the event passed in
+                var event = $.extend(true, {}, e);
+                $.event.trigger(event, [event], this.parentNode || this.ownerDocument, true);
+              }
+            });
+          }
+        });
+      }
+      return this;
     }
   });
 
@@ -512,9 +549,9 @@
       if(element.attr("part") !== undefined) {
         return element.part();
       } else if (element.is(":radio")) {
-        return this.container.find(":radio[name=" + element.attr("name") + "]");
+        return this.container.find(":radio[name=" + element.attr("name") + "]").ensureBubbleOnChange();
       } else {
-        return element;
+        return element.ensureBubbleOnChange();
       }
     },
     
@@ -522,7 +559,6 @@
     // all fields are stored in this._fields array, and convenient field accessors on this are assigned if applicable(not conflict with existing property)
     // inferOrder is only for efficency, will add new field to the end of this._fields by default, if not specified. can always be true.
     _addField: function(fieldName, element, inferOrder){
-      $.ensureBubbleOnChange(element);
       var field = this._constructField(element);
       var isDirectFieldOfThisPart = true;
 
@@ -698,34 +734,10 @@
     }
   };
   
-  // ensure change event will bubble up dom tree, this is necessary for live event or event delegation
-  $.ensureBubbleOnChange = function(context){
-    if($.support.bubbleOnChange){ 
-      return;
-    }
-    var all = context.find(":input").add(context.filter(":input"));
-    all.each(function(i, dom){
-      var element = $(dom);
-      // do this only once for the same dom element
-      if(!element.data("bubbleOnChange")){
-        element.data("bubbleOnChange", true);
-        element.change(function(e){
-          // only need to simulate bubbling for real user interaction, event will bubble up if triggered by jQuery trigger() method.
-          if(e.hasOwnProperty("altKey")){ 
-            // clone the event passed in
-            var event = $.extend(true, {}, e);
-            $.event.trigger(event, [event], this.parentNode || this.ownerDocument, true);
-          }
-        });
-      }
-    });
-    
-    // change event in IE doesn't bubble.
-    $.support.bubbleOnChange = !$.browser.msie;
-    // in IE, === will return false even when comparing the same dom, use == instead.
-    $.support.trippleEqualOnDom = !$.browser.msie;
-  };
-
+  // change event in IE doesn't bubble.
+  $.support.bubbleOnChange = !$.browser.msie;
+  // in IE, === will return false even when comparing the same dom, use == instead.
+  $.support.trippleEqualOnDom = !$.browser.msie;
 })(jQuery);
 
 Function.prototype.bind = function(context) {

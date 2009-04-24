@@ -160,7 +160,7 @@ Screw.Unit(function() {
       edu.sync();
       expect(count).to(equal, 0);
       
-      person.education.val("college").fireNativeEvent("change");
+      person.education.state("college");
       
       expect(count).to(equal, 1);
     });
