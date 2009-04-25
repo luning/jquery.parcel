@@ -27,15 +27,14 @@
 Screw.Unit(function() {
 
   var fixtureHtml = $("#fixture").html();
-  var person;
 
   before(function() {
     $("#fixture").html(fixtureHtml);
-    person = $("#person").part();
   });
 
   describe("Bind State", function() {
     it("should update target if source jQuery state changes", function() {
+      var person = $("#person").part();
       var span = $("#personDetails #span");
       person.name.bindState(span);
       
@@ -44,6 +43,7 @@ Screw.Unit(function() {
     });
 
     it("should update target just after setting binding", function() {
+      var person = $("#person").part();
       var span = $("#personDetails #span");
       person.name.bindState(span);
 
@@ -51,6 +51,7 @@ Screw.Unit(function() {
     }); 
     
     it("should apply converter while updating state", function() {
+      var person = $("#person").part();
       var span = $("#personDetails #span");
       person.name.bindState(span, function(s){
         return s.toUpperCase();
@@ -60,6 +61,7 @@ Screw.Unit(function() {
     }); 
 
     it("should update target if source Part state changes", function() {
+      var person = $("#person").part();
       var span = $("#personDetails #span");
       person.bindState(span, function(s){
         return s.name + ":" + s.emails[0];
@@ -70,6 +72,7 @@ Screw.Unit(function() {
     }); 
     
     it("should update target if source Array field state changes", function() {
+      var person = $("#person").part();
       var span = $("#personDetails #span");
       person.emails.bindState(span, function(s){
         return "email count is " + s.length;
@@ -81,6 +84,7 @@ Screw.Unit(function() {
     }); 
     
     it("should update target if source Virtual field state changes", function() {
+      var person = $("#person").part();
       var span = $("#personDetails #span");
       person.spouseInfo.bindState(span, function(s){
         return s.spouseName;
@@ -110,6 +114,7 @@ Screw.Unit(function() {
 
   describe("Change Event", function() {
     it("should fire on a jQuery field change", function() {
+      var person = $("#person").part();
       var eventFired = false;
       person.name.change(function(){
         eventFired = true;
@@ -121,6 +126,7 @@ Screw.Unit(function() {
     }); 
     
     it("should fire on a Part field change", function() {
+      var person = $("#person").part();
       var eventFired = false;
       person.change(function(){
         eventFired = true;
@@ -132,6 +138,7 @@ Screw.Unit(function() {
     }); 
 
     it("should fire on an Array field change", function() {
+      var person = $("#person").part();
       var eventFired = false;
       person.emails.change(function(){
         eventFired = true;
@@ -143,6 +150,7 @@ Screw.Unit(function() {
     }); 
     
     it("should fire on a Virtual field change", function() {
+      var person = $("#person").part();
       var eventFired = false;
       person.spouseInfo.change(function(){
         eventFired = true;
@@ -156,6 +164,7 @@ Screw.Unit(function() {
 
   describe("State Change Event", function() {
     it("should fire on a jQuery", function() {
+      var person = $("#person").part();
       var eventFired = false;
       person.name.stateChange(function(s){ // TODO is this setup right on person.name?
         eventFired = true;
@@ -168,6 +177,7 @@ Screw.Unit(function() {
     }); 
   
     it("should fire on a Part", function() {
+      var person = $("#person").part();
       var eventFired = false;
       person.stateChange(function(s){
         eventFired = true;
@@ -180,6 +190,7 @@ Screw.Unit(function() {
     }); 
     
     it("should fire on an Array field", function() {
+      var person = $("#person").part();
       var eventFired = false;
       person.emails.stateChange(function(s){
         eventFired = true;
@@ -192,6 +203,7 @@ Screw.Unit(function() {
     });
     
     it("should fire on a Virtual field", function() {
+      var person = $("#person").part();
       var eventFired = false;
       person.spouseInfo.stateChange(function(s){
         eventFired = true;
@@ -207,6 +219,7 @@ Screw.Unit(function() {
   describe("Show Hide", function() {
 
     it("should show/hide a jQuery container(virtual field) when condition is satisfied", function() {
+      var person = $("#person").part();
       person.marital.showHide(person.spouseInfo, "Yes");
 
       person.marital.state("No");
@@ -217,6 +230,7 @@ Screw.Unit(function() {
     }); 
     
     it("should do show/hide soon after calling showHide", function() {
+      var person = $("#person").part();
       person.marital.state("No");
       person.spouseInfo.hide();
 
@@ -226,6 +240,7 @@ Screw.Unit(function() {
     }); 
     
     it("should apply a show up checking callback to showHide", function() {
+      var person = $("#person").part();
       person.marital.showHide(person.spouseInfo, function(s){
               return s === "Yes";
           });
@@ -238,6 +253,7 @@ Screw.Unit(function() {
     }); 
 
     it("should be triggered by a Part", function() {
+      var person = $("#person").part();
       person.showHide(person.spouseInfo, { marital: "Yes" });
       
       person.marital.state("No");
@@ -248,6 +264,7 @@ Screw.Unit(function() {
     }); 
 
     it("should be triggered by an Array field", function() {
+      var person = $("#person").part();
       person.emails.showHide(person.spouseInfo, ["another@my.com"]);
       
       person.emails[0].state("other@my.com");
@@ -258,6 +275,7 @@ Screw.Unit(function() {
     });
     
     it("should be triggered by a Virtual field", function() {
+      var person = $("#person").part();
       person.spouseInfo.showHide("#personDetails", { spouseName: "jessie" });
       
       person.spouseName.state("mary");
@@ -268,6 +286,7 @@ Screw.Unit(function() {
     });
     
     it("should reset state of target if it becomes hidden", function() {
+      var person = $("#person").part();
       person.marital.showHide(person.spouseInfo, "Yes", true);
 
       person.marital.state("Yes");

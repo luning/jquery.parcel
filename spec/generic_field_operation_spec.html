@@ -58,19 +58,16 @@
 
 <script type="text/javascript">
 Screw.Unit(function() {
-
   var fixtureHtml = $("#fixture").html();
-  var person;
   
   before(function() {
     $("#fixture").html(fixtureHtml);
-    
-    person = $("#person").part();
   });
 
   describe("Get Dom Element", function() {
     it("of an Array field should get all dom elements of sub fields", function() {
-      var all = person.emails.get();
+      var person = $("#person").part();
+      var all = person.emails.dom();
       expect(all.length).to(equal, 2);
       
       var twoEmails = $("#person input[name=email]").get();
@@ -78,15 +75,17 @@ Screw.Unit(function() {
     });
 
     it("of an Array field should get by index", function() {
+      var person = $("#person").part();
       var twoEmails = $("#person input[name=email]");
-      expect(person.emails.get(0)).to(equal, twoEmails[0]);
-      expect(person.emails.get(1)).to(equal, twoEmails[1]);
+      expect(person.emails.dom(0)).to(equal, twoEmails[0]);
+      expect(person.emails.dom(1)).to(equal, twoEmails[1]);
     });
   });
 
   describe("State", function() {
 
     it("of a jQuery should be set even when it is hidden", function() {
+      var person = $("#person").part();
       person.name.hide();
       person.name.state("smith");
 
@@ -94,12 +93,14 @@ Screw.Unit(function() {
     });
 
     it("of a Part should be got/set", function() {
+      var person = $("#person").part();
       var state = { name: "josh", title: "Mr", gender: "Male", nationality: "OZ", city: "sydney" };
       person.state(state);
       expect(person.state()).to(contain_state, state);
     });
 
     it("of a Part should be got/set", function() {
+      var person = $("#person").part();
       var dobState = {day: "01", month: "Feb", year: "1991"};
 
       person.state({ dob: dobState });
@@ -111,10 +112,12 @@ Screw.Unit(function() {
     });
 
     it("of an Array field should be got", function() {
+      var person = $("#person").part();
       expect(person.emails.state()).to(equal_state, ["first@my.com", "second@my.com"]);
     });
     
     it("of an Array field should be set", function() {
+      var person = $("#person").part();
       var s = ["first@my.org", "second@my.org"];
       person.emails.state(s);
       
@@ -122,10 +125,12 @@ Screw.Unit(function() {
     });
 
     it("of Virtual field should be got", function() {
+      var person = $("#person").part();
       expect(person.contactInfo.state()).to(equal_state, { emails: ["first@my.com", "second@my.com"], contacts: [{number: "", type: ""}] });
     });
     
     it("of Virtual field should be set", function() {
+      var person = $("#person").part();
       var s = { emails: ["1@my.com", "2@my.com"], contacts: [{number: "1234", type: "home"}] };
       person.contactInfo.state(s);
       
@@ -137,28 +142,34 @@ Screw.Unit(function() {
   describe("Get Initial State", function() {
 
     it("should work for a jQuery field", function() {
+      var person = $("#person").part();
       expect(person.name.initialState()).to(equal, "luning");
     });
     
     it("should work for a Part field", function() {
+      var person = $("#person").part();
       expect(person.locality.initialState()).to(equal_state, { no: "", street: "" });
     });
     
     it("should work for an Array field", function() {
+      var person = $("#person").part();
       expect(person.emails.initialState()).to(equal_state, ["first@my.com", "second@my.com"]);
     });
     
     it("should work for a Virtual field", function() {
+      var person = $("#person").part();
       expect(person.contactInfo.initialState()).to(equal_state, { emails: ["first@my.com", "second@my.com"], contacts: [{number: "", type: ""}]});
     });
     
     it("should return a deep copy of initial state for a Part", function() {
+      var person = $("#person").part();
       var s = person.initialState();
       s.locality.no = "300";
       expect(person.initialState().locality.no).to(equal, "");
     });
     
     it("should return a deep copy of initial state for an Array field", function() {
+      var person = $("#person").part();
       var s = person.emails.initialState();
       s[0] = "1@my.com";
       expect(person.emails.initialState()[0]).to(equal, "first@my.com");
@@ -169,6 +180,7 @@ Screw.Unit(function() {
   describe("Is Dirty", function() {
 
     it("of a Part should know if any field is changed after creation of this Part", function() {
+      var person = $("#person").part();
       expect(person.isDirty()).to(be_false);
 
       person.name.state(person.name.state()); // setting without change
@@ -179,6 +191,7 @@ Screw.Unit(function() {
     });
 	
     it("of a jQuery field should know if it changed after creation of parent Part", function() {
+      var person = $("#person").part();
       expect(person.name.isDirty()).to(be_false);
 
       person.name.state("smith");
@@ -186,6 +199,7 @@ Screw.Unit(function() {
     });
     
     it("of an Array field should know if any field in it is changed after creation of parent Part", function() {
+      var person = $("#person").part();
       expect(person.emails.isDirty()).to(be_false);
 
       person.emails[0].state("1@my.com");
@@ -193,6 +207,7 @@ Screw.Unit(function() {
     });
     
     it("of a Virtual field should know if any field in it's scope is changed after creation of parent Part", function() {
+      var person = $("#person").part();
       expect(person.contactInfo.isDirty()).to(be_false);
 
       person.emails[0].state("1@my.com");
@@ -204,12 +219,14 @@ Screw.Unit(function() {
   describe("Reset State", function() {
 
     it("on a jQuery field should reset state of it in parent part", function() {
+      var person = $("#person").part();
       person.name.state("smith");
       person.name.resetState();
       expect(person.name.state()).to(equal, "luning");
     });
 
     it("on a Part should reset state of it as a field in parent part", function() {
+      var person = $("#person").part();
       var localityPart = person.locality;
       localityPart.state({ no: "290", street: "pitt" });
       localityPart.resetState();
@@ -217,12 +234,14 @@ Screw.Unit(function() {
     });
  
     it("on an Array field should reset state of it in parent part", function() {
+      var person = $("#person").part();
       person.emails.state([ "1@my.com", "2@my.com" ]);
       person.emails.resetState();
       expect(person.emails.state()).to(contain_state, [ "first@my.com", "second@my.com" ]);
     });
     
     it("on a Virtual field(jQuery container) should reset all fields in it", function() {
+      var person = $("#person").part();
       person.state({
         name: "smith",
         title: "Mr",
@@ -246,33 +265,55 @@ Screw.Unit(function() {
   describe("Remove Me", function() {
 
     it("of a jQuery field should remove itself and fire change event on parent DOM", function() {
-
+      var person = $("#person").part();
+      var count = 0;
+      person.change(function(e){
+        expect(e.target).to(equal, person[0]);
+        count++;
+      })
+      
+      person.title.removeMe();
+      expect(person.title).to(be_undefined);
+      expect(count).to(equal, 1);
     });
 
     it("of a Part should remove itself as a field and fire change event on parent DOM", function() {
+      // TODO
+      // var count = 0;
+      // person.change(function(e){
+        // expect(e.target).to(equal, person.container[0]);
+        // count++;
+      // })
       
+      // person.locality.removeMe();
+      // expect(person.locality).to(be_undefined);
+      // expect(count).to(equal, 1);
     });
 
     it("of an Array field should remove itself and fire change event on parent DOM", function() {
-      
+      // TODO
     });
     
     it("of a Virtual field should remove related DOM and fire change event on parent DOM", function() {
-      
+      // TODO
     });
+    
   });
   
   describe("Closest Part", function() {
 
     it("of a jQuery object should be the closest parent part", function() {
+      var person = $("#person").part();
       expect($("#person :radio:first").closestPart()).to(equal, person);
     });
 
     it("of a Part should be itself", function() {
+      var person = $("#person").part();
       expect(person.locality.closestPart()).to(equal, person.locality);
     });
 
     it("of an Array field should be the closest parent part", function() {
+      var person = $("#person").part();
       expect(person.emails.closestPart()).to(equal, person);
     });
   });

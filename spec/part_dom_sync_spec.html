@@ -89,7 +89,7 @@ Screw.Unit(function() {
       person.title.after(edu);
       edu.sync();
 
-      expect(person.index("education")).to(equal, person.index("title") + 1);
+      expect(person.fieldIndex("education")).to(equal, person.fieldIndex("title") + 1);
     });
 
     it("should add part type field if applicable, and in correct order", function() {
@@ -101,7 +101,7 @@ Screw.Unit(function() {
       person.education.state({college: "UTS"});
 
       expect(person.education.state()).to(equal_state, {college: "UTS"});
-      expect(person.index("education")).to(equal, person.index("title") + 1);
+      expect(person.fieldIndex("education")).to(equal, person.fieldIndex("title") + 1);
     });
 
     it("should create array field if 'fieldtype' is setted to 'array'", function() {
@@ -195,10 +195,10 @@ Screw.Unit(function() {
 
     it("should remove field accordingly", function() {
       var person = $("#person").part();
-      person.container.find("input[name=name]").remove();
+      person.find("input[name=name]").remove();
       person.sync();
 
-      expect(person.has("name")).to(be_false);
+      expect(person.hasField("name")).to(be_false);
       expect(person.name).to(be_undefined);
     });
 
@@ -223,10 +223,10 @@ Screw.Unit(function() {
       var person = $("#person").part();
       expect(person.emails.length).to(equal, 1);
 
-      person.container.find("input[name=email]").remove();
+      person.find("input[name=email]").remove();
       person.sync();
 
-      expect(person.has("emails")).to(be_false);
+      expect(person.hasField("emails")).to(be_false);
       expect(person.emails).to(be_undefined);
     });
 
@@ -234,10 +234,10 @@ Screw.Unit(function() {
       var person = $("#person").part();
       expect(person.emails.length).to(equal, 1);
 
-      person.container.find("input[name=email]").remove();
+      person.find("input[name=email]").remove();
       person.sync();
 
-      expect(person.has("emails")).to(be_true);
+      expect(person.hasField("emails")).to(be_true);
       expect(person.emails.length).to(equal, 0);
     });
 
@@ -264,7 +264,7 @@ Screw.Unit(function() {
       $("#person div[name=contact]").remove();
       person.sync();
 
-      expect(person.has("contacts")).to(be_false);
+      expect(person.hasField("contacts")).to(be_false);
       expect(person.contacts).to(be_undefined);
     });
 

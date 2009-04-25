@@ -56,68 +56,70 @@
 Screw.Unit(function() {
 
   var fixtureHtml = $("#fixture").html();
-  var person;
 
   before(function() {
     $("#fixture").html(fixtureHtml);
-
-    person = $("#person").part();
   });
 
   describe("Reset State", function() {
   
-      it("should reset initial state", function() {
-        var initialState = person.state();
+    it("should reset initial state", function() {
+      var person = $("#person").part();
+      var initialState = person.state();
 
-        person.state({ name: "Josh", title: "Mr", gender: "Male", nationality: "OZ", city: "sydney" });
+      person.state({ name: "Josh", title: "Mr", gender: "Male", nationality: "OZ", city: "sydney" });
 
-        person.resetState();
-        expect(person.state()).to(equal_state, initialState);
-      });
+      person.resetState();
+      expect(person.state()).to(equal_state, initialState);
+    });
 
-      it("should reset initial state with specific fields", function() {
-        var initialState = person.state();
-        var tempState = { name: "Josh", title: "Mr", gender: "Male", nationality: "OZ", city: "sydney" };
-        person.state(tempState);
+    it("should reset initial state with specific fields", function() {
+      var person = $("#person").part();
+      var initialState = person.state();
+      var tempState = { name: "Josh", title: "Mr", gender: "Male", nationality: "OZ", city: "sydney" };
+      person.state(tempState);
 
-        person.resetState("name", "title");
-        var finalState = person.state();
+      person.resetState("name", "title");
+      var finalState = person.state();
 
-        expect(finalState.name).to(equal, initialState.name);
-        expect(finalState.title).to(equal, initialState.title);
+      expect(finalState.name).to(equal, initialState.name);
+      expect(finalState.title).to(equal, initialState.title);
 
-        expect(finalState.gender).to(equal, tempState.gender);
-        expect(finalState.nationality).to(equal, tempState.nationality);
-        expect(finalState.city).to(equal, tempState.city);
-      });
-      
-      it("should reset initial state with fields in a jQuery container(Virtual Field)", function() {
-        expect(person.gender.state()).to(equal, "Male");
+      expect(finalState.gender).to(equal, tempState.gender);
+      expect(finalState.nationality).to(equal, tempState.nationality);
+      expect(finalState.city).to(equal, tempState.city);
+    });
+    
+    it("should reset initial state with fields in a jQuery container(Virtual Field)", function() {
+      var person = $("#person").part();
+      expect(person.gender.state()).to(equal, "Male");
 
-        var tempState = { name: "Jane", title: "Mrs", gender: "Female", nationality: "OZ", city: "sydney" };
-        person.state(tempState);
+      var tempState = { name: "Jane", title: "Mrs", gender: "Female", nationality: "OZ", city: "sydney" };
+      person.state(tempState);
 
-        var genderContainer = person.gender.closest("div"); // the div contains the two gender radios
-        person.resetState(genderContainer);
+      var genderContainer = person.gender.closest("div"); // the div contains the two gender radios
+      person.resetState(genderContainer);
 
-        expect(person.gender.state()).to(equal, "Male");
-        delete tempState.gender;
-        expect(person.state()).to(contain_state, tempState);
-      });
+      expect(person.gender.state()).to(equal, "Male");
+      delete tempState.gender;
+      expect(person.state()).to(contain_state, tempState);
+    });
 
-      it("should not reset state with non-exist field", function() {
-        try{
-          person.resetState("notexist");
-          expect(true).to(be_false);
-        } catch(ex){
-          expect(ex.toString()).to(match, "CoconutError");
-        }
-      });
+    it("should not reset state with non-exist field", function() {
+      try{
+        var person = $("#person").part();
+        person.resetState("notexist");
+        expect(true).to(be_false);
+      } catch(ex){
+        expect(ex.toString()).to(match, "CoconutError");
+      }
+    });
 
   });
   
   describe("Capture State", function() {
     it("should be able to capture state even after construction", function() {
+      var person = $("#person").part();
       person.state({name: "smith"})
             .captureState()
             .resetState();
@@ -128,11 +130,11 @@ Screw.Unit(function() {
   
   describe("Order Fields", function() {
     it("should set up field order", function() {
-      person = $("#person").part(function Person(){
+      var person = $("#person").part(function Person(){
         this.orderFields("gender", "title", "name");
       });
-      expect(person.index("gender")).to(equal, person.index("title") - 1);
-      expect(person.index("title")).to(equal, person.index("name") - 1);
+      expect(person.fieldIndex("gender")).to(equal, person.fieldIndex("title") - 1);
+      expect(person.fieldIndex("title")).to(equal, person.fieldIndex("name") - 1);
     });
 
     it("should not set up field order with invalid names", function() {
@@ -151,7 +153,7 @@ Screw.Unit(function() {
     it("should add field ignored during construction", function() {
       $("#nationality").removeAttr("id"); // #nationality will be ignored
 
-      person = $("#person").part(function Person(){
+      var person = $("#person").part(function Person(){
         this.addFields({
           nationality: "input[someproperty=nationality]"
         });
@@ -205,6 +207,7 @@ Screw.Unit(function() {
   
   describe("getState", function() {
     it("should get state of this part by passing in this part as context", function() {
+      var person = $("#person").part();
       expect(person.getState(person)).to(equal_state, person.state());
     });
   });

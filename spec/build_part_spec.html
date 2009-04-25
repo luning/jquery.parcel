@@ -55,26 +55,26 @@
 <script type="text/javascript">
 Screw.Unit(function() {
   var fixtureHtml = $("#fixture").html();
-  var person;
 
   before(function() {
     $("#fixture").html(fixtureHtml);
-
-    person = $("#person").part();
   });
 
   describe("Build with jQuery Field", function() {
 
     it("should capture text input in dom", function() {
+      var person = $("#person").part();
       expect(person.name.state()).to(equal, "luning");
     });
 
     it("should capture select in dom", function() {
+      var person = $("#person").part();
       person.title.state("Mrs");
       expect(person.title.state()).to(equal, "Mrs");
     });
 
     it("should capture radio in dom", function() {
+      var person = $("#person").part();
       person.gender.state("Female");
       expect(person.gender.state()).to(equal, "Female");
     });
@@ -84,6 +84,7 @@ Screw.Unit(function() {
   describe("Build with Array Field", function() {
 
     it("should build field of array type for element if 'fieldtype' property is set to 'array' in dom", function() {
+      var person = $("#person").part();
       expect(person.email).to(be_undefined);
       expect(person.emails.length).to(equal, 1);
       expect(person.emails[0].state()).to(equal, "luning.tw@gmail.com");
@@ -93,7 +94,7 @@ Screw.Unit(function() {
     it("should add the following fields to array if the name is supposed to be of array type", function() {
       $("#person").append("<input type='text' name='email'></input>");
 
-      person = $("#person").part();
+      var person = $("#person").part();
       expect(person.email).to(be_undefined);
       expect(person.emails.length).to(equal, 2);
 
@@ -103,6 +104,7 @@ Screw.Unit(function() {
     });
 
     it("should build array field of part type", function() {
+      var person = $("#person").part();
       expect(person.contact).to(be_undefined);
       expect(person.contacts.length).to(equal, 1);
 
@@ -112,16 +114,19 @@ Screw.Unit(function() {
     });
 
     it("should build array field with container if specified in 'fieldtype' property", function() {
+      var person = $("#person").part();
       expect(person.emails.container[0]).to(equal, $("#person div.emails")[0]);
     });
 
     it("should build array field without container if not specified in 'fieldtype' property", function() {
+      var person = $("#person").part();
       expect(person.contacts.container).to(be_undefined);
     });
   });
 
   describe("Build with another Part as Field", function() {
     it("should pick part specified in dom as field of parent part", function() {
+      var person = $("#person").part();
       var dobState = {day: "01", month: "Feb", year: "1991"};
       person.dob.state(dobState);
 
@@ -140,7 +145,7 @@ Screw.Unit(function() {
 
       $("div[name=dob]").attr("part", "Dob");
 
-      person = $("#person").part();
+      var person = $("#person").part();
       person.dob.state({day: "01", month: "Feb", year: "1991"});
 
       expect(person.dob.description()).to(equal, "01 Feb 1991");
@@ -153,7 +158,7 @@ Screw.Unit(function() {
       $("select[name=title]").attr("name", "name");
 
       try{
-        person = $("#person").part();
+        var person = $("#person").part();
         expect(true).to(be_false);
       } catch (ex){
         expect(ex.toString()).to(match, "CoconutError");
@@ -161,11 +166,13 @@ Screw.Unit(function() {
     });
 
     it("should use id as field name if name property is not provided", function() {
+      var person = $("#person").part();
       person.nationality.state("OZ");
       expect(person.nationality.state()).to(equal, "OZ");
     });
 
     it("should use field name defined by 'fieldname' property in dom", function() {
+      var person = $("#person").part();
       expect(person.hasOwnProperty("id_city")).to(be_false);
 
       person.city.state("sydney");
@@ -175,14 +182,14 @@ Screw.Unit(function() {
     it("should ignore dom element if field name can not be determined", function() {
       var nationalityDom = $("#nationality").removeAttr("id").get(0);
 
-      person = $("#person").part();
+      var person = $("#person").part();
       expect($.inArray(nationalityDom, person.get())).to(equal, -1);
     });
 
     it("should not create convenient field accessor if it will override existng property of part", function() {
       $("select[name=title]").attr("name", "isDirty");
 
-      person = $("#person").part();
+      var person = $("#person").part();
       expect(person.isDirty.state).to(be_undefined);
       expect($.isFunction(person.isDirty)).to(be_true);
     });
@@ -194,16 +201,23 @@ Screw.Unit(function() {
     it("should ignore hidden template dom element", function() {
       // TODO :
     });
+    
+    it("should return existing part if try to build more than once", function() {
+      var person1 = $("#person").part();
+      var person2 = $("#person").part();
+      expect(person1 === person2).to(be_true);
+    });
   });
   
   describe("Build with Virtual Field", function() {
 
     it("should build a jQuery container(virtual field) for dom element if 'fieldtype' property is 'virtual' in dom", function() {
+      var person = $("#person").part();
       expect(person.contactInfo.jquery).to_not(be_undefined);
     });
     
     it("should not build virtual field if name conflicts with existing property of part", function() {
-      $("div[name=contactInfo]").attr("name", "container");
+      $("div[name=contactInfo]").attr("name", "state");
     
       try{
         $("#person").part();
@@ -216,7 +230,7 @@ Screw.Unit(function() {
     it("should use name specified by 'fieldname' property in dom", function() {
       $("div[name=contactInfo]").attr("fieldname", "extInfo");
     
-      person = $("#person").part();
+      var person = $("#person").part();
       
       expect(person.contactInfo).to(be_undefined);
       expect(person.extInfo.jquery).to_not(be_undefined);
@@ -226,7 +240,7 @@ Screw.Unit(function() {
       $("div[name=contactInfo]").removeAttr("name");
     
       try{
-        $("#person").part();
+        var person = $("#person").part();
         expect(true).to(be_false);
       } catch (ex) {
         expect(ex.toString()).to(match, "CoconutError");
@@ -245,7 +259,7 @@ Screw.Unit(function() {
         }
       };
 
-      person = $("#person").part(Person);
+      var person = $("#person").part(Person);
       person.state({name:"smith", gender:"Female"});
 
       expect(person.getNameAndGender()).to(equal, "smith,Female");
@@ -256,7 +270,7 @@ Screw.Unit(function() {
         this.name.state("smith");
       };
 
-      person = $("#person").part(Person);
+      var person = $("#person").part(Person);
       person.resetState();
 
       expect(person.name.state()).to(equal, "smith");
@@ -269,7 +283,7 @@ Screw.Unit(function() {
         this.getSomething = "something";
       };
 
-      person = $("#person").part();
+      var person = $("#person").part();
       expect(person.getSomething).to(equal, "something");
     });
 
@@ -278,7 +292,7 @@ Screw.Unit(function() {
         this.helloMessage = "hello";
       };
 
-      person = $("#person").part().addBehaviour(SayHello);
+      var person = $("#person").part().addBehaviour(SayHello);
 
       expect(person.helloMessage).to(equal, "hello");
     });
@@ -288,7 +302,7 @@ Screw.Unit(function() {
         this.name.state("smith");
       };
 
-      person = $("#person").part()
+      var person = $("#person").part()
               .addBehaviour(Person)
               .resetState();
 

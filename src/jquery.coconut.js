@@ -15,13 +15,20 @@
 ;(function($) {
   $.fn.extend({
     part: function(behaviour){
-      return new $.part(this, behaviour);
+      var existPart = this.getPart();
+      if(existPart){
+        return existPart;
+      }
+      
+      $.extend(this, $.part.prototype);
+      $.part.call(this, behaviour);
+      return this.data("part", this);
     },
     sync: function(){
       return this.trigger("sync");
     },
-    linkedPart: function(){
-      return this.data("linkedPart");
+    getPart: function(){
+      return this.data("part");
     }
   });
 
@@ -29,7 +36,7 @@
   var commonFieldMixin = {
     // determine if field is still in dom tree
     dead: function(){
-      var context = this.container || $(this.get());
+      var context = this.container || $(this.dom(0));
       return context.parents().filter("body").length === 0;
     },
 
@@ -81,9 +88,9 @@
     
     // find closest parent part
     closestPart: function(){
-      var all = $(this.get(0)).parents().get();
-      for(var i = 0; i < all.length; i++){
-        var part = $(all[i]).data("linkedPart");
+      var parents = $(this.dom(0)).parents();
+      for(var i = 0; i < parents.length; i++){
+        var part = $(parents[i]).getPart();
         if(part){
           return part;
         }
@@ -100,12 +107,24 @@
         return part.initialState(this);
       }
     },
+    
+    dom: function(){
+      return this.get.apply(this, arguments);
+    },
         
+    removeMe: function(){
+      var part = this.closestPart();
+      this.remove();
+      if(part){
+        part.sync();
+      }
+    },
+    
     // fire change event after removal
     _removed: function(){
       // need not fire change event if it's a container(Part or Array), already done for its sub fields.
       var firstDom;
-      var originalParents = !this.container && (firstDom = this.get(0)) && firstDom._parentsSnap;
+      var originalParents = !this.container && (firstDom = this.dom(0)) && firstDom._parentsSnap;
       if(originalParents){
         var closestAliveParent = $.first(originalParents, function(i, p){ return !$(p).dead(); });
         $(closestAliveParent).change();
@@ -114,34 +133,22 @@
     }
   };
 
-  // applied to field types except jQuery (because jQuery already has the functionality)
-  var nonJQueryFieldMixin = {
-    // similar as change method of jQuery
-    change: function(handler){
-      // container - part or array field, efficent and conceptually correct
-      // this.get() - array field with no specified container. will not hook to the elements added later.
-      var context = this.container || $(this.get());
-      context.change(handler);
-      return this;
-    }
-  };
-
   // applied to array field only
   var arrayFieldMixin = {
-    get: function(index) {
+    dom: function(index) {
       if(index === undefined){
         var all = [];
         $.each(this, function(i, field) {
-          all = all.concat(field.get());
+          all = all.concat(field.dom());
         });
         return all;
       }
       
       // only for the efficiency of getting the first element
       if(index === 0 && this.length > 0){
-        return this[0].get(0);
+        return this[0].dom(0);
       } else {
-        return this.get()[index];
+        return this.dom()[index];
       }
     },
 
@@ -178,6 +185,15 @@
         this.splice(index, 1);
         deadField._removed();
       }.bind(this));
+    },
+    
+    // similar as change method of jQuery
+    // deprecated, array field should be a jQuery object as well, it always has a container.
+    change: function(handler){
+      // this.dom() - array field with no specified container. will not hook to the elements added later.
+      var context = this.container || $(this.dom());
+      context.change(handler);
+      return this;
     }
   };
 
@@ -185,11 +201,10 @@
   $.newArrayField = function(container){
     var field = [];
     // initilize this array with implicit parameters
-    for(var i = 1; i < arguments.length; i++){
-      field.push(arguments[i]);
-    }
+    field.push.apply(field, Array.prototype.slice.call(arguments, 1));
+ 
     // set prototype to [] does not work in IE, have to use this unefficent way to extend Array.
-    return $.extend(field, commonFieldMixin, nonJQueryFieldMixin, arrayFieldMixin, {
+    return $.extend(field, commonFieldMixin, arrayFieldMixin, {
       container: container
     });
   };
@@ -294,28 +309,26 @@
   });
 
   // constructor for part
-  $.part = function(container, behaviour) {
-    this.container = $(container);
+  $.part = function(behaviour) {
     this._initialState = {};
     this._fields = [];
 
-    this.init();
+    this._init();
     this.addBehaviour(behaviour);
     this.captureState();
-    this.container.data("linkedPart", this);
   };
 
-  $.extend($.part.prototype, commonFieldMixin, nonJQueryFieldMixin, {
+  $.extend($.part.prototype, commonFieldMixin, {
     FIELD_SELECTOR: ":input, [part], [part=]",
 
-    init: function(){
-      this.container.bind("sync", function(event){
+    _init: function(){
+      this.bind("sync", function(event){
         event.stopPropagation();
         this.sync(event.target);
       }.bind(this));
 
-      this._buildFields(this.container);
-      this._buildContainers(this.container);
+      this._buildFields(this);
+      this._buildContainers(this);
     },
     
     // sync with dom changes
@@ -355,8 +368,8 @@
     },
 
     // return true if the field is defined by this part
-    has: function(fname, arrayOrNot){
-      var index = this.index(fname);
+    hasField: function(fname, arrayOrNot){
+      var index = this.fieldIndex(fname);
       if(index === -1){
         return false;
       } else if (arrayOrNot === undefined) {
@@ -368,7 +381,7 @@
     },
    
     // return index of the field
-    index: function(fname) {
+    fieldIndex: function(fname) {
       for(var i = 0; i < this._fields.length; i++){
         if(this._fields[i].name === fname){
           return i;
@@ -379,7 +392,7 @@
 
     addBehaviour: function(behaviour){
       if(behaviour === undefined){
-        var behav = this.container.attr("part");
+        var behav = this.attr("part");
         if(!behav){
           return this;
         }
@@ -398,14 +411,14 @@
     // TODO: this method is not useful, consider to remove it.
     addFields: function(fieldDefs){
       $.each(fieldDefs, function(fname, selector){
-        var elem = $(selector, this.container);
+        var elem = this.find(selector);
         if(elem.length === 0){
           throw "CoconutError: can not find [" + selector + "] in container.";
         }
         if(this.contains(elem)){
           throw "CoconutError: field for element [" + selector + "] is already defined.";
         }
-        if(this.has(fname)){
+        if(this.hasField(fname)){
           throw "CoconutError: field with name [" + fname + "] already exist in part.";
         }
         this._addField(fname, elem);
@@ -415,8 +428,8 @@
     // orderFields("field1", "field2", ... ,"fieldN"), pass in only the fields need order ensurance.
     orderFields: function(){
       for(var i = 0; i < arguments.length - 1; i++){
-        var cur = this.index(arguments[i]);
-        var next = this.index(arguments[i + 1]);
+        var cur = this.fieldIndex(arguments[i]);
+        var next = this.fieldIndex(arguments[i + 1]);
         if(cur === -1 || next === -1){
           throw "CoconutError: field with specified name does not exist.";
         }
@@ -425,25 +438,25 @@
         }
         var nextField = this._fields[next];
         this._fields.splice(next, 1);
-        this._fields.splice(this.index(arguments[i]) + 1, 0, nextField);
+        this._fields.splice(this.fieldIndex(arguments[i]) + 1, 0, nextField);
       }
       return this;
     },
 
     // similar as get method in jQuery
-    get: function(index){
+    dom: function(index){
       if(index === undefined){
         var all = [];
         $.each(this._fields, function(i, field) {
-          all = all.concat(field.it.get());
+          all = all.concat(field.it.dom());
         });
         return all;
       }
 
       if(index === 0 && this._fields.length > 0){ // only for the efficiency of getting the first element
-          return this._fields[0].it.get(0);
+          return this._fields[0].it.dom(0);
       } else {
-        return this.get()[index];
+        return this.dom()[index];
       }
     },
 
@@ -521,10 +534,10 @@
     
     // check if this part contains any dom in element
     contains: function(elem){
-      var all = this.get();
-      return $.grep($(elem).get(), function(dom){
+      var all = this.dom();
+      return !!$.first($(elem).get(), function(i, dom){
         return $.indexInArray(dom, all) !== -1;
-      }).length > 0;
+      });
     },
         
     // find names of fields in context
@@ -539,11 +552,12 @@
       if(context){
         var contextDom = this._primaryDomOf(context);
         return $(this._fields).filter(function(){
-          var parents = $(this.it.get(0)).parents().andSelf();
+          var parents = $(this.it.dom(0)).parents().andSelf();
           return $.indexInArray(contextDom, parents) >= 0;
         }).get();
       } else {
-        return $.makeArray(this._fields);
+        // return cloned array
+        return this._fields.slice();
       }
     },
 
@@ -579,7 +593,7 @@
       if(elem.attr("part") !== undefined) {
         return elem.part();
       } else if (elem.is(":radio")) {
-        return this.container.find(":radio[name=" + elem.attr("name") + "]")._preparingAsField();
+        return this.find(":radio[name=" + elem.attr("name") + "]")._preparingAsField();
       } else {
         return elem.ensureBubbleOnChange()._preparingAsField();
       }
@@ -595,11 +609,11 @@
       var fnameOfArray = this._plural(fname);
       var fieldTypeDef = this._fieldTypeDef(elem);
 
-      if(this.has(fnameOfArray, true)){ // add to existing array field
-        this._fields[this.index(fnameOfArray)].it.push(field);
+      if(this.hasField(fnameOfArray, true)){ // add to existing array field
+        this._fields[this.fieldIndex(fnameOfArray)].it.push(field);
         isDirectFieldOfThisPart = false;
       } else if (fieldTypeDef.type === "array") { // create new array field
-        if(this.has(fnameOfArray)){
+        if(this.hasField(fnameOfArray)){
           throw "CoconutError: nonarray field [" + fnameOfArray + "] already exists, failed to create array field.";
         }
         fname = fnameOfArray;
@@ -608,7 +622,7 @@
           this[fname] = field;
         }
       } else { // non-array field
-        if (this.has(fname)){
+        if (this.hasField(fname)){
           throw "CoconutError: field with name [" + fname + "] already exists.";
         }
         if(!(fname in this)){
@@ -624,12 +638,12 @@
 
     // infer index of given field based on the occurance sequence in dom
     _suggestedIndex: function(field){
-      var all = this.container.find(this.FIELD_SELECTOR);
-      var posOfField = $.indexInArray(field.get(0), all);
+      var all = this.find(this.FIELD_SELECTOR);
+      var posOfField = $.indexInArray(field.dom(0), all);
 
       var index = 0;
       for(; index < this._fields.length; index++){
-        var pos = all.index(this._fields[index].it.get(0));
+        var pos = $.indexInArray(this._fields[index].it.dom(0), all);
         if(pos > posOfField){
           break;
         }
@@ -666,7 +680,7 @@
     _selectInContext: function(context, selector){
       return context.filter(selector)
             .add(context.find(selector))
-            .not(this.container);    
+            .not(this);    
     },
 
     _buildFields: function(context, inferOrder){
@@ -696,7 +710,13 @@
     },
     
     _primaryDomOf: function(context){
-      return (context.container || context).get(0);
+      if(context.container){
+        return context.container.get(0);
+      } else if (context.getPart()){
+        return context.get(0);
+      } else {
+        return context.dom(0);
+      }
     }
   });
 
@@ -775,7 +795,7 @@
   
   // change event in IE doesn't bubble.
   $.support.bubbleOnChange = !$.browser.msie;
-  // in IE, === will return false even when comparing the same dom, use == instead.
+  // in IE, === will return false SOMETIME even when comparing the same dom, use == instead.
   $.support.trippleEqualOnDom = !$.browser.msie;
 })(jQuery);
 
