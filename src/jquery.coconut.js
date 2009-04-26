@@ -133,14 +133,9 @@
 
   // applied to array field only
   var arrayFieldMixin = {
-    // delegate jQuery like method to container
-    get: function(){
-      return this.container.get.apply(this.container, arguments);
-    },
-    
     fieldDom: function() {
-      var all = this.container.get();
-      $.each(this, function(i, field) {
+      var all = this.get();
+      $.each(this._fields, function(i, field) {
         all = all.concat(field.fieldDom());
       });
       return all;
@@ -149,15 +144,15 @@
     state: function(s) {
       if(s === undefined){
         var state = [];
-        $.each(this, function(i, field){
+        $.each(this._fields, function(i, field){
           state.push(field.state());
         });
         return state;
       }
 
       $.each(s, function(i, s){
-        if(i < this.length){
-          this[i].state(s);
+        if(i < this._fields.length){
+          this._fields[i].state(s);
         }
       }.bind(this));
       return this;
@@ -165,7 +160,7 @@
 
     clean: function(){
       var deadIndexex = [];
-      $.each(this, function(i, field) {
+      $.each(this._fields, function(i, field) {
         if(field.clean){
           field.clean();
         }
@@ -175,30 +170,21 @@
       });
       deadIndexex.reverse();
       $.each(deadIndexex, function(i, index){
-        var deadField = this[index];
-        this.splice(index, 1);
+        var deadField = this._fields[index];
+        this._fields.splice(index, 1);
         deadField._removed();
       }.bind(this));
-    },
-    
-    // similar as change method of jQuery
-    // deprecated, array field should be a jQuery object as well, it always has a container.
-    change: function(handler){
-      this.container.change(handler);
-      return this;
     }
   };
 
   // create an array field
   $.newArrayField = function(container){
-    var field = [];
+    var field = $(container);
+    field.items = field._fields = [];
     // initilize this array with implicit parameters
-    field.push.apply(field, Array.prototype.slice.call(arguments, 1));
- 
+    field._fields.push.apply(field._fields, Array.prototype.slice.call(arguments, 1));
     // set prototype to [] does not work in IE, have to use this unefficent way to extend Array.
-    return $.extend(field, commonFieldMixin, arrayFieldMixin, {
-      container: container
-    });
+    return $.extend(field, commonFieldMixin, arrayFieldMixin);
   };
 
   // extend jQuery for jQuery field and Virtual field
@@ -367,7 +353,8 @@
       } else if (arrayOrNot === undefined) {
         return true;
       } else {
-        var isArray = this._fields[index].it instanceof Array;
+        // TODO : remove it.items
+        var isArray = this._fields[index].it.items instanceof Array;
         return arrayOrNot ? isArray : !isArray;
       }
     },
@@ -597,7 +584,7 @@
       var fieldTypeDef = this._fieldTypeDef(elem);
 
       if(this.hasField(fnameOfArray, true)){ // add to existing array field
-        this._fields[this.fieldIndex(fnameOfArray)].it.push(field);
+        this._fields[this.fieldIndex(fnameOfArray)].it.items.push(field);
         isDirectFieldOfThisPart = false;
       } else if (fieldTypeDef.type === "array") { // create new array field
         if(this.hasField(fnameOfArray)){

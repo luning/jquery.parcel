@@ -69,7 +69,7 @@ Screw.Unit(function() {
         return s.name + ":" + s.emails[0];
       });
       
-      person.emails[0].state("another@my.com");
+      person.emails.items[0].state("another@my.com");
       expect(span.state()).to(equal, "luning:another@my.com");
     }); 
     
@@ -80,7 +80,7 @@ Screw.Unit(function() {
         return "email count is " + s.length;
       });
       
-      person.emails[0].state("another@my.com");
+      person.emails.items[0].state("another@my.com");
 
       expect(span.state()).to(equal, "email count is 1");
     }); 
@@ -147,7 +147,7 @@ Screw.Unit(function() {
       });
       
       expect(eventFired).to(be_false);
-      person.emails[0].state("another@my.com");
+      person.emails.items[0].state("another@my.com");
       expect(eventFired).to(be_true);
     }); 
     
@@ -200,7 +200,7 @@ Screw.Unit(function() {
       });
       
       expect(eventFired).to(be_false);
-      person.emails[0].state("another@my.com");
+      person.emails.items[0].state("another@my.com");
       expect(eventFired).to(be_true);
     });
     
@@ -269,10 +269,10 @@ Screw.Unit(function() {
       var person = $("#person").part();
       person.emails.showHide(person.spouseInfo, ["another@my.com"]);
       
-      person.emails[0].state("other@my.com");
+      person.emails.items[0].state("other@my.com");
       expect(person.spouseInfo).to_not(be_visible);
       
-      person.emails[0].state("another@my.com");
+      person.emails.items[0].state("another@my.com");
       expect(person.spouseInfo).to(be_visible);
     });
     

@@ -88,8 +88,8 @@ Screw.Unit(function() {
     it("should build field of array type for element if 'fieldtype' property is set to 'array' in dom", function() {
       var person = $("#person").part();
       expect(person.email).to(be_undefined);
-      expect(person.emails.length).to(equal, 1);
-      expect(person.emails[0].state()).to(equal, "luning.tw@gmail.com");
+      expect(person.emails.items.length).to(equal, 1);
+      expect(person.emails.items[0].state()).to(equal, "luning.tw@gmail.com");
       expect(person.state()).to(contain_state, {emails:["luning.tw@gmail.com"]});
     });
 
@@ -98,7 +98,7 @@ Screw.Unit(function() {
 
       var person = $("#person").part();
       expect(person.email).to(be_undefined);
-      expect(person.emails.length).to(equal, 2);
+      expect(person.emails.items.length).to(equal, 2);
 
       var s = {emails: ["one@my.com", "another@my.com"]};
       person.state(s);
@@ -117,7 +117,7 @@ Screw.Unit(function() {
 
     it("should build array field with container specified in 'fieldtype' property", function() {
       var person = $("#person").part();
-      expect(person.emails.container[0]).to(equal, $("#person div.emails")[0]);
+      expect(person.emails.get(0)).to(equal, $("#person div.emails")[0]);
     });
 
   });
