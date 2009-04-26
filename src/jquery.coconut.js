@@ -87,8 +87,7 @@
     
     // find closest parent part
     closestPart: function(){
-      // TODO : clean the way getting parents with this.add(this.parents()) after making array field an jquery object
-      var parents = $(this.get(0)).add($(this.get(0)).parents());
+      var parents = this.add(this.parents());
       for(var i = 0; i < parents.length; i++){
         var part = $(parents[i]).getPart();
         if(part){
@@ -324,10 +323,10 @@
     clean: function(){
       var deadFields = [];
       $.each(this._fields, function(n, field) {
-        if(field.it.clean){
-          field.it.clean();
+        if(field.clean){
+          field.clean();
         }
-        if(field.it.dead()){
+        if(field.dead()){
           deadFields.push(field);
         }
       });
@@ -335,10 +334,10 @@
         for(var i = 0; i < this._fields.length; i++){
           if(this._fields[i] === deadField){
             this._fields.splice(i, 1);
-            if(this[deadField.name] === deadField.it){
-              delete this[deadField.name];
+            if(this[deadField.fname] === deadField){
+              delete this[deadField.fname];
             }
-            deadField.it._removed();
+            deadField._removed();
             break;
           }
         }
@@ -353,8 +352,7 @@
       } else if (arrayOrNot === undefined) {
         return true;
       } else {
-        // TODO : remove it.items
-        var isArray = this._fields[index].it.items instanceof Array;
+        var isArray = this._fields[index].items instanceof Array;
         return arrayOrNot ? isArray : !isArray;
       }
     },
@@ -362,7 +360,7 @@
     // return index of the field
     fieldIndex: function(fname) {
       for(var i = 0; i < this._fields.length; i++){
-        if(this._fields[i].name === fname){
+        if(this._fields[i].fname === fname){
           return i;
         }
       }
@@ -410,7 +408,7 @@
         var cur = this.fieldIndex(arguments[i]);
         var next = this.fieldIndex(arguments[i + 1]);
         if(cur === -1 || next === -1){
-          throw "CoconutError: field with specified name does not exist.";
+          throw "CoconutError: field [" + arguments[i] + "] or [" + arguments[i + 1] + "] does not exist.";
         }
         if(cur < next){
           continue;
@@ -426,7 +424,7 @@
     fieldDom: function(){
       var all = this.get();
       $.each(this._fields, function(i, field) {
-        all = all.concat(field.it.fieldDom());
+        all = all.concat(field.fieldDom());
       });
       return all;
     },
@@ -442,15 +440,15 @@
     getState: function(context){
       var state = {};
       $.each(this._fieldsIn(context), function(i, field){
-        state[field.name] = field.it.state();
+        state[field.fname] = field.state();
       });
       return state;
     },
     
     setState: function(s, context){
       $.each(this._fieldsIn(context), function(i, field){
-        if(s.hasOwnProperty(field.name)){
-          field.it.state(s[field.name]);
+        if(s.hasOwnProperty(field.fname)){
+          field.state(s[field.fname]);
         }
       });
       return this;
@@ -460,13 +458,13 @@
       var targetState = {};
       var targetFields = this._fieldsIn(context);
       $.each(targetFields, function(i, field){
-        if(this._initialState.hasOwnProperty(field.name)){
-          targetState[field.name] = this._initialState[field.name];
+        if(this._initialState.hasOwnProperty(field.fname)){
+          targetState[field.fname] = this._initialState[field.fname];
         }
       }.bind(this));
       
-      if(targetFields.length === 1 && this._contextIsField(context, targetFields[0].it)){
-        return $.cloneState(targetState[targetFields[0].name]);
+      if(targetFields.length === 1 && this._contextIsField(context, targetFields[0])){
+        return $.cloneState(targetState[targetFields[0].fname]);
       } else {
         return $.cloneState(targetState);
       }
@@ -481,7 +479,8 @@
       }
       
       var fnames = arguments;
-      if(arguments.length === 1 && typeof(arguments[0]) !== "string"){ // a context(a field or a jQuery container)
+      // a context(a jQuery object)
+      if(arguments.length === 1 && typeof(arguments[0]) !== "string"){
         fnames = this._fnamesIn(arguments[0]);
       }
 
@@ -514,7 +513,7 @@
     // find names of fields in context
     _fnamesIn: function(context){
       return $.map(this._fieldsIn(context), function(field){
-        return field.name;
+        return field.fname;
       });
     },
 
@@ -523,7 +522,7 @@
       if(context){
         var contextDom = context.get(0);
         return $(this._fields).filter(function(){
-          var parents = $(this.it.get(0)).parents().andSelf();
+          var parents = $(this.get(0)).parents().andSelf();
           return $.indexInArray(contextDom, parents) >= 0;
         }).get();
       } else {
@@ -573,7 +572,6 @@
       }
     },
     
-    // field is an object with format: { name: "fieldName", it: theRealField }, theRealField may be jQuery, array or part.
     // all fields are stored in this._fields array, and convenient field accessors on this are assigned if applicable(not conflict with existing property)
     // inferOrder is only for efficency, will add new field to the end of this._fields by default, if not specified. can always be true.
     _addField: function(fname, elem, inferOrder){
@@ -584,7 +582,7 @@
       var fieldTypeDef = this._fieldTypeDef(elem);
 
       if(this.hasField(fnameOfArray, true)){ // add to existing array field
-        this._fields[this.fieldIndex(fnameOfArray)].it.items.push(field);
+        this._fields[this.fieldIndex(fnameOfArray)].items.push(field);
         isDirectFieldOfThisPart = false;
       } else if (fieldTypeDef.type === "array") { // create new array field
         if(this.hasField(fnameOfArray)){
@@ -604,9 +602,10 @@
         }
       }
 
+      field.fname = fname;
       if(isDirectFieldOfThisPart){
         var insertIndex = inferOrder ? this._suggestedIndex(field) : this._fields.length;
-        this._fields.splice(insertIndex, 0, { name: fname, it: field });
+        this._fields.splice(insertIndex, 0, field);
       }
     },
 
@@ -617,7 +616,7 @@
 
       var index = 0;
       for(; index < this._fields.length; index++){
-        var pos = $.indexInArray(this._fields[index].it.get(0), all);
+        var pos = $.indexInArray(this._fields[index].get(0), all);
         if(pos > posOfField){
           break;
         }
@@ -639,15 +638,15 @@
     _buildVirtualFields: function(context){
       var all = this._selectInContext(context, "[fieldtype=virtual]");
       all.each(function(i, dom){
-        var container = $(dom);
-        var containerName = this._name(container);
-        if(!containerName){
-          throw "CoconutError: failed to determine the name of grouping container.";
+        var virtual = $(dom);
+        var fname = this._name(virtual);
+        if(!fname){
+          throw "CoconutError: failed to determine the name of virtual field.";
         }
-        if(containerName in this){
-          throw "CoconutError: container [" + containerName + "] has name conflict with existing property of part.";
+        if(fname in this){
+          throw "CoconutError: virtual field [" + fname + "] has name conflict with existing property of part.";
         }
-        this[containerName] = container;
+        this[fname] = virtual;
       }.bind(this));
     },
     

@@ -108,7 +108,7 @@ Screw.Unit(function() {
     it("should build array field of part type", function() {
       var person = $("#person").part();
       expect(person.contact).to(be_undefined);
-      expect(person.contacts.length).to(equal, 1);
+      expect(person.contacts.items.length).to(equal, 1);
 
       var s = {contacts: [{number: "123456789", type: "office"}]};
       person.state(s)
