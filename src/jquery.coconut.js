@@ -36,8 +36,7 @@
   var commonFieldMixin = {
     // determine if field is still in dom tree
     dead: function(){
-      var context = this.container || $(this.dom(0));
-      return context.parents().filter("body").length === 0;
+      return $(this.get(0)).parents().filter("body").length === 0;
     },
 
     // change of this field will set state of target with the state of this field
@@ -88,7 +87,7 @@
     
     // find closest parent part
     closestPart: function(){
-      var parents = $(this.dom(0)).parents();
+      var parents = $(this.fieldDom(0)).parents();
       for(var i = 0; i < parents.length; i++){
         var part = $(parents[i]).getPart();
         if(part){
@@ -108,7 +107,7 @@
       }
     },
     
-    dom: function(){
+    fieldDom: function(){
       return this.get.apply(this, arguments);
     },
         
@@ -124,7 +123,7 @@
     _removed: function(){
       // need not fire change event if it's a container(Part or Array), already done for its sub fields.
       var firstDom;
-      var originalParents = !this.container && (firstDom = this.dom(0)) && firstDom._parentsSnap;
+      var originalParents = !this.container && (firstDom = this.fieldDom(0)) && firstDom._parentsSnap;
       if(originalParents){
         var closestAliveParent = $.first(originalParents, function(i, p){ return !$(p).dead(); });
         $(closestAliveParent).change();
@@ -135,20 +134,25 @@
 
   // applied to array field only
   var arrayFieldMixin = {
-    dom: function(index) {
+    // delegate jQuery like method to container
+    get: function(){
+      return this.container.get.apply(this.container, arguments);
+    },
+    
+    fieldDom: function(index) {
       if(index === undefined){
         var all = [];
         $.each(this, function(i, field) {
-          all = all.concat(field.dom());
+          all = all.concat(field.fieldDom());
         });
         return all;
       }
       
       // only for the efficiency of getting the first element
       if(index === 0 && this.length > 0){
-        return this[0].dom(0);
+        return this[0].fieldDom(0);
       } else {
-        return this.dom()[index];
+        return this.fieldDom()[index];
       }
     },
 
@@ -190,9 +194,7 @@
     // similar as change method of jQuery
     // deprecated, array field should be a jQuery object as well, it always has a container.
     change: function(handler){
-      // this.dom() - array field with no specified container. will not hook to the elements added later.
-      var context = this.container || $(this.dom());
-      context.change(handler);
+      this.container.change(handler);
       return this;
     }
   };
@@ -444,19 +446,19 @@
     },
 
     // similar as get method in jQuery
-    dom: function(index){
+    fieldDom: function(index){
       if(index === undefined){
         var all = [];
         $.each(this._fields, function(i, field) {
-          all = all.concat(field.it.dom());
+          all = all.concat(field.it.fieldDom());
         });
         return all;
       }
 
       if(index === 0 && this._fields.length > 0){ // only for the efficiency of getting the first element
-          return this._fields[0].it.dom(0);
+          return this._fields[0].it.fieldDom(0);
       } else {
-        return this.dom()[index];
+        return this.fieldDom()[index];
       }
     },
 
@@ -494,7 +496,7 @@
         }
       }.bind(this));
       
-      if(targetFields.length === 1 && this._contextMatchField(context, targetFields[0].it)){
+      if(targetFields.length === 1 && this._contextIsField(context, targetFields[0].it)){
         return $.cloneState(targetState[targetFields[0].name]);
       } else {
         return $.cloneState(targetState);
@@ -534,7 +536,7 @@
     
     // check if this part contains any dom in element
     contains: function(elem){
-      var all = this.dom();
+      var all = this.fieldDom();
       return !!$.first($(elem).get(), function(i, dom){
         return $.indexInArray(dom, all) !== -1;
       });
@@ -550,9 +552,9 @@
     // find fields in context
     _fieldsIn: function(context){
       if(context){
-        var contextDom = this._primaryDomOf(context);
+        var contextDom = context.get(0);
         return $(this._fields).filter(function(){
-          var parents = $(this.it.dom(0)).parents().andSelf();
+          var parents = $(this.it.get(0)).parents().andSelf();
           return $.indexInArray(contextDom, parents) >= 0;
         }).get();
       } else {
@@ -562,7 +564,7 @@
     },
 
     // parse fieldtype property specified in dom.
-    // format: "type_of_field,container_selector_of_this_field_optional"
+    // format: "type_of_field,container_selector_of_this_field_optional", array type must be provided a container
     _fieldTypeDef: function(elem){
       var def = elem.attr("fieldtype");
       if(!def){
@@ -573,6 +575,9 @@
       if(!match){
         return {};
       } else {
+        if(match[1] === "array" && !match[2]){
+          throw "CoconutError: array field should have a container specified in 'fieldtype' property.";
+        }
         var container;
         if(match[2]){
           var containerDom = elem.closest(match[2])[0];
@@ -639,11 +644,11 @@
     // infer index of given field based on the occurance sequence in dom
     _suggestedIndex: function(field){
       var all = this.find(this.FIELD_SELECTOR);
-      var posOfField = $.indexInArray(field.dom(0), all);
+      var posOfField = $.indexInArray(field.fieldDom(0), all);
 
       var index = 0;
       for(; index < this._fields.length; index++){
-        var pos = $.indexInArray(this._fields[index].it.dom(0), all);
+        var pos = $.indexInArray(this._fields[index].it.fieldDom(0), all);
         if(pos > posOfField){
           break;
         }
@@ -704,19 +709,9 @@
     },
     
     // check if the context if for a non-virtual field
-    _contextMatchField: function(context, field){
-      // compare Dom with ==, === does not work in IE
-      return context && this._primaryDomOf(context) == this._primaryDomOf(field);
-    },
-    
-    _primaryDomOf: function(context){
-      if(context.container){
-        return context.container.get(0);
-      } else if (context.getPart()){
-        return context.get(0);
-      } else {
-        return context.dom(0);
-      }
+    _contextIsField: function(context, field){
+      // compare Dom with ==, === SOMETIME does not work in IE
+      return context && context.get(0) == field.get(0);
     }
   });
 

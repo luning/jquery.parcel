@@ -43,9 +43,11 @@
       <div class="emails">
         <input type="text" fieldtype="array,.emails" value="luning.tw@gmail.com" name="email"></input>
       </div>
-      <div part="" fieldtype="array" name="contact">
-        <input type="text" name="number"></input>
-        <input type="text" name="type"></input>
+      <div class="contacts">
+        <div part="" fieldtype="array,.contacts" name="contact">
+          <input type="text" name="number"></input>
+          <input type="text" name="type"></input>
+        </div>
       </div>
     </div>
   </div>
@@ -113,15 +115,11 @@ Screw.Unit(function() {
       expect(person.state()).to(contain_state, s);
     });
 
-    it("should build array field with container if specified in 'fieldtype' property", function() {
+    it("should build array field with container specified in 'fieldtype' property", function() {
       var person = $("#person").part();
       expect(person.emails.container[0]).to(equal, $("#person div.emails")[0]);
     });
 
-    it("should build array field without container if not specified in 'fieldtype' property", function() {
-      var person = $("#person").part();
-      expect(person.contacts.container).to(be_undefined);
-    });
   });
 
   describe("Build with another Part as Field", function() {

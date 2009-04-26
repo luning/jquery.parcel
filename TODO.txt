@@ -2,8 +2,19 @@ TODO
 
 [ ] use smoke mocks rather than roll our own
 [ ] consider renaming initialState() => initial or pristine?, resetState() => reset or revert, captureState() => save. 4 actions: get the last saved state, reset to blank, revert to the last saved state, save state.
-[ ] dynamiclly adding/removing DOM should fire change event
+[*] make part a jquery object
+[*] dynamiclly adding/removing DOM should fire change event
+[ ] merge part and fieldtype property in DOM
+[ ] remove fieldDom calls, replace with get
+[ ] consider merge part with array field, share implementation
+[ ] specify array fieldtype on container rather than on elements
+[ ] store initial state in each field instead of in parent part, remove dependency on field names in part
 [ ] build part with state
 [ ] work with hidden template for array type field
 [ ] add behaviour with parameters
 [ ] jQuery object out of the scope of all parts may listen to state change of below parts some how
+
+
+potential problems:
+[ ] reset a sub field of an array field will reset whole array field
+[ ] add array sub field dynamicly doesn't check it's added to container or not

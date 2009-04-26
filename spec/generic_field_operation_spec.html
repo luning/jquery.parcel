@@ -48,9 +48,11 @@
         <input type="text" fieldtype="array,.emails" value="first@my.com" name="email"></input>
         <input type="text" value="second@my.com" name="email"></input>
       </div>
-      <div part="" fieldtype="array" name="contact">
-        <input type="text" name="number"></input>
-        <input type="text" name="type"></input>
+      <div class="contacts">
+        <div part="" fieldtype="array,.contacts" name="contact">
+          <input type="text" name="number"></input>
+          <input type="text" name="type"></input>
+        </div>
       </div>
     </div>
   </div>
@@ -64,10 +66,10 @@ Screw.Unit(function() {
     $("#fixture").html(fixtureHtml);
   });
 
-  describe("Get Dom Element", function() {
+  describe("Get Field Dom", function() {
     it("of an Array field should get all dom elements of sub fields", function() {
       var person = $("#person").part();
-      var all = person.emails.dom();
+      var all = person.emails.fieldDom();
       expect(all.length).to(equal, 2);
       
       var twoEmails = $("#person input[name=email]").get();
@@ -77,8 +79,8 @@ Screw.Unit(function() {
     it("of an Array field should get by index", function() {
       var person = $("#person").part();
       var twoEmails = $("#person input[name=email]");
-      expect(person.emails.dom(0)).to(equal, twoEmails[0]);
-      expect(person.emails.dom(1)).to(equal, twoEmails[1]);
+      expect(person.emails.fieldDom(0)).to(equal, twoEmails[0]);
+      expect(person.emails.fieldDom(1)).to(equal, twoEmails[1]);
     });
   });
 

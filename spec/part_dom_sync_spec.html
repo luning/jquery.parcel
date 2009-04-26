@@ -42,9 +42,11 @@
     <div class="emails">
       <input type="text" fieldtype="array,.emails" value="luning.tw@gmail.com" name="email"></input>
     </div>
-    <div part="" fieldtype="array" name="contact">
-      <input type="text" name="number"></input>
-      <input type="text" name="type"></input>
+    <div class="contacts">
+      <div part="" fieldtype="array,.contacts" name="contact">
+        <input type="text" name="number"></input>
+        <input type="text" name="type"></input>
+      </div>
     </div>
     <div id="adiv">
     </div>
@@ -106,7 +108,7 @@ Screw.Unit(function() {
 
     it("should create array field if 'fieldtype' is setted to 'array'", function() {
       var person = $("#person").part();
-      var hobby = $("<input type='text' value='reading' fieldtype='array' name='hobby'></input>");
+      var hobby = $("<input type='text' value='reading' fieldtype='array,*' name='hobby'></input>");
       $("#person").append(hobby);
       hobby.sync();
 
@@ -217,20 +219,7 @@ Screw.Unit(function() {
       expect(person.emails[0].state()).to(equal, "luning.tw@gmail.com");
     });
 
-    it("should remove the array field associated with no container if it becomes empty", function() {
-      $("#person input[fieldtype='array,.emails']").attr("fieldtype", "array"); // removed container setting
-
-      var person = $("#person").part();
-      expect(person.emails.length).to(equal, 1);
-
-      person.find("input[name=email]").remove();
-      person.sync();
-
-      expect(person.hasField("emails")).to(be_false);
-      expect(person.emails).to(be_undefined);
-    });
-
-    it("should not remove the array field associated with a container even if it becomes empty", function() {
+    it("should not remove the array field itself even if it becomes empty", function() {
       var person = $("#person").part();
       expect(person.emails.length).to(equal, 1);
 
@@ -243,7 +232,7 @@ Screw.Unit(function() {
 
     it("should remove part in array field accordingly", function() {
       var anotherContact = $("<div part='' name='contact'><input type='text' value='111' name='number'></input><input type='text' value='home' name='type'></input></div>");
-      $("#person").append(anotherContact);
+      $("#person div.contacts").append(anotherContact);
 
       var person = $("#person").part();
       expect(person.contacts.length).to(equal, 2);
@@ -255,8 +244,8 @@ Screw.Unit(function() {
       expect(person.contacts[0].state()).to(equal_state, { number: "", type: "" });
     });
 
-    it("should remove the array field containing parts if it becomes empty", function() {
-      $("#person").append("<div part='' name='contact'><input type='text' value='111' name='number'></input><input type='text' value='home' name='type'></input></div>");
+    it("should not remove the array field itself originally containing parts even if it becomes empty", function() {
+      $("#person div.contacts").append("<div part='' name='contact'><input type='text' value='111' name='number'></input><input type='text' value='home' name='type'></input></div>");
 
       var person = $("#person").part();
       expect(person.contacts.length).to(equal, 2);
@@ -264,8 +253,8 @@ Screw.Unit(function() {
       $("#person div[name=contact]").remove();
       person.sync();
 
-      expect(person.hasField("contacts")).to(be_false);
-      expect(person.contacts).to(be_undefined);
+      expect(person.hasField("contacts")).to(be_true);
+      expect(person.contacts.length).to(equal, 0);
     });
 
     it("should fire change event on the closest original parent which is still alive soon after the removal", function() {
