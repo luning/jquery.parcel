@@ -74,23 +74,6 @@ Screw.Unit(function() {
       person.resetState();
       expect(person.state()).to(equal_state, initialState);
     });
-
-    it("should reset initial state with specific fields", function() {
-      var person = $("#person").part();
-      var initialState = person.state();
-      var tempState = { name: "Josh", title: "Mr", gender: "Male", nationality: "OZ", city: "sydney" };
-      person.state(tempState);
-
-      person.resetState("name", "title");
-      var finalState = person.state();
-
-      expect(finalState.name).to(equal, initialState.name);
-      expect(finalState.title).to(equal, initialState.title);
-
-      expect(finalState.gender).to(equal, tempState.gender);
-      expect(finalState.nationality).to(equal, tempState.nationality);
-      expect(finalState.city).to(equal, tempState.city);
-    });
     
     it("should reset initial state with fields in a jQuery container(Virtual Field)", function() {
       var person = $("#person").part();
@@ -105,16 +88,6 @@ Screw.Unit(function() {
       expect(person.gender.state()).to(equal, "Male");
       delete tempState.gender;
       expect(person.state()).to(contain_state, tempState);
-    });
-
-    it("should not reset state with non-exist field", function() {
-      try{
-        var person = $("#person").part();
-        person.resetState("notexist");
-        expect(true).to(be_false);
-      } catch(ex){
-        expect(ex.toString()).to(match, "CoconutError");
-      }
     });
 
   });

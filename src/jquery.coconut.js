@@ -470,28 +470,12 @@
       }
     },
 
-    // optional parameter : fieldNames or container jQuery object(fields contained by it will be reset) or any type of field.
-    // e.g. resetState("field1", "field2", "field3"), resetState($("#dome_div_id")), resetState(part.field)
-    resetState: function() {
-      if(arguments.length === 0){ // reset all
-        this.state(this._initialState);
-        return this;
-      }
-      
-      var fnames = arguments;
-      // a context(a jQuery object)
-      if(arguments.length === 1 && typeof(arguments[0]) !== "string"){
-        fnames = this._fnamesIn(arguments[0]);
-      }
-
+    // e.g. resetState($("#dome_div_id")), resetState(part.field)
+    resetState: function(context) {
       var newState = {};
-      $.each(fnames, function(i, fname){
-        if(!this._initialState.hasOwnProperty(fname)){
-          throw "CoconutError: reset state with invalid field name.";
-        }
-        newState[fname] = this._initialState[fname];
+      $.each(this._fieldsIn(context), function(i, field){
+        newState[field.fname] = this._initialState[field.fname];
       }.bind(this));
-
       this.state(newState);
       return this;
     },
@@ -507,13 +491,6 @@
       var all = this.fieldDom();
       return !!$.first($(elem).get(), function(i, dom){
         return $.indexInArray(dom, all) !== -1;
-      });
-    },
-        
-    // find names of fields in context
-    _fnamesIn: function(context){
-      return $.map(this._fieldsIn(context), function(field){
-        return field.fname;
       });
     },
 
