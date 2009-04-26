@@ -291,7 +291,7 @@ Screw.Unit(function() {
       expect(count).to(equal, 1);
     });
     
-    it("should fire change event on the Array field container if exists after removing the last sub field", function() {
+    it("should fire change event on the Array field container after removing the last sub field", function() {
       var person = $("#person").part();
 
       var count = 0;
@@ -305,6 +305,14 @@ Screw.Unit(function() {
       
       expect(person.emails.length).to(equal, 0);
       expect(count).to(equal, 1);
+    });
+    
+    it("should fire change event on parent DOM after removing array field", function() {
+      // TODO, _parentsSnap is not stored on container yet.
+    });
+    
+    it("should fire change event on parent DOM after removing a part as field", function() {
+      // TODO, _parentsSnap is not stored on part dom yet.
     });
   });
 });

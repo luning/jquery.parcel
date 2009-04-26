@@ -18,3 +18,4 @@ TODO
 potential problems:
 [ ] reset a sub field of an array field will reset whole array field
 [ ] add array sub field dynamicly doesn't check it's added to container or not
+[ ] remove a DOM with many fields will fire change event multiple times unexpectedly, once on each field's closest alive original parent.

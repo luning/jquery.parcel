@@ -66,21 +66,14 @@ Screw.Unit(function() {
     $("#fixture").html(fixtureHtml);
   });
 
-  describe("Get Field Dom", function() {
-    it("of an Array field should get all dom elements of sub fields", function() {
+  describe("Get Field DOM", function() {
+    it("of an Array field should get all DOM elements of sub fields including the container", function() {
       var person = $("#person").part();
       var all = person.emails.fieldDom();
-      expect(all.length).to(equal, 2);
+      expect(all.length).to(equal, 3);
       
-      var twoEmails = $("#person input[name=email]").get();
-      expect(all).to(equal, twoEmails);
-    });
-
-    it("of an Array field should get by index", function() {
-      var person = $("#person").part();
-      var twoEmails = $("#person input[name=email]");
-      expect(person.emails.fieldDom(0)).to(equal, twoEmails[0]);
-      expect(person.emails.fieldDom(1)).to(equal, twoEmails[1]);
+      var containerAndTwoEmails = person.emails.container.add($("#person input[name=email]")).get();
+      expect(all).to(equal, containerAndTwoEmails);
     });
   });
 

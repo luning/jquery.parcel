@@ -87,7 +87,8 @@
     
     // find closest parent part
     closestPart: function(){
-      var parents = $(this.fieldDom(0)).parents();
+      // TODO : clean the way getting parents with this.add(this.parents()) after making array field an jquery object
+      var parents = $(this.get(0)).add($(this.get(0)).parents());
       for(var i = 0; i < parents.length; i++){
         var part = $(parents[i]).getPart();
         if(part){
@@ -108,7 +109,7 @@
     },
     
     fieldDom: function(){
-      return this.get.apply(this, arguments);
+      return this.get();
     },
         
     removeMe: function(){
@@ -121,9 +122,7 @@
     
     // fire change event after removal
     _removed: function(){
-      // need not fire change event if it's a container(Part or Array), already done for its sub fields.
-      var firstDom;
-      var originalParents = !this.container && (firstDom = this.fieldDom(0)) && firstDom._parentsSnap;
+      var originalParents = this.get(0)._parentsSnap;
       if(originalParents){
         var closestAliveParent = $.first(originalParents, function(i, p){ return !$(p).dead(); });
         $(closestAliveParent).change();
@@ -139,21 +138,12 @@
       return this.container.get.apply(this.container, arguments);
     },
     
-    fieldDom: function(index) {
-      if(index === undefined){
-        var all = [];
-        $.each(this, function(i, field) {
-          all = all.concat(field.fieldDom());
-        });
-        return all;
-      }
-      
-      // only for the efficiency of getting the first element
-      if(index === 0 && this.length > 0){
-        return this[0].fieldDom(0);
-      } else {
-        return this.fieldDom()[index];
-      }
+    fieldDom: function() {
+      var all = this.container.get();
+      $.each(this, function(i, field) {
+        all = all.concat(field.fieldDom());
+      });
+      return all;
     },
 
     state: function(s) {
@@ -330,7 +320,7 @@
       }.bind(this));
 
       this._buildFields(this);
-      this._buildContainers(this);
+      this._buildVirtualFields(this);
     },
     
     // sync with dom changes
@@ -445,21 +435,13 @@
       return this;
     },
 
-    // similar as get method in jQuery
-    fieldDom: function(index){
-      if(index === undefined){
-        var all = [];
-        $.each(this._fields, function(i, field) {
-          all = all.concat(field.it.fieldDom());
-        });
-        return all;
-      }
-
-      if(index === 0 && this._fields.length > 0){ // only for the efficiency of getting the first element
-          return this._fields[0].it.fieldDom(0);
-      } else {
-        return this.fieldDom()[index];
-      }
+    // get all field dom including container dom for part and array fields
+    fieldDom: function(){
+      var all = this.get();
+      $.each(this._fields, function(i, field) {
+        all = all.concat(field.it.fieldDom());
+      });
+      return all;
     },
 
     state: function(s){
@@ -644,11 +626,11 @@
     // infer index of given field based on the occurance sequence in dom
     _suggestedIndex: function(field){
       var all = this.find(this.FIELD_SELECTOR);
-      var posOfField = $.indexInArray(field.fieldDom(0), all);
+      var posOfField = $.indexInArray(field.get(0), all);
 
       var index = 0;
       for(; index < this._fields.length; index++){
-        var pos = $.indexInArray(this._fields[index].it.fieldDom(0), all);
+        var pos = $.indexInArray(this._fields[index].it.get(0), all);
         if(pos > posOfField){
           break;
         }
@@ -667,7 +649,7 @@
       return noun + "s";
     },
 
-    _buildContainers: function(context){
+    _buildVirtualFields: function(context){
       var all = this._selectInContext(context, "[fieldtype=virtual]");
       all.each(function(i, dom){
         var container = $(dom);
