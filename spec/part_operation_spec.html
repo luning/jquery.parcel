@@ -40,11 +40,11 @@
     <input id="nationality" type="text" someproperty="nationality"></input>
     <input id="id_city" type="text" fieldname="city"></input>
     <div fieldtype="virtual" name="contactInfo">
-      <div class="emails">
-        <input type="text" fieldtype="array,.emails" value="luning.tw@gmail.com" name="email"></input>
+      <div name="emails" fieldtype="array,email" >
+        <input type="text" value="luning.tw@gmail.com" name="email"></input>
       </div>
-      <div class="contacts">
-        <div part="" fieldtype="array,.contacts" name="contact">
+      <div name="contacts" fieldtype="array,contact">
+        <div part="" name="contact">
           <input type="text" name="number"></input>
           <input type="text" name="type"></input>
         </div>
@@ -61,35 +61,6 @@ Screw.Unit(function() {
 
   before(function() {
     $("#fixture").html(fixtureHtml);
-  });
-
-  describe("Reset State", function() {
-  
-    it("should reset initial state", function() {
-      var person = $("#person").part();
-      var initialState = person.state();
-
-      person.state({ name: "Josh", title: "Mr", gender: "Male", nationality: "OZ", city: "sydney" });
-
-      person.resetState();
-      expect(person.state()).to(equal_state, initialState);
-    });
-    
-    it("should reset initial state with fields in a jQuery container(Virtual Field)", function() {
-      var person = $("#person").part();
-      expect(person.gender.state()).to(equal, "Male");
-
-      var tempState = { name: "Jane", title: "Mrs", gender: "Female", nationality: "OZ", city: "sydney" };
-      person.state(tempState);
-
-      var genderContainer = person.gender.closest("div"); // the div contains the two gender radios
-      person.resetState(genderContainer);
-
-      expect(person.gender.state()).to(equal, "Male");
-      delete tempState.gender;
-      expect(person.state()).to(contain_state, tempState);
-    });
-
   });
   
   describe("Capture State", function() {
@@ -180,7 +151,7 @@ Screw.Unit(function() {
     });
   });
   
-  describe("getState", function() {
+  describe("Get State", function() {
     it("should get state of this part by passing in this part as context", function() {
       var person = $("#person").part();
       expect(person.getState(person)).to(equal_state, person.state());

@@ -44,12 +44,12 @@
       <input type="text" name="street"></input>
     </div>
     <div fieldtype="virtual" name="contactInfo">
-      <div class="emails">
-        <input type="text" fieldtype="array,.emails" value="first@my.com" name="email"></input>
+      <div name="emails" fieldtype="array,email" >
+        <input type="text" value="first@my.com" name="email"></input>
         <input type="text" value="second@my.com" name="email"></input>
       </div>
-      <div class="contacts">
-        <div part="" fieldtype="array,.contacts" name="contact">
+      <div name="contacts" fieldtype="array,contact">
+        <div part="" name="contact">
           <input type="text" name="number"></input>
           <input type="text" name="type"></input>
         </div>
@@ -72,8 +72,8 @@ Screw.Unit(function() {
       var all = person.emails.fieldDom();
       expect(all.length).to(equal, 3);
       
-      var containerAndTwoEmails = person.emails.add($("#person input[name=email]")).get();
-      expect(all).to(equal, containerAndTwoEmails);
+      var containerAnd2Emails = person.emails.add($("#person input[name=email]")).get();
+      expect(all).to(equal, containerAnd2Emails);
     });
   });
 
@@ -219,20 +219,37 @@ Screw.Unit(function() {
       person.name.resetState();
       expect(person.name.state()).to(equal, "luning");
     });
-
-    it("on a Part should reset state of it as a field in parent part", function() {
+    
+    it("on a Part should reset state of itself", function() {
       var person = $("#person").part();
-      var localityPart = person.locality;
-      localityPart.state({ no: "290", street: "pitt" });
-      localityPart.resetState();
-      expect(localityPart.state()).to(contain_state, { no: "", street: "" });
+      var initialState = person.state();
+
+      person.state({ name: "Josh", title: "Mr", gender: "Male", nationality: "OZ", city: "sydney" });
+
+      person.resetState();
+      expect(person.state()).to(equal_state, initialState);
     });
  
-    it("on an Array field should reset state of it in parent part", function() {
+    it("on an Array field should reset state of itself", function() {
       var person = $("#person").part();
       person.emails.state([ "1@my.com", "2@my.com" ]);
       person.emails.resetState();
       expect(person.emails.state()).to(contain_state, [ "first@my.com", "second@my.com" ]);
+    });
+    
+    it("on a field in an array field should reset state of it in its parent array field", function() {
+      var person = $("#person").part();
+      person.emails.items[0].state("1@my.com");
+      person.emails.items[0].resetState();
+      expect(person.emails.items[0].state()).to(equal_state, "first@my.com");
+    });
+    
+    it("on a field in an array field should not reset other fields in the same array field", function() {
+      var person = $("#person").part();
+      person.emails.state([ "1@my.com", "2@my.com" ]);
+      person.emails.items[0].resetState();
+      
+      expect(person.emails.items[1].state()).to(equal_state, "2@my.com");
     });
     
     it("on a Virtual field(jQuery container) should reset all fields in it", function() {
@@ -295,7 +312,7 @@ Screw.Unit(function() {
     
   });
   
-  describe("Closest Part", function() {
+  describe("Closest Composite", function() {
 
     it("of a jQuery object should be the closest parent part", function() {
       var person = $("#person").part();
@@ -307,9 +324,14 @@ Screw.Unit(function() {
       expect(person.locality.closestPart()).to(equal, person.locality);
     });
 
-    it("of an Array field should be the closest parent part", function() {
+    it("of an Array field should be itself", function() {
       var person = $("#person").part();
-      expect(person.emails.closestPart()).to(equal, person);
+      expect(person.emails.closestPart()).to(equal, person.emails);
+    });
+    
+    it("of a field in an array field should be the parent array field", function() {
+      var person = $("#person").part();
+      expect(person.emails.items[0].closestPart()).to(equal, person.emails);
     });
   });
   

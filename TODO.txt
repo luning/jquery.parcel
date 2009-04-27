@@ -5,10 +5,8 @@ TODO
 [*] make part a jquery object
 [*] dynamiclly adding/removing DOM should fire change event
 [ ] merge part and fieldtype property in DOM
-[ ] remove fieldDom calls, replace with get
-[ ] consider merge part with array field, share implementation
-[ ] specify array fieldtype on container rather than on elements
-[ ] store initial state in each field instead of in parent part, remove dependency on field names in part
+[*] consider merge part with array field, share implementation
+[*] specify array fieldtype on container rather than on elements
 [ ] build part with state
 [ ] work with hidden template for array type field
 [ ] add behaviour with parameters
@@ -16,6 +14,4 @@ TODO
 
 
 potential problems:
-[ ] reset a sub field of an array field will reset whole array field
-[ ] add array sub field dynamicly doesn't check it's added to container or not
 [ ] remove a DOM with many fields will fire change event multiple times unexpectedly, once on each field's closest alive original parent.

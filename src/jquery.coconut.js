@@ -80,7 +80,7 @@
     resetState: function(){
       var part = this.closestPart();
       if(part){
-        part.resetState(this);
+        this.state(part.initialState(this));
       }
       return this;
     },
@@ -128,62 +128,6 @@
       }
       return this;
     }
-  };
-
-  // applied to array field only
-  var arrayFieldMixin = {
-    fieldDom: function() {
-      var all = this.get();
-      $.each(this._fields, function(i, field) {
-        all = all.concat(field.fieldDom());
-      });
-      return all;
-    },
-
-    state: function(s) {
-      if(s === undefined){
-        var state = [];
-        $.each(this._fields, function(i, field){
-          state.push(field.state());
-        });
-        return state;
-      }
-
-      $.each(s, function(i, s){
-        if(i < this._fields.length){
-          this._fields[i].state(s);
-        }
-      }.bind(this));
-      return this;
-    },
-
-    clean: function(){
-      var deadIndexex = [];
-      $.each(this._fields, function(i, field) {
-        if(field.clean){
-          field.clean();
-        }
-        if(field.dead()){
-          deadIndexex.push(i);
-        }
-      });
-      deadIndexex.reverse();
-      $.each(deadIndexex, function(i, index){
-        var deadField = this._fields[index];
-        this._fields.splice(index, 1);
-        deadField._removed();
-      }.bind(this));
-    }
-  };
-
-  // create an array field
-  $.newArrayField = function(container){
-    var field = $(container);
-    field.items = field._fields = [];
-    // initilize this array with implicit parameters
-    field._fields.push.apply(field._fields, Array.prototype.slice.call(arguments, 1));
-    // set prototype to [] does not work in IE, have to use this unefficent way to extend Array.
-    return $.extend(field, commonFieldMixin, arrayFieldMixin);
   };
 
   // extend jQuery for jQuery field and Virtual field
@@ -287,8 +231,9 @@
 
   // constructor for part
   $.part = function(behaviour) {
-    this._initialState = {};
-    this._fields = [];
+    this._nameConstraint = this._parseNameConstraint();
+    this._initialState = this._nameConstraint ? [] : {};
+    this.items = this._fields = [];
 
     this._init();
     this.addBehaviour(behaviour);
@@ -296,8 +241,15 @@
   };
 
   $.extend($.part.prototype, commonFieldMixin, {
-    FIELD_SELECTOR: ":input, [part], [part=]",
-
+    FIELD_SELECTOR: ":input, [part], [part=], [fieldtype^=array]",
+    
+    _parseNameConstraint: function(){
+      var def, match;
+      if((def = this.attr("fieldtype")) && (match = def.match(/^\s*array\s*,\s*([A-Za-z0-9]+)$/))){
+        return match[1];
+      }
+    },
+    
     _init: function(){
       this.bind("sync", function(event){
         event.stopPropagation();
@@ -344,23 +296,16 @@
       }.bind(this));
     },
 
-    // return true if the field is defined by this part
-    hasField: function(fname, arrayOrNot){
-      var index = this.fieldIndex(fname);
-      if(index === -1){
-        return false;
-      } else if (arrayOrNot === undefined) {
-        return true;
-      } else {
-        var isArray = this._fields[index].items instanceof Array;
-        return arrayOrNot ? isArray : !isArray;
-      }
+    // field could be name or object
+    hasField: function(field){
+      return this.fieldIndex(field) >= 0;
     },
    
-    // return index of the field
-    fieldIndex: function(fname) {
+    // field could be name or object
+    fieldIndex: function(field) {
       for(var i = 0; i < this._fields.length; i++){
-        if(this._fields[i].fname === fname){
+        var curField = typeof(field) === "string" ? this._fields[i].fname : this._fields[i];
+        if(curField === field){
           return i;
         }
       }
@@ -395,7 +340,10 @@
         if(this.contains(elem)){
           throw "CoconutError: field for element [" + selector + "] is already defined.";
         }
-        if(this.hasField(fname)){
+        if(this._nameConstraint && this._nameConstraint !== fname){
+          throw "CoconutError: field with name [" + fname + "] does not match the name constraint [" + this._nameConstraint + "].";
+        }
+        if(!this._nameConstraint && this.hasField(fname)){
           throw "CoconutError: field with name [" + fname + "] already exist in part.";
         }
         this._addField(fname, elem);
@@ -430,54 +378,60 @@
     },
 
     state: function(s){
-      if(s === undefined){
-        return this.getState();
-      }
-      this.setState(s);
-      return this;
+      return s === undefined ? this.getState() : this.setState(s);
     },
     
     getState: function(context){
-      var state = {};
-      $.each(this._fieldsIn(context), function(i, field){
-        state[field.fname] = field.state();
-      });
-      return state;
+      var fields = this._fieldsIn(context);
+      if(this._nameConstraint){
+        return $.map(fields, function(field){ return field.state(); });
+      } else {
+        var state = {};
+        $.each(fields, function(i, field){
+          state[field.fname] = field.state();
+        });
+        return state;
+      }
     },
     
     setState: function(s, context){
-      $.each(this._fieldsIn(context), function(i, field){
-        if(s.hasOwnProperty(field.fname)){
-          field.state(s[field.fname]);
-        }
-      });
+      var fields = this._fieldsIn(context);
+      if(this._nameConstraint){
+        $.each(s, function(i, cur){
+          if(i < fields.length){
+            fields[i].state(cur);
+          }
+        });
+      } else {
+        $.each(fields, function(i, field){
+          if(s.hasOwnProperty(field.fname)){
+            field.state(s[field.fname]);
+          }
+        });
+      }
       return this;
     },
     
     initialState: function(context){
-      var targetState = {};
-      var targetFields = this._fieldsIn(context);
-      $.each(targetFields, function(i, field){
-        if(this._initialState.hasOwnProperty(field.fname)){
-          targetState[field.fname] = this._initialState[field.fname];
-        }
-      }.bind(this));
+      var fields = this._fieldsIn(context);
+      var contextIsField = (fields.length === 1) && this._contextIsField(context, fields[0]);
       
-      if(targetFields.length === 1 && this._contextIsField(context, targetFields[0])){
-        return $.cloneState(targetState[targetFields[0].fname]);
-      } else {
-        return $.cloneState(targetState);
-      }
-    },
+      if(this._nameConstraint){
+        var state = $.map(fields, function(field){
+          return this._initialState[this.fieldIndex(field)]; 
+        }.bind(this));
 
-    // e.g. resetState($("#dome_div_id")), resetState(part.field)
-    resetState: function(context) {
-      var newState = {};
-      $.each(this._fieldsIn(context), function(i, field){
-        newState[field.fname] = this._initialState[field.fname];
-      }.bind(this));
-      this.state(newState);
-      return this;
+        return contextIsField ? state[0] : state;
+      } else {
+        var state = {};
+        $.each(fields, function(i, field){
+          if(this._initialState.hasOwnProperty(field.fname)){
+            state[field.fname] = this._initialState[field.fname];
+          }
+        }.bind(this));
+        
+        return contextIsField ? $.cloneState(state[fields[0].fname]) : $.cloneState(state);
+      }
     },
 
     // store current state as initial, used later for state resetting and dirty check
@@ -508,39 +462,9 @@
       }
     },
 
-    // parse fieldtype property specified in dom.
-    // format: "type_of_field,container_selector_of_this_field_optional", array type must be provided a container
-    _fieldTypeDef: function(elem){
-      var def = elem.attr("fieldtype");
-      if(!def){
-        return {};
-      }
-
-      var match = def.match(/^\s*([A-Za-z]+)\s*,?\s*(.*)$/);
-      if(!match){
-        return {};
-      } else {
-        if(match[1] === "array" && !match[2]){
-          throw "CoconutError: array field should have a container specified in 'fieldtype' property.";
-        }
-        var container;
-        if(match[2]){
-          var containerDom = elem.closest(match[2])[0];
-          if(!containerDom){
-            throw "CoconutError: parent container selector [" + match[2] + "] specified in 'fieldtype' property in dom matchs nothing.";
-          }
-          container = $(containerDom);
-        }
-        return {
-          type: match[1],
-          container: container
-        };
-      }
-    },
-
     // construct field for jQuery element
     _constructField: function(elem) {
-      if(elem.attr("part") !== undefined) {
+      if(elem.is("[part], [part=], [fieldtype^=array]")) {
         return elem.part();
       } else if (elem.is(":radio")) {
         return this.find(":radio[name=" + elem.attr("name") + "]")._preparingAsField();
@@ -553,25 +477,10 @@
     // inferOrder is only for efficency, will add new field to the end of this._fields by default, if not specified. can always be true.
     _addField: function(fname, elem, inferOrder){
       var field = this._constructField(elem);
-      var isDirectFieldOfThisPart = true;
+      field.fname = fname;
 
-      var fnameOfArray = this._plural(fname);
-      var fieldTypeDef = this._fieldTypeDef(elem);
-
-      if(this.hasField(fnameOfArray, true)){ // add to existing array field
-        this._fields[this.fieldIndex(fnameOfArray)].items.push(field);
-        isDirectFieldOfThisPart = false;
-      } else if (fieldTypeDef.type === "array") { // create new array field
-        if(this.hasField(fnameOfArray)){
-          throw "CoconutError: nonarray field [" + fnameOfArray + "] already exists, failed to create array field.";
-        }
-        fname = fnameOfArray;
-        field = $.newArrayField(fieldTypeDef.container, field);
-        if(!(fname in this)){
-          this[fname] = field;
-        }
-      } else { // non-array field
-        if (this.hasField(fname)){
+      if (!this._nameConstraint){
+        if(this.hasField(fname)){
           throw "CoconutError: field with name [" + fname + "] already exists.";
         }
         if(!(fname in this)){
@@ -579,11 +488,8 @@
         }
       }
 
-      field.fname = fname;
-      if(isDirectFieldOfThisPart){
-        var insertIndex = inferOrder ? this._suggestedIndex(field) : this._fields.length;
-        this._fields.splice(insertIndex, 0, field);
-      }
+      var insertIndex = inferOrder ? this._suggestedIndex(field) : this._fields.length;
+      this._fields.splice(insertIndex, 0, field);
     },
 
     // infer index of given field based on the occurance sequence in dom
@@ -599,17 +505,6 @@
         }
       }
       return index;
-    },
-
-    // used to determine array field name from name of sub-field
-    // TODO : far from mature, just for simplest cases
-    _plural: function(noun){
-      // e.g "hobby" -> "hobbies"
-      if(noun.charAt(noun.length - 1) === 'y'){
-        return noun.substr(0, noun.length - 1) + "ies";
-      }
-      // e.g "contact" -> "contacts"
-      return noun + "s";
     },
 
     _buildVirtualFields: function(context){
@@ -641,8 +536,8 @@
         }
         var elem = $(dom);
         var fname = this._name(elem);
-        if(!fname){
-          return; // ignore this dom element
+        if(!fname || (this._nameConstraint && this._nameConstraint !== fname)){
+          return; // ignore this element
         }
         this._addField(fname, elem, inferOrder);
       }.bind(this));

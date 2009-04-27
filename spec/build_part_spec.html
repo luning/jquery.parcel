@@ -40,11 +40,11 @@
     <input id="nationality" type="text" someproperty="nationality"></input>
     <input id="id_city" type="text" fieldname="city"></input>
     <div fieldtype="virtual" name="contactInfo">
-      <div class="emails">
-        <input type="text" fieldtype="array,.emails" value="luning.tw@gmail.com" name="email"></input>
+      <div name="emails" fieldtype="array,email" >
+        <input type="text" value="luning.tw@gmail.com" name="email"></input>
       </div>
-      <div class="contacts">
-        <div part="" fieldtype="array,.contacts" name="contact">
+      <div name="contacts" fieldtype="array,contact">
+        <div part="" name="contact">
           <input type="text" name="number"></input>
           <input type="text" name="type"></input>
         </div>
@@ -85,7 +85,12 @@ Screw.Unit(function() {
   
   describe("Build with Array Field", function() {
 
-    it("should build field of array type for element if 'fieldtype' property is set to 'array' in dom", function() {
+    it("should build on proper DOM", function() {
+      var person = $("#person").part();
+      expect(person.emails.get(0)).to(equal, $("#person div[name=emails]")[0]);
+    });
+    
+    it("should add one element if the name matchs the name constraint specified in 'fieldtype' property in DOM", function() {
       var person = $("#person").part();
       expect(person.email).to(be_undefined);
       expect(person.emails.items.length).to(equal, 1);
@@ -93,8 +98,8 @@ Screw.Unit(function() {
       expect(person.state()).to(contain_state, {emails:["luning.tw@gmail.com"]});
     });
 
-    it("should add the following fields to array if the name is supposed to be of array type", function() {
-      $("#person").append("<input type='text' name='email'></input>");
+    it("should add all fields to array if the name matchs the name constraint specified in 'fieldtype' property in DOM", function() {
+      $("#person div[name=emails]").append("<input type='text' name='email'></input>");
 
       var person = $("#person").part();
       expect(person.email).to(be_undefined);
@@ -105,7 +110,7 @@ Screw.Unit(function() {
       expect(person.state()).to(contain_state, s);
     });
 
-    it("should build array field of part type", function() {
+    it("should build with part as element", function() {
       var person = $("#person").part();
       expect(person.contact).to(be_undefined);
       expect(person.contacts.items.length).to(equal, 1);
@@ -113,11 +118,6 @@ Screw.Unit(function() {
       var s = {contacts: [{number: "123456789", type: "office"}]};
       person.state(s)
       expect(person.state()).to(contain_state, s);
-    });
-
-    it("should build array field with container specified in 'fieldtype' property", function() {
-      var person = $("#person").part();
-      expect(person.emails.get(0)).to(equal, $("#person div.emails")[0]);
     });
 
   });

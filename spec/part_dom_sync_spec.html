@@ -39,11 +39,11 @@
     </div>
     <input id="nationality" type="text" someproperty="nationality"></input>
     <input id="id_city" type="text" fieldname="city"></input>
-    <div class="emails">
-      <input type="text" fieldtype="array,.emails" value="luning.tw@gmail.com" name="email"></input>
+    <div name="emails" fieldtype="array,email">
+      <input type="text" value="luning.tw@gmail.com" name="email"></input>
     </div>
-    <div class="contacts">
-      <div part="" fieldtype="array,.contacts" name="contact">
+    <div name="contacts" fieldtype="array,contact">
+      <div part="" name="contact">
         <input type="text" name="number"></input>
         <input type="text" name="type"></input>
       </div>
@@ -108,7 +108,7 @@ Screw.Unit(function() {
 
     it("should create array field if 'fieldtype' is setted to 'array'", function() {
       var person = $("#person").part();
-      var hobby = $("<input type='text' value='reading' fieldtype='array,*' name='hobby'></input>");
+      var hobby = $("<div fieldtype='array,hobby' name='hobbies'><input type='text' value='reading' name='hobby'></input></div>");
       $("#person").append(hobby);
       hobby.sync();
 
@@ -123,7 +123,7 @@ Screw.Unit(function() {
       expect(person.emails.items.length).to(equal, 1);
 
       var anotherEmail = $("<input type='text' value='another@my.com' name='email'></input>");
-      $("#person div.emails").append(anotherEmail);
+      $("#person div[name=emails]").append(anotherEmail);
       anotherEmail.sync();
 
       expect(person.email).to(be_undefined);
@@ -136,7 +136,7 @@ Screw.Unit(function() {
       expect(person.emails.items.length).to(equal, 1);
 
       var anotherEmail = $("<input type='text' value='another@my.com' name='email'></input>");
-      $("#person").append(anotherEmail);
+      $("#person div[name=emails]").append(anotherEmail);
       anotherEmail.sync();
       anotherEmail.sync();
 
@@ -149,7 +149,7 @@ Screw.Unit(function() {
       expect(person.contacts.items.length).to(equal, 1);
 
       var anotherContact = $("<div part='' name='contact'><input type='text' value='111' name='number'></input><input type='text' value='home' name='type'></input></div>");
-      $("#person").append(anotherContact);
+      $("#person div[name=contacts]").append(anotherContact);
       anotherContact.sync();
 
       expect(person.contact).to(be_undefined);
@@ -206,7 +206,7 @@ Screw.Unit(function() {
 
     it("should remove item in array field accordingly", function() {
       var anotherEmail = $("<input type='text' name='email'></input>");
-      $("#person").append(anotherEmail);
+      $("#person div[name=emails]").append(anotherEmail);
 
       var person = $("#person").part();
       expect(person.emails.items.length).to(equal, 2);
@@ -232,7 +232,7 @@ Screw.Unit(function() {
 
     it("should remove part in array field accordingly", function() {
       var anotherContact = $("<div part='' name='contact'><input type='text' value='111' name='number'></input><input type='text' value='home' name='type'></input></div>");
-      $("#person div.contacts").append(anotherContact);
+      $("#person div[name=contacts]").append(anotherContact);
 
       var person = $("#person").part();
       expect(person.contacts.items.length).to(equal, 2);
@@ -245,7 +245,7 @@ Screw.Unit(function() {
     });
 
     it("should not remove the array field itself originally containing parts even if it becomes empty", function() {
-      $("#person div.contacts").append("<div part='' name='contact'><input type='text' value='111' name='number'></input><input type='text' value='home' name='type'></input></div>");
+      $("#person div[name=contacts]").append("<div part='' name='contact'><input type='text' value='111' name='number'></input><input type='text' value='home' name='type'></input></div>");
 
       var person = $("#person").part();
       expect(person.contacts.items.length).to(equal, 2);
@@ -276,7 +276,7 @@ Screw.Unit(function() {
     
     it("should fire change event on the Array field container after one of its sub fields is removed", function() {
       // has 2 emails
-      var emailsDiv = $("#person div.emails").append("<input type=text name=email></input>");
+      var emailsDiv = $("#person div[name=emails]").append("<input type=text name=email></input>");
       var person = $("#person").part();
 
       var count = 0;
