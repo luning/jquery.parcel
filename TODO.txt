@@ -1,10 +1,11 @@
 TODO
 
+[ ] update documentation according to recent changes
 [ ] use smoke mocks rather than roll our own
 [ ] consider renaming initialState() => initial or pristine?, resetState() => reset or revert, captureState() => save. 4 actions: get the last saved state, reset to blank, revert to the last saved state, save state.
 [*] make part a jquery object
 [*] dynamiclly adding/removing DOM should fire change event
-[ ] merge part and fieldtype property in DOM
+[*] merge part and fieldtype property in DOM
 [*] consider merge part with array field, share implementation
 [*] specify array fieldtype on container rather than on elements
 [ ] build part with state

@@ -4,12 +4,12 @@
  */
 
 /* 
-  Field is the core concept in Coconut, a field in part can be of type:
-    * jQuery: an extended jQuery object of input, select, checkbox, or radios with the same name, ...
-    * Array: an extended Array containing other fields.
-    * Part: a part can be a field as well
-  and
-    * Virtual: an extended jQuery object of non inputable dom element, e.g. div or fieldset, it contains other fields and acts like a normal field.
+  Field is the core concept in Coconut.
+  A field is an extended jQuery object, conceptually can be:
+    - Part, containing fields with different name
+    - Array Part, containing sub fields with same name
+    - normal jQuery object, representing any input in DOM
+    - Virtual field, which is an arbitrary jQuery object under a part and covers many other fields.
 */ 
  
 ;(function($) {
@@ -32,7 +32,7 @@
     }
   });
 
-  // applied to all field types(jQuery, Array, Part and Virtual)
+  // applied to all field types(jQuery, Part, ArrayPart and Virtual)
   var commonFieldMixin = {
     // determine if field is still in dom tree
     dead: function(){
@@ -40,7 +40,7 @@
     },
 
     // change of this field will set state of target with the state of this field
-    // target - jquery selector, jquery, field or part, which have state() method
+    // target - jquery selector or a field
     bindState: function(target, converter){
       target = typeof(target) === "string" ? $(target) : target;
       this.stateChange(function(state){
@@ -49,7 +49,7 @@
       return this;
     },
 
-    // current state will be passed to handler as the first parameter. 'this' in handler is the target dom element.
+    // current state will be passed to handler as the first parameter. 'this' in handler is the target DOM element.
     // fire event if no handler
     stateChange: function(handler){
       var self = this;
@@ -57,7 +57,7 @@
       return this;
     },
     
-    // change of this field(jQuery, part or array) will show/hide target, which is a jQuery or selector
+    // change of this field will show/hide target, which is a jQuery selector or a field
     showHide: function(target, showUpStateOrCallback, resetStateIfHidden){
       var showUp = $.isFunction(showUpStateOrCallback) ? showUpStateOrCallback : function(state){
           return $.stateContain(state, showUpStateOrCallback);
@@ -76,7 +76,6 @@
       }).stateChange();
     },
     
-    // a field resets it's state, or an arbitrary jQuery object(container) resets states of fields contained by it.
     resetState: function(){
       var part = this.closestPart();
       if(part){
@@ -85,7 +84,7 @@
       return this;
     },
     
-    // find closest parent part
+    // find closest parent part including itself
     closestPart: function(){
       var parents = this.add(this.parents());
       for(var i = 0; i < parents.length; i++){
@@ -111,6 +110,7 @@
       return this.get();
     },
         
+    // remove DOM(s) and corresponding field(s)
     removeMe: function(){
       var part = this.closestPart();
       this.remove();
@@ -193,13 +193,13 @@
       });
       return this;
     },
-    // ensure change event will bubble up dom tree, this is necessary for live event or event delegation
+    // ensure change event will bubble up DOM tree, this is necessary for live event or event delegation
     ensureBubbleOnChange: function(){
       if(!$.support.bubbleOnChange){ 
         var all = this.find(":input").add(this.filter(":input"));
         all.each(function(i, dom){
           var elem = $(dom);
-          // do this only once for the same dom element
+          // do this only once for the same DOM element
           if(!elem.data("bubbleOnChange")){
             elem.data("bubbleOnChange", true);
             elem.change(function(e){
@@ -229,7 +229,7 @@
     }
   });
 
-  // constructor for part
+  // constructor for Part or Array Part
   $.part = function(behaviour) {
     this._nameConstraint = this._parseNameConstraint();
     this._behaviour = behaviour || this._parseBehaviour();
@@ -271,18 +271,18 @@
       this._buildVirtualFields(this);
     },
     
-    // sync with dom changes
+    // sync with DOM changes
     sync: function(dom){
-      if(dom === undefined){ // dom removed
+      if(dom === undefined){ // DOM removed
         this.clean();
-      } else { // dom added
+      } else { // DOM added
         var elem = $(dom);
         this._buildFields(elem, true);
         elem.change();
       }
     },
 
-    // remove fields if the corresponding dom element(s) is(are) no longer in dom tree.
+    // remove fields if the corresponding DOM element(s) is(are) no longer in DOM tree.
     clean: function(){
       var deadFields = [];
       $.each(this._fields, function(n, field) {
@@ -307,12 +307,12 @@
       }.bind(this));
     },
 
-    // field could be name or object
+    // parameter field could be name or object
     hasField: function(field){
       return this.fieldIndex(field) >= 0;
     },
    
-    // field could be name or object
+    // parameter field could be name or object
     fieldIndex: function(field) {
       for(var i = 0; i < this._fields.length; i++){
         var curField = typeof(field) === "string" ? this._fields[i].fname : this._fields[i];
@@ -340,7 +340,7 @@
           throw "CoconutError: can not find [" + selector + "] in container.";
         }
         if(this.contains(elem)){
-          throw "CoconutError: field for element [" + selector + "] is already defined.";
+          throw "CoconutError: field for [" + selector + "] is already defined.";
         }
         if(this._nameConstraint && this._nameConstraint !== fname){
           throw "CoconutError: field with name [" + fname + "] does not match the name constraint [" + this._nameConstraint + "].";
@@ -352,7 +352,7 @@
       }.bind(this));
     },
 
-    // orderFields("field1", "field2", ... ,"fieldN"), pass in only the fields need order ensurance.
+    // orderFields("fieldName1", "fieldName2", ... ,"fieldNameN"), pass in only the fields need order ensurance.
     orderFields: function(){
       for(var i = 0; i < arguments.length - 1; i++){
         var cur = this.fieldIndex(arguments[i]);
@@ -370,7 +370,7 @@
       return this;
     },
 
-    // get all field dom including container dom for part and array fields
+    // get all field DOM including container DOM for Part or Array Part
     fieldDom: function(){
       var all = this.get();
       $.each(this._fields, function(i, field) {
@@ -442,7 +442,7 @@
       return this;
     },
     
-    // check if this part contains any dom in element
+    // check if this part contains any DOM in element
     contains: function(elem){
       var all = this.fieldDom();
       return !!$.first($(elem).get(), function(i, dom){
@@ -494,7 +494,7 @@
       this._fields.splice(insertIndex, 0, field);
     },
 
-    // infer index of given field based on the occurance sequence in dom
+    // infer index of given field based on the occurance sequence in DOM
     _suggestedIndex: function(field){
       var all = this.find(this.FIELD_SELECTOR);
       var posOfField = $.indexInArray(field.get(0), all);
@@ -550,9 +550,9 @@
       return elem.attr("fieldname") || elem.attr("name") || elem.attr("id");
     },
     
-    // check if the context if for a non-virtual field
+    // check if the context is for a non-virtual field
     _contextIsField: function(context, field){
-      // compare Dom with ==, === SOMETIME does not work in IE
+      // compare DOM with ==, === SOMETIME does not work in IE
       return context && context.get(0) == field.get(0);
     }
   });
@@ -607,7 +607,7 @@
     }
   };
   
-  // get index of dom in a dom array(can be jQuery object)
+  // get index of DOM in a DOM array(can be jQuery object)
   $.indexInArray = function(item, array){
     if($.support.trippleEqualOnDom){
       return $.inArray(item, array);
@@ -632,7 +632,7 @@
   
   // change event in IE doesn't bubble.
   $.support.bubbleOnChange = !$.browser.msie;
-  // in IE, === will return false SOMETIME even when comparing the same dom, use == instead.
+  // in IE, === will return false SOMETIME even when comparing the same DOM, use == instead.
   $.support.trippleEqualOnDom = !$.browser.msie;
 })(jQuery);
 
