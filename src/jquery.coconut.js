@@ -232,21 +232,32 @@
   // constructor for part
   $.part = function(behaviour) {
     this._nameConstraint = this._parseNameConstraint();
+    this._behaviour = behaviour || this._parseBehaviour();
     this._initialState = this._nameConstraint ? [] : {};
     this.items = this._fields = [];
 
     this._init();
-    this.addBehaviour(behaviour);
+    this.applyBehaviour(this._behaviour);
     this.captureState();
   };
 
   $.extend($.part.prototype, commonFieldMixin, {
-    FIELD_SELECTOR: ":input, [part], [part=], [fieldtype^=array]",
+    FIELD_SELECTOR: ":input, [field^=part], [field^=arraypart]",
     
     _parseNameConstraint: function(){
       var def, match;
-      if((def = this.attr("fieldtype")) && (match = def.match(/^\s*array\s*,\s*([A-Za-z0-9]+)$/))){
+      if((def = this.attr("field")) && (match = def.match(/^\s*arraypart\s*,\s*([A-Za-z0-9]+)$/))){
         return match[1];
+      }
+    },
+    
+    _parseBehaviour: function(){
+      var behav, def, match;
+      if((def = this.attr("field")) && (match = def.match(/^\s*part\s*,\s*([A-Za-z0-9]+)$/)) && (behav = match[1])){
+        if(!$.isFunction(window[behav])){
+          throw "CoconutError: behavior [" + behav + "] should be a global function.";
+        }
+        return window[behav];
       }
     },
     
@@ -312,21 +323,12 @@
       return -1;
     },
 
-    addBehaviour: function(behaviour){
-      if(behaviour === undefined){
-        var behav = this.attr("part");
-        if(!behav){
-          return this;
-        }
-        if(!$.isFunction(window[behav])){
-          throw "CoconutError: behavior[" + behav + "] is not a global function.";
-        }
-        behaviour = window[behav];
+    applyBehaviour: function(behaviour){
+      if(behaviour){
+        behaviour.call(this);
+        // TODO : mixin behaviour this way lose the efficiency of prototype. properties defined on this may be overwriten ON PURPOSE.
+        $.extend(this, behaviour.prototype);
       }
-      behaviour.call(this);
-      // TODO : mixin behaviour this way lose the efficiency of prototype.
-      // properties defined on this may be overwriten ON PURPOSE
-      $.extend(this, behaviour.prototype);
       return this;
     },
     // fieldDefs = { fieldName1: "selector1", fieldName2: "selector2" }, fields are ordered.
@@ -464,7 +466,7 @@
 
     // construct field for jQuery element
     _constructField: function(elem) {
-      if(elem.is("[part], [part=], [fieldtype^=array]")) {
+      if(elem.is("[field^=part], [field^=arraypart]")) {
         return elem.part();
       } else if (elem.is(":radio")) {
         return this.find(":radio[name=" + elem.attr("name") + "]")._preparingAsField();
@@ -508,7 +510,7 @@
     },
 
     _buildVirtualFields: function(context){
-      var all = this._selectInContext(context, "[fieldtype=virtual]");
+      var all = this._selectInContext(context, "[field=virtual]");
       all.each(function(i, dom){
         var virtual = $(dom);
         var fname = this._name(virtual);

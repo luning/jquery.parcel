@@ -20,7 +20,7 @@
       <input type="radio" value="Male" checked="checked" name="gender">Male</input>
       <input type="radio" value="Female" name="gender">Female</input>
     </div>
-    <div part="" name="dob">
+    <div field="part" name="dob">
       <select name="day">
         <option selected="selected">please select</option>
         <option>01</option>
@@ -39,12 +39,12 @@
     </div>
     <input id="nationality" type="text" someproperty="nationality"></input>
     <input id="id_city" type="text" fieldname="city"></input>
-    <div fieldtype="virtual" name="contactInfo">
-      <div name="emails" fieldtype="array,email" >
+    <div field="virtual" name="contactInfo">
+      <div name="emails" field="arraypart,email" >
         <input type="text" value="luning.tw@gmail.com" name="email"></input>
       </div>
-      <div name="contacts" fieldtype="array,contact">
-        <div part="" name="contact">
+      <div name="contacts" field="arraypart,contact">
+        <div field="part" name="contact">
           <input type="text" name="number"></input>
           <input type="text" name="type"></input>
         </div>
@@ -90,7 +90,7 @@ Screw.Unit(function() {
       expect(person.emails.get(0)).to(equal, $("#person div[name=emails]")[0]);
     });
     
-    it("should add one element if the name matchs the name constraint specified in 'fieldtype' property in DOM", function() {
+    it("should add one element if the name matchs the name constraint specified in 'field' property in DOM", function() {
       var person = $("#person").part();
       expect(person.email).to(be_undefined);
       expect(person.emails.items.length).to(equal, 1);
@@ -98,7 +98,7 @@ Screw.Unit(function() {
       expect(person.state()).to(contain_state, {emails:["luning.tw@gmail.com"]});
     });
 
-    it("should add all fields to array if the name matchs the name constraint specified in 'fieldtype' property in DOM", function() {
+    it("should add all fields to array if the name matchs the name constraint specified in 'field' property in DOM", function() {
       $("#person div[name=emails]").append("<input type='text' name='email'></input>");
 
       var person = $("#person").part();
@@ -141,7 +141,7 @@ Screw.Unit(function() {
         }
       };
 
-      $("div[name=dob]").attr("part", "Dob");
+      $("div[name=dob]").attr("field", "part,Dob");
 
       var person = $("#person").part();
       person.dob.state({day: "01", month: "Feb", year: "1991"});
@@ -209,7 +209,7 @@ Screw.Unit(function() {
   
   describe("Build with Virtual Field", function() {
 
-    it("should build a jQuery container(virtual field) for dom element if 'fieldtype' property is 'virtual' in dom", function() {
+    it("should build a jQuery container(virtual field) for dom element if 'field' property is 'virtual' in dom", function() {
       var person = $("#person").part();
       expect(person.contactInfo.jquery).to_not(be_undefined);
     });
@@ -275,7 +275,7 @@ Screw.Unit(function() {
     });
 
     it("should pick behaviour specified in dom", function() {
-      $("#person").attr("part", "Person");
+      $("#person").attr("field", "part,Person");
 
       window.Person = function(){
         this.getSomething = "something";
@@ -285,30 +285,30 @@ Screw.Unit(function() {
       expect(person.getSomething).to(equal, "something");
     });
 
-    it("should be able to add behaviour after construction", function() {
+    it("should be able to apply behaviour after construction", function() {
       function SayHello(){
         this.helloMessage = "hello";
       };
 
-      var person = $("#person").part().addBehaviour(SayHello);
+      var person = $("#person").part().applyBehaviour(SayHello);
 
       expect(person.helloMessage).to(equal, "hello");
     });
 
-    it("should not affect (initial) state for behaviour added after construction", function() {
+    it("should not affect (initial) state for behaviour applied after construction", function() {
       function Person(){
         this.name.state("smith");
       };
 
       var person = $("#person").part()
-              .addBehaviour(Person)
+              .applyBehaviour(Person)
               .resetState();
 
       expect(person.name.state()).to(equal, "luning");
     });
     
     it("should not build with invalid behaviour specified in dom", function() {
-      $("#person").attr("part", "InvalidBehaviour");
+      $("#person").attr("field", "part,InvalidBehaviour");
 
       try{
         $("#person").part();
