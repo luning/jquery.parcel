@@ -242,7 +242,7 @@
   };
 
   $.extend($.part.prototype, commonFieldMixin, {
-    FIELD_SELECTOR: ":input, [field^=part], [field^=arraypart]",
+    FIELD_SELECTOR: ":input:not([field=ignored],[field=ignored] *),[field^=part]:not([field=ignored] *),[field^=arraypart]:not([field=ignored] *)",
     
     _parseNameConstraint: function(){
       var def, match;

@@ -50,6 +50,14 @@
         </div>
       </div>
     </div>
+    <input type="text" field="ignored" name="ignored"></input>
+    <div field="ignored">
+      <input type="text" name="ignored1"></input>
+      <input type="text" name="ignored2"></input>
+	  <div field="part" name="unused">
+		<input type="text" name="unused1"></input>
+	  </div>
+    </div>
   </div>
   <input id="randomInput" type="text"></input>
 </div>
@@ -204,6 +212,20 @@ Screw.Unit(function() {
       var person1 = $("#person").part();
       var person2 = $("#person").part();
       expect(person1 === person2).to(be_true);
+    });
+    
+    it("should ignore input if set 'field' property to 'ignored' in DOM", function() {
+      var person = $("#person").part();
+      expect(person.ignored).to(be_undefined);
+    });
+    
+    it("should ignore all fields under a DOM element if its 'field' property is set to 'ignored'", function() {
+      var person = $("#person").part();
+	  
+      expect(person.ignored1).to(be_undefined);
+      expect(person.ignored2).to(be_undefined);
+      expect(person.unused).to(be_undefined);
+      expect(person.unused1).to(be_undefined);
     });
   });
   
