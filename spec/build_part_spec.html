@@ -231,11 +231,14 @@ Screw.Unit(function() {
   
   describe("Build with Virtual Field", function() {
 
-    it("should build a jQuery container(virtual field) for dom element if 'field' property is 'virtual' in dom", function() {
+    it("should only create convenient accessor for virtual field of div if 'field' property is 'virtual' in DOM", function() {
       var person = $("#person").part();
+	  
+      expect(person.contactInfo).to_not(be_undefined);
       expect(person.contactInfo.jquery).to_not(be_undefined);
+      expect(person.hasField("contactInfo")).to(be_false);
     });
-    
+
     it("should not build virtual field if name conflicts with existing property of part", function() {
       $("div[name=contactInfo]").attr("name", "state");
     
@@ -256,7 +259,7 @@ Screw.Unit(function() {
       expect(person.extInfo.jquery).to_not(be_undefined);
     });
     
-    it("should not build container if can not determine a name for it", function() {
+    it("should not build virtual field if can not determine a name for it", function() {
       $("div[name=contactInfo]").removeAttr("name");
     
       try{
@@ -338,6 +341,29 @@ Screw.Unit(function() {
       } catch (ex) {
         expect(ex.toString()).to(match, "CoconutError");
       }
+    });
+
+  });
+
+  describe("Build with Initial State", function() {
+
+    it("should build with initial state", function() {
+      var state = {name: "smith", title: "Mr", gender: "Female"};
+      var person = $("#person").part(state);
+      
+      expect(person.initialState()).to(contain_state, state);
+      expect(person.state()).to(contain_state, state);
+    });
+    
+    it("should apply initial state after applying behaviour", function() {
+      function Person(){
+        this.name.state("not_smith");
+      };
+      var state = {name: "smith"};
+
+      var person = $("#person").part(Person, state);
+      
+      expect(person.name.state()).to(equal_state, "smith");
     });
 
   });

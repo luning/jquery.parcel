@@ -14,19 +14,21 @@
  
 ;(function($) {
   $.fn.extend({
-    part: function(behaviour){
+    part: function(){
       var existPart = this.getPart();
       if(existPart){
         return existPart;
       }
       
       $.extend(this, $.part.prototype);
-      $.part.call(this, behaviour);
+      $.part.apply(this, arguments);
       return this.data("part", this);
     },
+    
     sync: function(){
       return this.trigger("sync");
     },
+    
     getPart: function(){
       return this.data("part");
     }
@@ -230,14 +232,21 @@
   });
 
   // constructor for Part or Array Part
-  $.part = function(behaviour) {
+  $.part = function() {
+    var behaviour = arguments[0], state = arguments[1];
+    if(typeof behaviour !== "function"){
+      behaviour = undefined;
+      state = arguments[0];
+    }
+  
     this._nameConstraint = this._parseNameConstraint();
-    this._behaviour = behaviour || this._parseBehaviour();
-    this._initialState = this._nameConstraint ? [] : {};
+    this._behaviour = behaviour || this._parseBehaviour() || function(){ };
+    this._initialState = state || (this._nameConstraint ? [] : {});
     this.items = this._fields = [];
 
     this._init();
     this.applyBehaviour(this._behaviour);
+    this.state(this._initialState);
     this.captureState();
   };
 
@@ -324,11 +333,9 @@
     },
 
     applyBehaviour: function(behaviour){
-      if(behaviour){
-        behaviour.call(this);
-        // TODO : mixin behaviour this way lose the efficiency of prototype. properties defined on this may be overwriten ON PURPOSE.
-        $.extend(this, behaviour.prototype);
-      }
+      behaviour.apply(this);
+      // TODO : mixin behaviour this way lose the efficiency of prototype. properties defined on this may be overwriten ON PURPOSE.
+      $.extend(this, behaviour.prototype);
       return this;
     },
     // fieldDefs = { fieldName1: "selector1", fieldName2: "selector2" }, fields are ordered.
