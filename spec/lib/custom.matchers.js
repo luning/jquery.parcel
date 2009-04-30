@@ -1,3 +1,18 @@
+Screw.Matchers.be_same_dom_element_as = {
+  match: function(expected, actual) {
+    if (expected instanceof Array) {
+      for (var i = 0; i < actual.length; i++) {
+        if (expected[i] != actual[i]) { return false; }
+      }
+      return actual.length == expected.length;
+    }
+    return actual == expected;
+  },
+  failure_message: function(expected, actual, not) {
+    return 'expected ' + $.print(actual) + 'to' + (not ? ' not' : '') + ' be same as ' + $.print(expected);
+  }
+};
+
 Screw.Matchers.be_visible = {
   match: function(expected, actual) {
     return !$(actual).is(":hidden");

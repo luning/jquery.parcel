@@ -73,7 +73,7 @@ Screw.Unit(function() {
       expect(all.length).to(equal, 3);
       
       var containerAnd2Emails = person.emails.add($("#person input[name=email]")).get();
-      expect(all).to(equal, containerAnd2Emails);
+      expect(all).to(be_same_dom_element_as, containerAnd2Emails);
     });
   });
 
@@ -280,7 +280,7 @@ Screw.Unit(function() {
       var person = $("#person").part();
       var count = 0;
       person.change(function(e){
-        expect(e.target).to(equal, person[0]);
+        expect(e.target).to(be_same_dom_element_as, person[0]);
         count++;
       })
       

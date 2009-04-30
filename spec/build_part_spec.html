@@ -95,7 +95,7 @@ Screw.Unit(function() {
 
     it("should build on proper DOM", function() {
       var person = $("#person").part();
-      expect(person.emails.get(0)).to(equal, $("#person div[name=emails]")[0]);
+      expect(person.emails.get(0)).to(be_same_dom_element_as, $("#person div[name=emails]")[0]);
     });
     
     it("should add one element if the name matchs the name constraint specified in 'field' property in DOM", function() {

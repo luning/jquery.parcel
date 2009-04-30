@@ -63,7 +63,7 @@ Screw.Unit(function() {
     $("#fixture").html(fixtureHtml);
   });
 
-  describe("Add DOM Dynamicly", function() {
+  describe("Add DOM Dynamically", function() {
     it("should add field if applicable", function() {
       var person = $("#person").part();
       var edu = $("<input type='text' name='education'></input>");
@@ -264,7 +264,7 @@ Screw.Unit(function() {
 
       var count = 0;
       person.change(function(e){
-        expect(e.target).to(equal, aDiv[0]);
+        expect(e.target).to(be_same_dom_element_as, aDiv[0]);
         count++;
       })
       
@@ -281,7 +281,7 @@ Screw.Unit(function() {
 
       var count = 0;
       person.change(function(e){
-        expect(e.target).to(equal, emailsDiv[0]);
+        expect(e.target).to(be_same_dom_element_as, emailsDiv[0]);
         count++;
       })
       
@@ -296,7 +296,7 @@ Screw.Unit(function() {
 
       var count = 0;
       person.change(function(e){
-        expect(e.target).to(equal, person.emails.get(0));
+        expect(e.target).to(be_same_dom_element_as, person.emails.get(0));
         count++;
       })
       
