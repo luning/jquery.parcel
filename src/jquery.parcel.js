@@ -1,6 +1,6 @@
 ﻿/*
  * Coconut JavaScript Library v0.0.1
- * http://www.github.com/luning/coconut
+ * http://www.github.com/luning/parcel
  */
 
 /* 
