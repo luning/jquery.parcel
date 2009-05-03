@@ -20,7 +20,7 @@
       <input type="radio" value="Male" checked="checked" name="gender">Male</input>
       <input type="radio" value="Female" name="gender">Female</input>
     </div>
-    <div field="parcel" name="dob">
+    <div parcel name="dob">
       <select name="day">
         <option selected="selected">please select</option>
         <option>01</option>
@@ -39,11 +39,11 @@
     </div>
     <input id="nationality" type="text" someproperty="nationality"></input>
     <input id="id_city" type="text" fieldname="city"></input>
-    <div name="emails" field="arrayparcel,email">
+    <div name="emails" parcel="[email]">
       <input type="text" value="luning.tw@gmail.com" name="email"></input>
     </div>
-    <div name="contacts" field="arrayparcel,contact">
-      <div field="parcel" name="contact">
+    <div name="contacts" parcel="[contact]">
+      <div parcel name="contact">
         <input type="text" name="number"></input>
         <input type="text" name="type"></input>
       </div>
@@ -96,7 +96,7 @@ Screw.Unit(function() {
 
     it("should add parcel type field if applicable, and in correct order", function() {
       var person = $("#person").parcel();
-      var edu = $("<div field='parcel' name='education'><input type='text' name='college'></input></div>");
+      var edu = $("<div parcel name='education'><input type='text' name='college'></input></div>");
       person.title.after(edu);
       edu.sync();
 
@@ -106,9 +106,9 @@ Screw.Unit(function() {
       expect(person.fieldIndex("education")).to(equal, person.fieldIndex("title") + 1);
     });
 
-    it("should create array field if 'field' property is setted to 'arrayparcel'", function() {
+    it("should create array field if specified in 'parcel' property", function() {
       var person = $("#person").parcel();
-      var hobby = $("<div field='arrayparcel,hobby' name='hobbies'><input type='text' value='reading' name='hobby'></input></div>");
+      var hobby = $("<div parcel='[hobby]' name='hobbies'><input type='text' value='reading' name='hobby'></input></div>");
       $("#person").append(hobby);
       hobby.sync();
 
@@ -148,7 +148,7 @@ Screw.Unit(function() {
       var person = $("#person").parcel();
       expect(person.contacts.items.length).to(equal, 1);
 
-      var anotherContact = $("<div field='parcel' name='contact'><input type='text' value='111' name='number'></input><input type='text' value='home' name='type'></input></div>");
+      var anotherContact = $("<div parcel name='contact'><input type='text' value='111' name='number'></input><input type='text' value='home' name='type'></input></div>");
       $("#person div[name=contacts]").append(anotherContact);
       anotherContact.sync();
 
@@ -231,7 +231,7 @@ Screw.Unit(function() {
     });
 
     it("should remove parcel in array field accordingly", function() {
-      var anotherContact = $("<div field='parcel' name='contact'><input type='text' value='111' name='number'></input><input type='text' value='home' name='type'></input></div>");
+      var anotherContact = $("<div parcel name='contact'><input type='text' value='111' name='number'></input><input type='text' value='home' name='type'></input></div>");
       $("#person div[name=contacts]").append(anotherContact);
 
       var person = $("#person").parcel();
@@ -245,7 +245,7 @@ Screw.Unit(function() {
     });
 
     it("should not remove the array field itself originally containing parcels even if it becomes empty", function() {
-      $("#person div[name=contacts]").append("<div field='parcel' name='contact'><input type='text' value='111' name='number'></input><input type='text' value='home' name='type'></input></div>");
+      $("#person div[name=contacts]").append("<div parcel name='contact'><input type='text' value='111' name='number'></input><input type='text' value='home' name='type'></input></div>");
 
       var person = $("#person").parcel();
       expect(person.contacts.items.length).to(equal, 2);

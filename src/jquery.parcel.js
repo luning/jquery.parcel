@@ -251,18 +251,19 @@
   };
 
   $.extend($.parcel.prototype, commonFieldMixin, {
-    FIELD_SELECTOR: ":input:not([field=ignored],[field=ignored] *),[field^=parcel]:not([field=ignored] *),[field^=arrayparcel]:not([field=ignored] *)",
+    // TODO : consider short selector for potential better performance by sacrificing some flexibility
+    FIELD_SELECTOR: ":input:not([parcelignored],[parcelignored=],[parcelignored] *,[parcelignored=] *),[parcel]:not([parcelignored],[parcelignored=],[parcelignored] *,[parcelignored=] *),[parcel=]:not([parcelignored],[parcelignored=],[parcelignored] *,[parcelignored=] *)",
     
     _parseNameConstraint: function(){
       var def, match;
-      if((def = this.attr("field")) && (match = def.match(/^\s*arrayparcel\s*,\s*([A-Za-z0-9]+)$/))){
+      if((def = this.attr("parcel")) && (match = def.match(/\[(\w+)\]/))){
         return match[1];
       }
     },
     
     _parseBehaviour: function(){
       var behav, def, match;
-      if((def = this.attr("field")) && (match = def.match(/^\s*parcel\s*,\s*([A-Za-z0-9]+)$/)) && (behav = match[1])){
+      if((def = this.attr("parcel")) && (match = def.match(/^(\w+)|,(\w+)/)) && (behav = match[1] || match[2])){
         if(!$.isFunction(window[behav])){
           throw "CoconutError: behavior [" + behav + "] should be a global function.";
         }
@@ -473,7 +474,7 @@
 
     // construct field for jQuery element
     _constructField: function(elem) {
-      if(elem.is("[field^=parcel], [field^=arrayparcel]")) {
+      if(elem.is("[parcel],[parcel=]")) {
         return elem.parcel();
       } else if (elem.is(":radio")) {
         return this.find(":radio[name=" + elem.attr("name") + "]")._preparingAsField();
@@ -517,7 +518,7 @@
     },
 
     _buildVirtualFields: function(context){
-      var all = this._selectInContext(context, "[field=virtual]");
+      var all = this._selectInContext(context, "[virtualfield],[virtualfield=]");
       all.each(function(i, dom){
         var virtual = $(dom);
         var fname = this._name(virtual);

@@ -20,7 +20,7 @@
       <input type="radio" value="Male" checked="checked" name="gender">Male</input>
       <input type="radio" value="Female" name="gender">Female</input>
     </div>
-    <div field="parcel" name="dob">
+    <div parcel name="dob">
       <select name="day">
         <option selected="selected">please select</option>
         <option>01</option>
@@ -39,17 +39,17 @@
     </div>
     <input id="nationality" type="text" someproperty="nationality"></input>
     <input id="id_city" type="text" fieldname="city"></input>
-    <div field="parcel" name="locality">
+    <div parcel name="locality">
       <input type="text" name="no"></input>
       <input type="text" name="street"></input>
     </div>
-    <div field="virtual" name="contactInfo">
-      <div name="emails" field="arrayparcel,email" >
+    <div virtualfield name="contactInfo">
+      <div name="emails" parcel="[email]" >
         <input type="text" value="first@my.com" name="email"></input>
         <input type="text" value="second@my.com" name="email"></input>
       </div>
-      <div name="contacts" field="arrayparcel,contact">
-        <div field="parcel" name="contact">
+      <div name="contacts" parcel="[contact]">
+        <div parcel name="contact">
           <input type="text" name="number"></input>
           <input type="text" name="type"></input>
         </div>

@@ -20,7 +20,7 @@
       <input type="radio" value="Male" checked="checked" name="gender">Male</input>
       <input type="radio" value="Female" name="gender">Female</input>
     </div>
-    <div field="parcel" name="dob">
+    <div parcel name="dob">
       <select name="day">
         <option selected="selected">please select</option>
         <option>01</option>
@@ -39,22 +39,22 @@
     </div>
     <input id="nationality" type="text" someproperty="nationality"></input>
     <input id="id_city" type="text" fieldname="city"></input>
-    <div field="virtual" name="contactInfo">
-      <div name="emails" field="arrayparcel,email" >
+    <div virtualfield name="contactInfo">
+      <div name="emails" parcel="[email]" >
         <input type="text" value="luning.tw@gmail.com" name="email"></input>
       </div>
-      <div name="contacts" field="arrayparcel,contact">
-        <div field="parcel" name="contact">
+      <div name="contacts" parcel="[contact]">
+        <div parcel name="contact">
           <input type="text" name="number"></input>
           <input type="text" name="type"></input>
         </div>
       </div>
     </div>
-    <input type="text" field="ignored" name="ignored"></input>
-    <div field="ignored">
+    <input type="text" parcelignored name="ignored"></input>
+    <div parcelignored>
       <input type="text" name="ignored1"></input>
       <input type="text" name="ignored2"></input>
-	  <div field="parcel" name="unused">
+	  <div parcel name="unused">
 		<input type="text" name="unused1"></input>
 	  </div>
     </div>
@@ -98,7 +98,7 @@ Screw.Unit(function() {
       expect(person.emails.get(0)).to(be_same_dom_element_as, $("#person div[name=emails]")[0]);
     });
     
-    it("should add one element if the name matchs the name constraint specified in 'field' property in DOM", function() {
+    it("should add one element if the name matchs the name constraint specified in 'parcel' property in DOM", function() {
       var person = $("#person").parcel();
       expect(person.email).to(be_undefined);
       expect(person.emails.items.length).to(equal, 1);
@@ -106,7 +106,7 @@ Screw.Unit(function() {
       expect(person.state()).to(contain_state, {emails:["luning.tw@gmail.com"]});
     });
 
-    it("should add all fields to array if the name matchs the name constraint specified in 'field' property in DOM", function() {
+    it("should add all fields to array if the name matchs the name constraint specified in 'parcel' property in DOM", function() {
       $("#person div[name=emails]").append("<input type='text' name='email'></input>");
 
       var person = $("#person").parcel();
@@ -149,7 +149,7 @@ Screw.Unit(function() {
         }
       };
 
-      $("div[name=dob]").attr("field", "parcel,Dob");
+      $("div[name=dob]").attr("parcel", "Dob");
 
       var person = $("#person").parcel();
       person.dob.state({day: "01", month: "Feb", year: "1991"});
@@ -214,12 +214,12 @@ Screw.Unit(function() {
       expect(person1 === person2).to(be_true);
     });
     
-    it("should ignore input if set 'field' property to 'ignored' in DOM", function() {
+    it("should ignore input if has 'parcelignored' property in DOM", function() {
       var person = $("#person").parcel();
       expect(person.ignored).to(be_undefined);
     });
     
-    it("should ignore all fields under a DOM element if its 'field' property is set to 'ignored'", function() {
+    it("should ignore all fields under a DOM element if it has 'parcelignored' property", function() {
       var person = $("#person").parcel();
 	  
       expect(person.ignored1).to(be_undefined);
@@ -231,7 +231,7 @@ Screw.Unit(function() {
   
   describe("Build with Virtual Field", function() {
 
-    it("should only create convenient accessor for virtual field of div if 'field' property is 'virtual' in DOM", function() {
+    it("should only create convenient accessor for virtual field of div if has 'virtualfield' property", function() {
       var person = $("#person").parcel();
 	  
       expect(person.contactInfo).to_not(be_undefined);
@@ -300,7 +300,7 @@ Screw.Unit(function() {
     });
 
     it("should pick behaviour specified in dom", function() {
-      $("#person").attr("field", "parcel,Person");
+      $("#person").attr("parcel", "Person");
 
       window.Person = function(){
         this.getSomething = "something";
@@ -333,7 +333,7 @@ Screw.Unit(function() {
     });
     
     it("should not build with invalid behaviour specified in dom", function() {
-      $("#person").attr("field", "parcel,InvalidBehaviour");
+      $("#person").attr("parcel", "InvalidBehaviour");
 
       try{
         $("#person").parcel();
