@@ -370,7 +370,22 @@ Screw.Unit(function() {
   
   describe("Build Multiple Parcels at Once", function() {
 
-    it("should build multiple parcels for jQuery object containing multiple DOMs", function() {
+    it("should build multiple parcels for jQuery object of multiple DOM elements", function() {
+      var parcels = $("div[name=dob], div[name=emails]").parcel();
+      
+      expect(parcels.length).to(equal, 2);
+      expect(parcels[0].state()).to(equal_state, { day: "please select", month: "please select", year: "please select" });
+      expect(parcels[1].state()).to(equal_state, [ "luning.tw@gmail.com" ]);
+    });
+    
+    it("should apply specified behaviour on each parcel", function() {
+      var parcels = $("div[name=dob], div[name=emails]").parcel(function(){
+        this.helloMessage = "hello";
+      });
+      
+      expect(parcels.length).to(equal, 2);
+      expect(parcels[0].helloMessage).to(equal, "hello");
+      expect(parcels[1].helloMessage).to(equal, "hello");
     });
     
   });

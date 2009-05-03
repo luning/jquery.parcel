@@ -15,6 +15,13 @@
 ;(function($) {
   $.fn.extend({
     parcel: function(){
+      if(this.length > 1){
+        var args = arguments;
+        return $.map(this, function(dom){
+          return $.fn.parcel.apply($(dom), args);
+        });
+      }
+
       var existParcel = this.getParcel();
       if(existParcel){
         return existParcel;
