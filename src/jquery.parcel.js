@@ -6,35 +6,35 @@
 /* 
   Field is the core concept in Coconut.
   A field is an extended jQuery object, conceptually can be:
-    - Part, containing fields with different name
-    - Array Part, containing sub fields with same name
+    - Parcel, containing fields with different name
+    - Array Parcel, containing sub fields with same name
     - normal jQuery object, representing any input in DOM
-    - Virtual field, which is an arbitrary jQuery object under a part and covers many other fields.
+    - Virtual field, which is an arbitrary jQuery object under a parcel and covers many other fields.
 */ 
  
 ;(function($) {
   $.fn.extend({
-    part: function(){
-      var existPart = this.getPart();
-      if(existPart){
-        return existPart;
+    parcel: function(){
+      var existParcel = this.getParcel();
+      if(existParcel){
+        return existParcel;
       }
       
-      $.extend(this, $.part.prototype);
-      $.part.apply(this, arguments);
-      return this.data("part", this);
+      $.extend(this, $.parcel.prototype);
+      $.parcel.apply(this, arguments);
+      return this.data("parcel", this);
     },
     
     sync: function(){
       return this.trigger("sync");
     },
     
-    getPart: function(){
-      return this.data("part");
+    getParcel: function(){
+      return this.data("parcel");
     }
   });
 
-  // applied to all field types(jQuery, Part, ArrayPart and Virtual)
+  // applied to all field types(jQuery, Parcel, ArrayParcel and Virtual)
   var commonFieldMixin = {
     // determine if field is still in dom tree
     dead: function(){
@@ -79,20 +79,20 @@
     },
     
     resetState: function(){
-      var part = this.closestPart();
-      if(part){
-        this.state(part.initialState(this));
+      var parcel = this.closestParcel();
+      if(parcel){
+        this.state(parcel.initialState(this));
       }
       return this;
     },
     
-    // find closest parent part including itself
-    closestPart: function(){
+    // find closest parent parcel including itself
+    closestParcel: function(){
       var parents = this.add(this.parents());
       for(var i = 0; i < parents.length; i++){
-        var part = $(parents[i]).getPart();
-        if(part){
-          return part;
+        var parcel = $(parents[i]).getParcel();
+        if(parcel){
+          return parcel;
         }
       }
     },	
@@ -102,9 +102,9 @@
     },
 	
     initialState: function(){
-      var part = this.closestPart();
-      if(part){
-        return part.initialState(this);
+      var parcel = this.closestParcel();
+      if(parcel){
+        return parcel.initialState(this);
       }
     },
     
@@ -114,10 +114,10 @@
         
     // remove DOM(s) and corresponding field(s)
     removeMe: function(){
-      var part = this.closestPart();
+      var parcel = this.closestParcel();
       this.remove();
-      if(part){
-        part.sync();
+      if(parcel){
+        parcel.sync();
       }
     },
     
@@ -137,9 +137,9 @@
     state: function(s) {
       if (s === undefined) {
         if(this.is("div, fieldset")){
-          var part = this.closestPart();
-          if(part){
-            return part.getState(this);
+          var parcel = this.closestParcel();
+          if(parcel){
+            return parcel.getState(this);
           } else {
             return this.val();
           }
@@ -153,9 +153,9 @@
         }
       } else {
         if(this.is("div, fieldset")){
-          var part = this.closestPart();
-          if(part){
-            part.setState(s, this);
+          var parcel = this.closestParcel();
+          if(parcel){
+            parcel.setState(s, this);
           } else {
             this.val(s);
           }
@@ -231,8 +231,8 @@
     }
   });
 
-  // constructor for Part or Array Part
-  $.part = function() {
+  // constructor for Parcel or Array Parcel
+  $.parcel = function() {
     var behaviour = arguments[0], state = arguments[1];
     if(typeof behaviour !== "function"){
       behaviour = undefined;
@@ -250,19 +250,19 @@
     this.captureState();
   };
 
-  $.extend($.part.prototype, commonFieldMixin, {
-    FIELD_SELECTOR: ":input:not([field=ignored],[field=ignored] *),[field^=part]:not([field=ignored] *),[field^=arraypart]:not([field=ignored] *)",
+  $.extend($.parcel.prototype, commonFieldMixin, {
+    FIELD_SELECTOR: ":input:not([field=ignored],[field=ignored] *),[field^=parcel]:not([field=ignored] *),[field^=arrayparcel]:not([field=ignored] *)",
     
     _parseNameConstraint: function(){
       var def, match;
-      if((def = this.attr("field")) && (match = def.match(/^\s*arraypart\s*,\s*([A-Za-z0-9]+)$/))){
+      if((def = this.attr("field")) && (match = def.match(/^\s*arrayparcel\s*,\s*([A-Za-z0-9]+)$/))){
         return match[1];
       }
     },
     
     _parseBehaviour: function(){
       var behav, def, match;
-      if((def = this.attr("field")) && (match = def.match(/^\s*part\s*,\s*([A-Za-z0-9]+)$/)) && (behav = match[1])){
+      if((def = this.attr("field")) && (match = def.match(/^\s*parcel\s*,\s*([A-Za-z0-9]+)$/)) && (behav = match[1])){
         if(!$.isFunction(window[behav])){
           throw "CoconutError: behavior [" + behav + "] should be a global function.";
         }
@@ -353,7 +353,7 @@
           throw "CoconutError: field with name [" + fname + "] does not match the name constraint [" + this._nameConstraint + "].";
         }
         if(!this._nameConstraint && this.hasField(fname)){
-          throw "CoconutError: field with name [" + fname + "] already exist in part.";
+          throw "CoconutError: field with name [" + fname + "] already exist in parcel.";
         }
         this._addField(fname, elem);
       }.bind(this));
@@ -377,7 +377,7 @@
       return this;
     },
 
-    // get all field DOM including container DOM for Part or Array Part
+    // get all field DOM including container DOM for Parcel or Array Parcel
     fieldDom: function(){
       var all = this.get();
       $.each(this._fields, function(i, field) {
@@ -449,7 +449,7 @@
       return this;
     },
     
-    // check if this part contains any DOM in element
+    // check if this parcel contains any DOM in element
     contains: function(elem){
       var all = this.fieldDom();
       return !!$.first($(elem).get(), function(i, dom){
@@ -473,8 +473,8 @@
 
     // construct field for jQuery element
     _constructField: function(elem) {
-      if(elem.is("[field^=part], [field^=arraypart]")) {
-        return elem.part();
+      if(elem.is("[field^=parcel], [field^=arrayparcel]")) {
+        return elem.parcel();
       } else if (elem.is(":radio")) {
         return this.find(":radio[name=" + elem.attr("name") + "]")._preparingAsField();
       } else {
@@ -525,7 +525,7 @@
           throw "CoconutError: failed to determine the name of virtual field.";
         }
         if(fname in this){
-          throw "CoconutError: virtual field [" + fname + "] has name conflict with existing property of part.";
+          throw "CoconutError: virtual field [" + fname + "] has name conflict with existing property of parcel.";
         }
         this[fname] = virtual;
       }.bind(this));

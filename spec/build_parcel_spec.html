@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>Build Part Spec</title>
+  <title>Build Parcel Spec</title>
   <script src="../lib/jquery-1.3.2.js"></script>
   <script src="lib/screw.dependencies.js"></script>
   <script src="lib/test.helper.js"></script>
@@ -20,7 +20,7 @@
       <input type="radio" value="Male" checked="checked" name="gender">Male</input>
       <input type="radio" value="Female" name="gender">Female</input>
     </div>
-    <div field="part" name="dob">
+    <div field="parcel" name="dob">
       <select name="day">
         <option selected="selected">please select</option>
         <option>01</option>
@@ -40,11 +40,11 @@
     <input id="nationality" type="text" someproperty="nationality"></input>
     <input id="id_city" type="text" fieldname="city"></input>
     <div field="virtual" name="contactInfo">
-      <div name="emails" field="arraypart,email" >
+      <div name="emails" field="arrayparcel,email" >
         <input type="text" value="luning.tw@gmail.com" name="email"></input>
       </div>
-      <div name="contacts" field="arraypart,contact">
-        <div field="part" name="contact">
+      <div name="contacts" field="arrayparcel,contact">
+        <div field="parcel" name="contact">
           <input type="text" name="number"></input>
           <input type="text" name="type"></input>
         </div>
@@ -54,7 +54,7 @@
     <div field="ignored">
       <input type="text" name="ignored1"></input>
       <input type="text" name="ignored2"></input>
-	  <div field="part" name="unused">
+	  <div field="parcel" name="unused">
 		<input type="text" name="unused1"></input>
 	  </div>
     </div>
@@ -73,18 +73,18 @@ Screw.Unit(function() {
   describe("Build with jQuery Field", function() {
 
     it("should capture text input in dom", function() {
-      var person = $("#person").part();
+      var person = $("#person").parcel();
       expect(person.name.state()).to(equal, "luning");
     });
 
     it("should capture select in dom", function() {
-      var person = $("#person").part();
+      var person = $("#person").parcel();
       person.title.state("Mrs");
       expect(person.title.state()).to(equal, "Mrs");
     });
 
     it("should capture radio in dom", function() {
-      var person = $("#person").part();
+      var person = $("#person").parcel();
       person.gender.state("Female");
       expect(person.gender.state()).to(equal, "Female");
     });
@@ -94,12 +94,12 @@ Screw.Unit(function() {
   describe("Build with Array Field", function() {
 
     it("should build on proper DOM", function() {
-      var person = $("#person").part();
+      var person = $("#person").parcel();
       expect(person.emails.get(0)).to(be_same_dom_element_as, $("#person div[name=emails]")[0]);
     });
     
     it("should add one element if the name matchs the name constraint specified in 'field' property in DOM", function() {
-      var person = $("#person").part();
+      var person = $("#person").parcel();
       expect(person.email).to(be_undefined);
       expect(person.emails.items.length).to(equal, 1);
       expect(person.emails.items[0].state()).to(equal, "luning.tw@gmail.com");
@@ -109,7 +109,7 @@ Screw.Unit(function() {
     it("should add all fields to array if the name matchs the name constraint specified in 'field' property in DOM", function() {
       $("#person div[name=emails]").append("<input type='text' name='email'></input>");
 
-      var person = $("#person").part();
+      var person = $("#person").parcel();
       expect(person.email).to(be_undefined);
       expect(person.emails.items.length).to(equal, 2);
 
@@ -118,8 +118,8 @@ Screw.Unit(function() {
       expect(person.state()).to(contain_state, s);
     });
 
-    it("should build with part as element", function() {
-      var person = $("#person").part();
+    it("should build with parcel as element", function() {
+      var person = $("#person").parcel();
       expect(person.contact).to(be_undefined);
       expect(person.contacts.items.length).to(equal, 1);
 
@@ -130,9 +130,9 @@ Screw.Unit(function() {
 
   });
 
-  describe("Build with another Part as Field", function() {
-    it("should pick part specified in dom as field of parent part", function() {
-      var person = $("#person").part();
+  describe("Build with another Parcel as Field", function() {
+    it("should pick parcel specified in dom as field of parent parcel", function() {
+      var person = $("#person").parcel();
       var dobState = {day: "01", month: "Feb", year: "1991"};
       person.dob.state(dobState);
 
@@ -149,22 +149,22 @@ Screw.Unit(function() {
         }
       };
 
-      $("div[name=dob]").attr("field", "part,Dob");
+      $("div[name=dob]").attr("field", "parcel,Dob");
 
-      var person = $("#person").part();
+      var person = $("#person").parcel();
       person.dob.state({day: "01", month: "Feb", year: "1991"});
 
       expect(person.dob.description()).to(equal, "01 Feb 1991");
     });
   });
 
-  describe("Build Part Common", function() {
+  describe("Build Parcel Common", function() {
 
     it("should ensure unique field name", function() {
       $("select[name=title]").attr("name", "name");
 
       try{
-        var person = $("#person").part();
+        var person = $("#person").parcel();
         expect(true).to(be_false);
       } catch (ex){
         expect(ex.toString()).to(match, "CoconutError");
@@ -172,13 +172,13 @@ Screw.Unit(function() {
     });
 
     it("should use id as field name if name property is not provided", function() {
-      var person = $("#person").part();
+      var person = $("#person").parcel();
       person.nationality.state("OZ");
       expect(person.nationality.state()).to(equal, "OZ");
     });
 
     it("should use field name defined by 'fieldname' property in dom", function() {
-      var person = $("#person").part();
+      var person = $("#person").parcel();
       expect(person.hasOwnProperty("id_city")).to(be_false);
 
       person.city.state("sydney");
@@ -188,14 +188,14 @@ Screw.Unit(function() {
     it("should ignore dom element if field name can not be determined", function() {
       var nationalityDom = $("#nationality").removeAttr("id").get(0);
 
-      var person = $("#person").part();
+      var person = $("#person").parcel();
       expect($.inArray(nationalityDom, person.get())).to(equal, -1);
     });
 
-    it("should not create convenient field accessor if it will override existng property of part", function() {
+    it("should not create convenient field accessor if it will override existng property of parcel", function() {
       $("select[name=title]").attr("name", "isDirty");
 
-      var person = $("#person").part();
+      var person = $("#person").parcel();
       expect(person.isDirty.state).to(be_undefined);
       expect($.isFunction(person.isDirty)).to(be_true);
     });
@@ -208,19 +208,19 @@ Screw.Unit(function() {
       // TODO :
     });
     
-    it("should return existing part if try to build more than once", function() {
-      var person1 = $("#person").part();
-      var person2 = $("#person").part();
+    it("should return existing parcel if try to build more than once", function() {
+      var person1 = $("#person").parcel();
+      var person2 = $("#person").parcel();
       expect(person1 === person2).to(be_true);
     });
     
     it("should ignore input if set 'field' property to 'ignored' in DOM", function() {
-      var person = $("#person").part();
+      var person = $("#person").parcel();
       expect(person.ignored).to(be_undefined);
     });
     
     it("should ignore all fields under a DOM element if its 'field' property is set to 'ignored'", function() {
-      var person = $("#person").part();
+      var person = $("#person").parcel();
 	  
       expect(person.ignored1).to(be_undefined);
       expect(person.ignored2).to(be_undefined);
@@ -232,18 +232,18 @@ Screw.Unit(function() {
   describe("Build with Virtual Field", function() {
 
     it("should only create convenient accessor for virtual field of div if 'field' property is 'virtual' in DOM", function() {
-      var person = $("#person").part();
+      var person = $("#person").parcel();
 	  
       expect(person.contactInfo).to_not(be_undefined);
       expect(person.contactInfo.jquery).to_not(be_undefined);
       expect(person.hasField("contactInfo")).to(be_false);
     });
 
-    it("should not build virtual field if name conflicts with existing property of part", function() {
+    it("should not build virtual field if name conflicts with existing property of parcel", function() {
       $("div[name=contactInfo]").attr("name", "state");
     
       try{
-        $("#person").part();
+        $("#person").parcel();
         expect(true).to(be_false);
       } catch (ex) {
         expect(ex.toString()).to(match, "CoconutError");
@@ -253,7 +253,7 @@ Screw.Unit(function() {
     it("should use name specified by 'fieldname' property in dom", function() {
       $("div[name=contactInfo]").attr("fieldname", "extInfo");
     
-      var person = $("#person").part();
+      var person = $("#person").parcel();
       
       expect(person.contactInfo).to(be_undefined);
       expect(person.extInfo.jquery).to_not(be_undefined);
@@ -263,7 +263,7 @@ Screw.Unit(function() {
       $("div[name=contactInfo]").removeAttr("name");
     
       try{
-        var person = $("#person").part();
+        var person = $("#person").parcel();
         expect(true).to(be_false);
       } catch (ex) {
         expect(ex.toString()).to(match, "CoconutError");
@@ -282,7 +282,7 @@ Screw.Unit(function() {
         }
       };
 
-      var person = $("#person").part(Person);
+      var person = $("#person").parcel(Person);
       person.state({name:"smith", gender:"Female"});
 
       expect(person.getNameAndGender()).to(equal, "smith,Female");
@@ -293,20 +293,20 @@ Screw.Unit(function() {
         this.name.state("smith");
       };
 
-      var person = $("#person").part(Person);
+      var person = $("#person").parcel(Person);
       person.resetState();
 
       expect(person.name.state()).to(equal, "smith");
     });
 
     it("should pick behaviour specified in dom", function() {
-      $("#person").attr("field", "part,Person");
+      $("#person").attr("field", "parcel,Person");
 
       window.Person = function(){
         this.getSomething = "something";
       };
 
-      var person = $("#person").part();
+      var person = $("#person").parcel();
       expect(person.getSomething).to(equal, "something");
     });
 
@@ -315,7 +315,7 @@ Screw.Unit(function() {
         this.helloMessage = "hello";
       };
 
-      var person = $("#person").part().applyBehaviour(SayHello);
+      var person = $("#person").parcel().applyBehaviour(SayHello);
 
       expect(person.helloMessage).to(equal, "hello");
     });
@@ -325,7 +325,7 @@ Screw.Unit(function() {
         this.name.state("smith");
       };
 
-      var person = $("#person").part()
+      var person = $("#person").parcel()
               .applyBehaviour(Person)
               .resetState();
 
@@ -333,10 +333,10 @@ Screw.Unit(function() {
     });
     
     it("should not build with invalid behaviour specified in dom", function() {
-      $("#person").attr("field", "part,InvalidBehaviour");
+      $("#person").attr("field", "parcel,InvalidBehaviour");
 
       try{
-        $("#person").part();
+        $("#person").parcel();
         expect(true).to(be_false);
       } catch (ex) {
         expect(ex.toString()).to(match, "CoconutError");
@@ -349,7 +349,7 @@ Screw.Unit(function() {
 
     it("should build with initial state", function() {
       var state = {name: "smith", title: "Mr", gender: "Female"};
-      var person = $("#person").part(state);
+      var person = $("#person").parcel(state);
       
       expect(person.initialState()).to(contain_state, state);
       expect(person.state()).to(contain_state, state);
@@ -361,16 +361,16 @@ Screw.Unit(function() {
       };
       var state = {name: "smith"};
 
-      var person = $("#person").part(Person, state);
+      var person = $("#person").parcel(Person, state);
       
       expect(person.name.state()).to(equal_state, "smith");
     });
 
   });
   
-  describe("Build Multiple Parts at Once", function() {
+  describe("Build Multiple Parcels at Once", function() {
 
-    it("should build multiple parts for jQuery object containing multiple DOMs", function() {
+    it("should build multiple parcels for jQuery object containing multiple DOMs", function() {
     });
     
   });

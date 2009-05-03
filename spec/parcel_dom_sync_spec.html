@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>Part DOM Sync Spec</title>
+  <title>Parcel DOM Sync Spec</title>
   <script src="../lib/jquery-1.3.2.js"></script>
   <script src="lib/screw.dependencies.js"></script>
   <script src="lib/test.helper.js"></script>
@@ -20,7 +20,7 @@
       <input type="radio" value="Male" checked="checked" name="gender">Male</input>
       <input type="radio" value="Female" name="gender">Female</input>
     </div>
-    <div field="part" name="dob">
+    <div field="parcel" name="dob">
       <select name="day">
         <option selected="selected">please select</option>
         <option>01</option>
@@ -39,11 +39,11 @@
     </div>
     <input id="nationality" type="text" someproperty="nationality"></input>
     <input id="id_city" type="text" fieldname="city"></input>
-    <div name="emails" field="arraypart,email">
+    <div name="emails" field="arrayparcel,email">
       <input type="text" value="luning.tw@gmail.com" name="email"></input>
     </div>
-    <div name="contacts" field="arraypart,contact">
-      <div field="part" name="contact">
+    <div name="contacts" field="arrayparcel,contact">
+      <div field="parcel" name="contact">
         <input type="text" name="number"></input>
         <input type="text" name="type"></input>
       </div>
@@ -65,7 +65,7 @@ Screw.Unit(function() {
 
   describe("Add DOM Dynamically", function() {
     it("should add field if applicable", function() {
-      var person = $("#person").part();
+      var person = $("#person").parcel();
       var edu = $("<input type='text' name='education'></input>");
       person.title.after(edu);
       edu.sync();
@@ -75,7 +75,7 @@ Screw.Unit(function() {
     });
 
     it("should add field once even if call sync twice", function() {
-      var person = $("#person").part();
+      var person = $("#person").parcel();
       var edu = $("<input type='text' name='education'></input>");
       person.title.after(edu);
       edu.sync();
@@ -86,7 +86,7 @@ Screw.Unit(function() {
     });
 
     it("should add field with proper field order", function() {
-      var person = $("#person").part();
+      var person = $("#person").parcel();
       var edu = $("<input type='text' name='education'></input>");
       person.title.after(edu);
       edu.sync();
@@ -94,9 +94,9 @@ Screw.Unit(function() {
       expect(person.fieldIndex("education")).to(equal, person.fieldIndex("title") + 1);
     });
 
-    it("should add part type field if applicable, and in correct order", function() {
-      var person = $("#person").part();
-      var edu = $("<div field='part' name='education'><input type='text' name='college'></input></div>");
+    it("should add parcel type field if applicable, and in correct order", function() {
+      var person = $("#person").parcel();
+      var edu = $("<div field='parcel' name='education'><input type='text' name='college'></input></div>");
       person.title.after(edu);
       edu.sync();
 
@@ -106,9 +106,9 @@ Screw.Unit(function() {
       expect(person.fieldIndex("education")).to(equal, person.fieldIndex("title") + 1);
     });
 
-    it("should create array field if 'field' property is setted to 'arraypart'", function() {
-      var person = $("#person").part();
-      var hobby = $("<div field='arraypart,hobby' name='hobbies'><input type='text' value='reading' name='hobby'></input></div>");
+    it("should create array field if 'field' property is setted to 'arrayparcel'", function() {
+      var person = $("#person").parcel();
+      var hobby = $("<div field='arrayparcel,hobby' name='hobbies'><input type='text' value='reading' name='hobby'></input></div>");
       $("#person").append(hobby);
       hobby.sync();
 
@@ -119,7 +119,7 @@ Screw.Unit(function() {
     });
 
     it("should add field to array if the name is supposed to be of array type", function() {
-      var person = $("#person").part();
+      var person = $("#person").parcel();
       expect(person.emails.items.length).to(equal, 1);
 
       var anotherEmail = $("<input type='text' value='another@my.com' name='email'></input>");
@@ -132,7 +132,7 @@ Screw.Unit(function() {
     });
 
     it("should add field to array once even if call sync twice", function() {
-      var person = $("#person").part();
+      var person = $("#person").parcel();
       expect(person.emails.items.length).to(equal, 1);
 
       var anotherEmail = $("<input type='text' value='another@my.com' name='email'></input>");
@@ -144,11 +144,11 @@ Screw.Unit(function() {
       expect(person.emails.items.length).to(equal, 2);
     });
 
-    it("should add part type field to array if the name is supposed to be of array type", function() {
-      var person = $("#person").part();
+    it("should add parcel type field to array if the name is supposed to be of array type", function() {
+      var person = $("#person").parcel();
       expect(person.contacts.items.length).to(equal, 1);
 
-      var anotherContact = $("<div field='part' name='contact'><input type='text' value='111' name='number'></input><input type='text' value='home' name='type'></input></div>");
+      var anotherContact = $("<div field='parcel' name='contact'><input type='text' value='111' name='number'></input><input type='text' value='home' name='type'></input></div>");
       $("#person div[name=contacts]").append(anotherContact);
       anotherContact.sync();
 
@@ -158,7 +158,7 @@ Screw.Unit(function() {
     });
 
     it("should fire change event on the DOM soon after its adding", function() {
-      var person = $("#person").part();
+      var person = $("#person").parcel();
       var count = 0;
       person.change(function(e){
         expect($(e.target).val()).to(equal, "high school");
@@ -172,8 +172,8 @@ Screw.Unit(function() {
       expect(count).to(equal, 1);
     });
     
-    it("should trigger state change event handler on part after the newly added DOM is changed", function() {
-      var person = $("#person").part();
+    it("should trigger state change event handler on parcel after the newly added DOM is changed", function() {
+      var person = $("#person").parcel();
       var added = false;
       var count = 0;
       person.stateChange(function(s){
@@ -196,7 +196,7 @@ Screw.Unit(function() {
   describe("Remove DOM Dynamically", function() {
 
     it("should remove field accordingly", function() {
-      var person = $("#person").part();
+      var person = $("#person").parcel();
       person.find("input[name=name]").remove();
       person.sync();
 
@@ -208,7 +208,7 @@ Screw.Unit(function() {
       var anotherEmail = $("<input type='text' name='email'></input>");
       $("#person div[name=emails]").append(anotherEmail);
 
-      var person = $("#person").part();
+      var person = $("#person").parcel();
       expect(person.emails.items.length).to(equal, 2);
 
       anotherEmail.remove();
@@ -220,7 +220,7 @@ Screw.Unit(function() {
     });
 
     it("should not remove the array field itself even if it becomes empty", function() {
-      var person = $("#person").part();
+      var person = $("#person").parcel();
       expect(person.emails.items.length).to(equal, 1);
 
       person.find("input[name=email]").remove();
@@ -230,11 +230,11 @@ Screw.Unit(function() {
       expect(person.emails.items.length).to(equal, 0);
     });
 
-    it("should remove part in array field accordingly", function() {
-      var anotherContact = $("<div field='part' name='contact'><input type='text' value='111' name='number'></input><input type='text' value='home' name='type'></input></div>");
+    it("should remove parcel in array field accordingly", function() {
+      var anotherContact = $("<div field='parcel' name='contact'><input type='text' value='111' name='number'></input><input type='text' value='home' name='type'></input></div>");
       $("#person div[name=contacts]").append(anotherContact);
 
-      var person = $("#person").part();
+      var person = $("#person").parcel();
       expect(person.contacts.items.length).to(equal, 2);
 
       anotherContact.remove();
@@ -244,10 +244,10 @@ Screw.Unit(function() {
       expect(person.contacts.items[0].state()).to(equal_state, { number: "", type: "" });
     });
 
-    it("should not remove the array field itself originally containing parts even if it becomes empty", function() {
-      $("#person div[name=contacts]").append("<div field='part' name='contact'><input type='text' value='111' name='number'></input><input type='text' value='home' name='type'></input></div>");
+    it("should not remove the array field itself originally containing parcels even if it becomes empty", function() {
+      $("#person div[name=contacts]").append("<div field='parcel' name='contact'><input type='text' value='111' name='number'></input><input type='text' value='home' name='type'></input></div>");
 
-      var person = $("#person").part();
+      var person = $("#person").parcel();
       expect(person.contacts.items.length).to(equal, 2);
 
       $("#person div[name=contact]").remove();
@@ -260,7 +260,7 @@ Screw.Unit(function() {
     it("should fire change event on the closest original parent which is still alive soon after the removal", function() {
       var aDiv = $("#person div[id=adiv]").append("<select name='education'><option selected>high school</option><option>college</option></select>");
 
-      var person = $("#person").part();
+      var person = $("#person").parcel();
 
       var count = 0;
       person.change(function(e){
@@ -277,7 +277,7 @@ Screw.Unit(function() {
     it("should fire change event on the Array field container after one of its sub fields is removed", function() {
       // has 2 emails
       var emailsDiv = $("#person div[name=emails]").append("<input type=text name=email></input>");
-      var person = $("#person").part();
+      var person = $("#person").parcel();
 
       var count = 0;
       person.change(function(e){
@@ -292,7 +292,7 @@ Screw.Unit(function() {
     });
     
     it("should fire change event on the Array field container after removing the last sub field", function() {
-      var person = $("#person").part();
+      var person = $("#person").parcel();
 
       var count = 0;
       person.change(function(e){
@@ -311,8 +311,8 @@ Screw.Unit(function() {
       // TODO, _parentsSnap is not stored on container yet.
     });
     
-    it("should fire change event on parent DOM after removing a part as field", function() {
-      // TODO, _parentsSnap is not stored on part dom yet.
+    it("should fire change event on parent DOM after removing a parcel as field", function() {
+      // TODO, _parentsSnap is not stored on parcel dom yet.
     });
   });
 });

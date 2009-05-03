@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>Part Operation Spec</title>
+  <title>Parcel Operation Spec</title>
   <script src="../lib/jquery-1.3.2.js"></script>
   <script src="lib/screw.dependencies.js"></script>
   <script src="lib/test.helper.js"></script>
@@ -20,7 +20,7 @@
       <input type="radio" value="Male" checked="checked" name="gender">Male</input>
       <input type="radio" value="Female" name="gender">Female</input>
     </div>
-    <div field="part" name="dob">
+    <div field="parcel" name="dob">
       <select name="day">
         <option selected="selected">please select</option>
         <option>01</option>
@@ -40,11 +40,11 @@
     <input id="nationality" type="text" someproperty="nationality"></input>
     <input id="id_city" type="text" fieldname="city"></input>
     <div field="virtual" name="contactInfo">
-      <div name="emails" field="arraypart,email" >
+      <div name="emails" field="arrayparcel,email" >
         <input type="text" value="luning.tw@gmail.com" name="email"></input>
       </div>
-      <div name="contacts" field="arraypart,contact">
-        <div field="part" name="contact">
+      <div name="contacts" field="arrayparcel,contact">
+        <div field="parcel" name="contact">
           <input type="text" name="number"></input>
           <input type="text" name="type"></input>
         </div>
@@ -65,7 +65,7 @@ Screw.Unit(function() {
   
   describe("Capture State", function() {
     it("should be able to capture state even after construction", function() {
-      var person = $("#person").part();
+      var person = $("#person").parcel();
       person.state({name: "smith"})
             .captureState()
             .resetState();
@@ -76,7 +76,7 @@ Screw.Unit(function() {
   
   describe("Order Fields", function() {
     it("should set up field order", function() {
-      var person = $("#person").part(function Person(){
+      var person = $("#person").parcel(function Person(){
         this.orderFields("gender", "title", "name");
       });
       expect(person.fieldIndex("gender")).to(equal, person.fieldIndex("title") - 1);
@@ -85,7 +85,7 @@ Screw.Unit(function() {
 
     it("should not set up field order with invalid names", function() {
       try{
-        $("#person").part(function Person(){
+        $("#person").parcel(function Person(){
           this.orderFields("gender", "invalidname");
         });
         expect(true).to(be_false);
@@ -99,7 +99,7 @@ Screw.Unit(function() {
     it("should add field ignored during construction", function() {
       $("#nationality").removeAttr("id"); // #nationality will be ignored
 
-      var person = $("#person").part(function Person(){
+      var person = $("#person").parcel(function Person(){
         this.addFields({
           nationality: "input[someproperty=nationality]"
         });
@@ -111,7 +111,7 @@ Screw.Unit(function() {
 
     it("should not add field for dom element which is already captured by other field", function() {
       try{
-        $("#person").part(function Person(){
+        $("#person").parcel(function Person(){
           this.addFields({
             myField: "#nationality"
           });
@@ -124,7 +124,7 @@ Screw.Unit(function() {
 
     it("should not add field without matched dom element", function() {
       try{
-        $("#person").part(function Person(){
+        $("#person").parcel(function Person(){
           this.addFields({
             notexist: "#notexist"
           });
@@ -139,7 +139,7 @@ Screw.Unit(function() {
       $("#nationality").removeAttr("id"); // #nationality will be ignored
 
       try{
-        $("#person").part(function Person(){
+        $("#person").parcel(function Person(){
           this.addFields({
             name: "[someproperty=nationality]"
           });
@@ -152,8 +152,8 @@ Screw.Unit(function() {
   });
   
   describe("Get State", function() {
-    it("should get state of this part by passing in this part as context", function() {
-      var person = $("#person").part();
+    it("should get state of this parcel by passing in this parcel as context", function() {
+      var person = $("#person").parcel();
       expect(person.getState(person)).to(equal_state, person.state());
     });
   });
