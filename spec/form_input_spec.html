@@ -1,0 +1,89 @@
+<html>
+<head>
+  <title>Form Input Spec</title>
+  <script src="../lib/jquery-1.3.2.js"></script>
+  <script src="lib/screw.dependencies.js"></script>
+  <script src="lib/test.helper.js"></script>
+  <script src="../src/jquery.parcel.js"></script>
+</head>
+<body>
+
+<div id="fixture">
+  <input type="text" value="luning" name="name"></input>
+  <select name="title">
+    <option selected="selected">please select</option>
+    <option>Mr</option>
+    <option>Mrs</option>
+  </select>
+  <div>
+    <input type="radio" value="Male" checked="checked" name="gender">Male</input>
+    <input type="radio" value="Female" name="gender">Female</input>
+  </div>
+  <input type="checkbox" value="Reading" name="hobby" checked="true">
+  <input type="checkbox" value="Climbing" name="hobby" checked="true">
+</div>
+
+<script type="text/javascript">
+Screw.Unit(function() {
+  var fixtureHtml = $("#fixture").html();
+
+  before(function() {
+    $("#fixture").html(fixtureHtml);
+  });
+
+  describe("Checkbox", function() {
+
+    it("should get state of an array of selected values", function() {
+      var hobby = $("#fixture :checkbox[name=hobby]");
+      expect(hobby.state()).to(equal_state, ["Reading", "Climbing"]);
+    });
+
+    it("should set state with array of values by only clicking proper checkbox like real user interaction", function() {
+      var hobby = $("#fixture :checkbox[name=hobby]");
+      var clicked = [];
+      var changed = [];
+      hobby.click(function(e){
+        clicked.push(e.target.value);
+      }).change(function(e){
+        changed.push(e.target.value);
+      });
+      
+      hobby.state(["Reading"]);
+      expect(hobby.state()).to(equal_state, ["Reading"]);
+      expect(clicked).to(equal_state, ["Climbing"]);
+      expect(changed).to(equal_state, clicked);
+      
+      clicked = [], changed = [];
+      hobby.state(["Climbing"]);
+      expect(hobby.state()).to(equal_state, ["Climbing"]);
+      expect(clicked).to(equal_state, ["Reading", "Climbing"]);
+      expect(changed).to(equal_state, clicked);
+      
+      clicked = [], changed = [];
+      hobby.state([]);
+      expect(hobby.state()).to(equal_state, []);
+      expect(clicked).to(equal_state, ["Climbing"]);
+      expect(changed).to(equal_state, clicked);
+      
+      clicked = [], changed = [];
+      hobby.state(["Reading", "Climbing"]);
+      expect(hobby.state()).to(equal_state, ["Reading", "Climbing"]);
+      expect(clicked).to(equal_state, ["Reading", "Climbing"]);      
+      expect(changed).to(equal_state, clicked);
+    });
+    
+    it("should not set state with non-array", function() {
+      var hobby = $("#fixture :checkbox[name=hobby]");
+      try{
+        hobby.state("Reading");
+        expect(true).to(be_false);
+      } catch(ex) {
+        expect(ex.toString()).to(match, "ParcelError");
+      }
+    });
+
+  });
+});
+</script>
+</body>
+</html>

@@ -1,10 +1,10 @@
 ﻿/*
- * Coconut JavaScript Library v0.0.1
- * http://www.github.com/luning/parcel
+ * jquery.parcel JavaScript Library v0.0.1
+ * http://www.github.com/luning/jquery.parcel
  */
 
 /* 
-  Field is the core concept in Coconut.
+  Field is the core concept in jquery.parcel.
   A field is an extended jQuery object, conceptually can be:
     - Parcel, containing fields with different name
     - Array Parcel, containing sub fields with same name
@@ -155,6 +155,8 @@
         } else if(this.is(":radio")) {
           var checkedRadio = this.filter(":checked");
           return (checkedRadio.length > 0) ? checkedRadio.val() : null;
+        } else if(this.is(":checkbox")) {
+          return $.map(this.filter(":checked"), function(dom){ return dom.value; });
         } else {
           return this.text();
         }
@@ -166,7 +168,7 @@
           } else {
             this.val(s);
           }
-        } else if( s !== this.state() ){
+        } else if( !$.stateEqual(s, this.state()) ){
           if (this.is(":text, select")) {
             this.focus()
               .val(s)
@@ -182,6 +184,17 @@
                 .click()
                 .triggerNative("change");
             }
+          } else if (this.is(":checkbox")) {
+            if(!$.isArray(s)){
+              throw "ParcelError: set checkbox with invalid state [" + s + "]";
+            }
+            this.each(function(i, dom){
+              if($.xor($.inArray(dom.value, s) !== -1, dom.checked)){
+                $(dom)
+                 .click()
+                 .triggerNative("change");
+              }
+            });
           } else {
             this.text(s);
           }
@@ -272,7 +285,7 @@
       var behav, def, match;
       if((def = this.attr("parcel")) && (match = def.match(/^(\w+)|,(\w+)/)) && (behav = match[1] || match[2])){
         if(!$.isFunction(window[behav])){
-          throw "CoconutError: behavior [" + behav + "] should be a global function.";
+          throw "ParcelError: behavior [" + behav + "] should be a global function.";
         }
         return window[behav];
       }
@@ -352,16 +365,16 @@
       $.each(fieldDefs, function(fname, selector){
         var elem = this.find(selector);
         if(elem.length === 0){
-          throw "CoconutError: can not find [" + selector + "] in container.";
+          throw "ParcelError: can not find [" + selector + "] in container.";
         }
         if(this.contains(elem)){
-          throw "CoconutError: field for [" + selector + "] is already defined.";
+          throw "ParcelError: field for [" + selector + "] is already defined.";
         }
         if(this._nameConstraint && this._nameConstraint !== fname){
-          throw "CoconutError: field with name [" + fname + "] does not match the name constraint [" + this._nameConstraint + "].";
+          throw "ParcelError: field with name [" + fname + "] does not match the name constraint [" + this._nameConstraint + "].";
         }
         if(!this._nameConstraint && this.hasField(fname)){
-          throw "CoconutError: field with name [" + fname + "] already exist in parcel.";
+          throw "ParcelError: field with name [" + fname + "] already exist in parcel.";
         }
         this._addField(fname, elem);
       }.bind(this));
@@ -373,7 +386,7 @@
         var cur = this.fieldIndex(arguments[i]);
         var next = this.fieldIndex(arguments[i + 1]);
         if(cur === -1 || next === -1){
-          throw "CoconutError: field [" + arguments[i] + "] or [" + arguments[i + 1] + "] does not exist.";
+          throw "ParcelError: field [" + arguments[i] + "] or [" + arguments[i + 1] + "] does not exist.";
         }
         if(cur < next){
           continue;
@@ -485,8 +498,10 @@
         return elem.parcel();
       } else if (elem.is(":radio")) {
         return this.find(":radio[name=" + elem.attr("name") + "]")._preparingAsField();
+      } else if (elem.is(":checkbox")) {
+        return this.find(":checkbox[name=" + elem.attr("name") + "]")._preparingAsField();
       } else {
-        return elem.ensureBubbleOnChange()._preparingAsField();
+        return elem._preparingAsField();
       }
     },
     
@@ -498,7 +513,7 @@
 
       if (!this._nameConstraint){
         if(this.hasField(fname)){
-          throw "CoconutError: field with name [" + fname + "] already exists.";
+          throw "ParcelError: field with name [" + fname + "] already exists.";
         }
         if(!(fname in this)){
           this[fname] = field;
@@ -530,10 +545,10 @@
         var virtual = $(dom);
         var fname = this._name(virtual);
         if(!fname){
-          throw "CoconutError: failed to determine the name of virtual field.";
+          throw "ParcelError: failed to determine the name of virtual field.";
         }
         if(fname in this){
-          throw "CoconutError: virtual field [" + fname + "] has name conflict with existing property of parcel.";
+          throw "ParcelError: virtual field [" + fname + "] has name conflict with existing property of parcel.";
         }
         this[fname] = virtual;
       }.bind(this));
@@ -643,6 +658,10 @@
         return array[i];
       }
     }
+  };
+  
+  $.xor = function(a, b){
+    return (a? 1:0) ^ (b? 1:0);
   };
   
   // change event in IE doesn't bubble.

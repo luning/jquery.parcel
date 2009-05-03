@@ -39,6 +39,8 @@
     </div>
     <input id="nationality" type="text" someproperty="nationality"></input>
     <input id="id_city" type="text" fieldname="city"></input>
+    <input type="checkbox" value="Reading" name="hobby">
+    <input type="checkbox" value="Climbing" name="hobby">
     <div virtualfield name="contactInfo">
       <div name="emails" parcel="[email]" >
         <input type="text" value="luning.tw@gmail.com" name="email"></input>
@@ -54,9 +56,9 @@
     <div parcelignored>
       <input type="text" name="ignored1"></input>
       <input type="text" name="ignored2"></input>
-	  <div parcel name="unused">
-		<input type="text" name="unused1"></input>
-	  </div>
+      <div parcel name="unused">
+        <input type="text" name="unused1"></input>
+      </div>
     </div>
   </div>
   <input id="randomInput" type="text"></input>
@@ -87,6 +89,12 @@ Screw.Unit(function() {
       var person = $("#person").parcel();
       person.gender.state("Female");
       expect(person.gender.state()).to(equal, "Female");
+    });
+    
+    it("should capture checkbox in dom", function() {
+      var person = $("#person").parcel();
+      person.hobby.state(["Climbing"]);
+      expect(person.hobby.state()).to(equal_state, ["Climbing"]);
     });
 
   });
@@ -167,7 +175,7 @@ Screw.Unit(function() {
         var person = $("#person").parcel();
         expect(true).to(be_false);
       } catch (ex){
-        expect(ex.toString()).to(match, "CoconutError");
+        expect(ex.toString()).to(match, "ParcelError");
       }
     });
 
@@ -246,7 +254,7 @@ Screw.Unit(function() {
         $("#person").parcel();
         expect(true).to(be_false);
       } catch (ex) {
-        expect(ex.toString()).to(match, "CoconutError");
+        expect(ex.toString()).to(match, "ParcelError");
       }
     });  
     
@@ -266,7 +274,7 @@ Screw.Unit(function() {
         var person = $("#person").parcel();
         expect(true).to(be_false);
       } catch (ex) {
-        expect(ex.toString()).to(match, "CoconutError");
+        expect(ex.toString()).to(match, "ParcelError");
       }
     });
 
@@ -339,7 +347,7 @@ Screw.Unit(function() {
         $("#person").parcel();
         expect(true).to(be_false);
       } catch (ex) {
-        expect(ex.toString()).to(match, "CoconutError");
+        expect(ex.toString()).to(match, "ParcelError");
       }
     });
 
