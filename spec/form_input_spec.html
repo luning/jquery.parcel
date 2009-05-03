@@ -19,7 +19,7 @@
     <input type="radio" value="Male" checked="checked" name="gender">Male</input>
     <input type="radio" value="Female" name="gender">Female</input>
   </div>
-  <input type="checkbox" value="Reading" name="hobby" checked="true">
+  <input type="checkbox" value="Reading" name="hobby">
   <input type="checkbox" value="Climbing" name="hobby" checked="true">
 </div>
 
@@ -31,11 +31,60 @@ Screw.Unit(function() {
     $("#fixture").html(fixtureHtml);
   });
 
+  describe("Textbox", function() {
+    
+    it("default state should be empty string", function() {
+      var name = $("#fixture input[name=name]");
+      expect(name.defaultState()).to(equal_state, "");
+    });
+
+  });
+
+  describe("Select", function() {
+    
+    it("default state should be decided by the defaultSelected option", function() {
+      var title = $("#fixture select[name=title]");
+      title.state("Mr");
+      
+      expect(title.defaultState()).to(equal_state, "please select");
+    });
+
+    it("default state should be null if no defaultSelected option", function() {
+      $("#fixture select[name=title]").html("<option>Mr</option>");
+      
+      var title = $("#fixture select[name=title]");
+      title.state("Mr");
+      
+      expect(title.defaultState() === null).to(be_true);
+    });
+
+  });
+  
+  describe("Radio", function() {
+    
+    it("default state should be decided by defaultChecked radio", function() {
+      var gender = $("#fixture :radio[name=gender]");
+      gender.state("Female");
+      
+      expect(gender.defaultState()).to(equal_state, "Male");
+    });
+
+    it("default state should be null if no defaultChecked radio", function() {
+      $("#fixture :radio[name=gender]").parent().html("<input type='radio' value='Male' name='gender'>Male</input><input type='radio' value='Female' name='gender'>Female</input>");
+      
+      var gender = $("#fixture :radio[name=gender]");
+      gender.state("Female");
+      
+      expect(gender.defaultState() === null).to(be_true);
+    });
+
+  });
+
   describe("Checkbox", function() {
 
     it("should get state of an array of selected values", function() {
       var hobby = $("#fixture :checkbox[name=hobby]");
-      expect(hobby.state()).to(equal_state, ["Reading", "Climbing"]);
+      expect(hobby.state()).to(equal_state, ["Climbing"]);
     });
 
     it("should set state with array of values by only clicking proper checkbox like real user interaction", function() {
@@ -50,7 +99,7 @@ Screw.Unit(function() {
       
       hobby.state(["Reading"]);
       expect(hobby.state()).to(equal_state, ["Reading"]);
-      expect(clicked).to(equal_state, ["Climbing"]);
+      expect(clicked).to(equal_state, ["Reading", "Climbing"]);
       expect(changed).to(equal_state, clicked);
       
       clicked = [], changed = [];
@@ -80,6 +129,13 @@ Screw.Unit(function() {
       } catch(ex) {
         expect(ex.toString()).to(match, "ParcelError");
       }
+    });
+    
+    it("default state should be decided by defaultChecked property", function() {
+      var hobby = $("#fixture :checkbox[name=hobby]");
+      hobby.state([]);
+
+      expect(hobby.defaultState()).to(equal_state, ["Climbing"]);
     });
 
   });

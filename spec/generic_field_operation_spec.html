@@ -134,44 +134,14 @@ Screw.Unit(function() {
 
   });
 
-  describe("Get Initial State", function() {
+  describe("Get Default State", function() {
 
-    it("should work for a jQuery field", function() {
-      var person = $("#person").parcel();
-      expect(person.name.initialState()).to(equal, "luning");
-    });
-    
-    it("should work for a Parcel field", function() {
-      var person = $("#person").parcel();
-      expect(person.locality.initialState()).to(equal_state, { no: "", street: "" });
-    });
-    
-    it("should work for an Array field", function() {
-      var person = $("#person").parcel();
-      expect(person.emails.initialState()).to(equal_state, ["first@my.com", "second@my.com"]);
-    });
-    
-    it("should work for a Virtual field", function() {
-      var person = $("#person").parcel();
-      expect(person.contactInfo.initialState()).to(equal_state, { emails: ["first@my.com", "second@my.com"], contacts: [{number: "", type: ""}]});
-    });
-    
-    it("should return a deep copy of initial state for a Parcel", function() {
-      var person = $("#person").parcel();
-      var s = person.initialState();
-      s.locality.no = "300";
-      expect(person.initialState().locality.no).to(equal, "");
-    });
-    
-    it("should return a deep copy of initial state for an Array field", function() {
-      var person = $("#person").parcel();
-      var s = person.emails.initialState();
-      s[0] = "1@my.com";
-      expect(person.emails.initialState()[0]).to(equal, "first@my.com");
-    });
-    
   });
   
+  describe("Reset State", function() {
+
+  });
+
   describe("Is Dirty", function() {
 
     it("of a Parcel should know if any field is changed after creation of this Parcel", function() {
@@ -210,49 +180,87 @@ Screw.Unit(function() {
     });
     
   });
-  
-  describe("Reset State", function() {
 
-    it("on a jQuery field should reset state of it in parent parcel", function() {
+  describe("Get Initial State", function() {
+
+    it("should work for a jQuery field", function() {
+      var person = $("#person").parcel();
+      expect(person.name.initialState()).to(equal, "luning");
+    });
+    
+    it("should work for a Parcel field", function() {
+      var person = $("#person").parcel();
+      expect(person.locality.initialState()).to(equal_state, { no: "", street: "" });
+    });
+    
+    it("should work for an Array field", function() {
+      var person = $("#person").parcel();
+      expect(person.emails.initialState()).to(equal_state, ["first@my.com", "second@my.com"]);
+    });
+    
+    it("should work for a Virtual field", function() {
+      var person = $("#person").parcel();
+      expect(person.contactInfo.initialState()).to(equal_state, { emails: ["first@my.com", "second@my.com"], contacts: [{number: "", type: ""}]});
+    });
+    
+    it("should return a deep copy of initial state for a Parcel", function() {
+      var person = $("#person").parcel();
+      var s = person.initialState();
+      s.locality.no = "300";
+      expect(person.initialState().locality.no).to(equal, "");
+    });
+    
+    it("should return a deep copy of initial state for an Array field", function() {
+      var person = $("#person").parcel();
+      var s = person.emails.initialState();
+      s[0] = "1@my.com";
+      expect(person.emails.initialState()[0]).to(equal, "first@my.com");
+    });
+    
+  });
+  
+  describe("Revert State", function() {
+
+    it("on a jQuery field should revert state of it in parent parcel", function() {
       var person = $("#person").parcel();
       person.name.state("smith");
-      person.name.resetState();
+      person.name.revertState();
       expect(person.name.state()).to(equal, "luning");
     });
     
-    it("on a Parcel should reset state of itself", function() {
+    it("on a Parcel should revert state of itself", function() {
       var person = $("#person").parcel();
       var initialState = person.state();
 
       person.state({ name: "Josh", title: "Mr", gender: "Male", nationality: "OZ", city: "sydney" });
 
-      person.resetState();
+      person.revertState();
       expect(person.state()).to(equal_state, initialState);
     });
  
-    it("on an Array field should reset state of itself", function() {
+    it("on an Array field should revert state of itself", function() {
       var person = $("#person").parcel();
       person.emails.state([ "1@my.com", "2@my.com" ]);
-      person.emails.resetState();
+      person.emails.revertState();
       expect(person.emails.state()).to(contain_state, [ "first@my.com", "second@my.com" ]);
     });
     
-    it("on a field in an array field should reset state of it in its parent array field", function() {
+    it("on a field in an array field should revert state of it in its parent array field", function() {
       var person = $("#person").parcel();
       person.emails.items[0].state("1@my.com");
-      person.emails.items[0].resetState();
+      person.emails.items[0].revertState();
       expect(person.emails.items[0].state()).to(equal_state, "first@my.com");
     });
     
-    it("on a field in an array field should not reset other fields in the same array field", function() {
+    it("on a field in an array field should not revert other fields in the same array field", function() {
       var person = $("#person").parcel();
       person.emails.state([ "1@my.com", "2@my.com" ]);
-      person.emails.items[0].resetState();
+      person.emails.items[0].revertState();
       
       expect(person.emails.items[1].state()).to(equal_state, "2@my.com");
     });
     
-    it("on a Virtual field(jQuery container) should reset all fields in it", function() {
+    it("on a Virtual field(jQuery container) should revert all fields in it", function() {
       var person = $("#person").parcel();
       person.state({
         name: "smith",
@@ -261,7 +269,7 @@ Screw.Unit(function() {
         contacts: [{number: "1234", type: "home"}]
       });
       
-      person.contactInfo.resetState();
+      person.contactInfo.revertState();
       
       expect(person.state()).to(contain_state, { 
         emails: ["first@my.com", "second@my.com"], 
@@ -312,7 +320,7 @@ Screw.Unit(function() {
     
   });
   
-  describe("Closest Composite", function() {
+  describe("Closest Parcel", function() {
 
     it("of a jQuery object should be the closest parent parcel", function() {
       var person = $("#person").parcel();

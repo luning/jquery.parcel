@@ -63,15 +63,19 @@ Screw.Unit(function() {
     $("#fixture").html(fixtureHtml);
   });
   
-  describe("Capture State", function() {
+  describe("Capture (Initial) State", function() {
     it("should be able to capture state even after construction", function() {
       var person = $("#person").parcel();
       person.state({name: "smith"})
             .captureState()
-            .resetState();
+            .revertState();
 
       expect(person.name.state()).to(equal, "smith");
     });
+  });
+
+  describe("Get Default State", function() {
+
   });
   
   describe("Order Fields", function() {

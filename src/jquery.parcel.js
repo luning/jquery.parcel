@@ -86,10 +86,7 @@
     },
     
     resetState: function(){
-      var parcel = this.closestParcel();
-      if(parcel){
-        this.state(parcel.initialState(this));
-      }
+      this.state(this.defaultState());
       return this;
     },
     
@@ -108,6 +105,11 @@
       return !$.stateEqual(this.initialState(), this.state());
     },
 	
+    revertState: function(){
+      this.state(this.initialState());
+      return this;
+    },
+
     initialState: function(){
       var parcel = this.closestParcel();
       if(parcel){
@@ -142,7 +144,7 @@
   // extend jQuery for jQuery field and Virtual field
   $.extend($.fn, commonFieldMixin, {
     state: function(s) {
-      if (s === undefined) {
+      if(s === undefined) {
         if(this.is("div, fieldset")){
           var parcel = this.closestParcel();
           if(parcel){
@@ -152,10 +154,10 @@
           }
         } else if (this.is(":text, select")) {
           return this.val();
-        } else if(this.is(":radio")) {
+        } else if (this.is(":radio")) {
           var checkedRadio = this.filter(":checked");
           return (checkedRadio.length > 0) ? checkedRadio.val() : null;
-        } else if(this.is(":checkbox")) {
+        } else if (this.is(":checkbox")) {
           return $.map(this.filter(":checked"), function(dom){ return dom.value; });
         } else {
           return this.text();
@@ -168,7 +170,7 @@
           } else {
             this.val(s);
           }
-        } else if( !$.stateEqual(s, this.state()) ){
+        } else if ( !$.stateEqual(s, this.state()) ){
           if (this.is(":text, select")) {
             this.focus()
               .val(s)
@@ -202,6 +204,35 @@
         return this;
       }
     },
+
+    defaultState: function(){
+      if(this.is("div, fieldset")){
+        var parcel = this.closestParcel();
+        if(parcel){
+          return parcel.defaultState(this);
+        }
+      } else if (this.is(":checkbox")) {
+        var checked = $.grep(this, function(dom){
+          return dom.defaultChecked;
+        });
+        return $.map(checked, function(dom){
+          return dom.value;
+        });
+      } else if (this.is("select")) {
+        var defaultOption =  this.find("option").filter(function(){
+          return this.defaultSelected;
+        });
+        return defaultOption.length === 0 ? null : defaultOption.val();
+      } else if (this.is(":radio")) {
+        var defaultRadio = this.filter(function(){
+          return this.defaultChecked;
+        });
+        return defaultRadio.length === 0 ? null : defaultRadio.val();
+      } else {
+        return "";
+      }
+    },
+
     // trigger event with browser native behaviour, e.g. change does not bubble up in IE, but firefox does.
     triggerNative: function(event) {
       this.each(function(){
@@ -464,12 +495,30 @@
       }
     },
 
-    // store current state as initial, used later for state resetting and dirty check
+    // store current state as initial, used later for state reverting
     captureState: function() {
       this._initialState = this.state();
       return this;
     },
     
+    defaultState: function(context){
+      var fields = this._fieldsIn(context);
+      var contextIsField = (fields.length === 1) && this._contextIsField(context, fields[0]);
+      
+      if(this._nameConstraint){
+        var state = $.map(fields, function(field){
+          return field.defaultState(); 
+        });
+        return contextIsField ? state[0] : state;
+      } else {
+        var state = {};
+        $.each(fields, function(i, field){
+          state[field.fname] = field.defaultState();
+        });
+        return contextIsField ? state[fields[0].fname] : state;
+      }
+    },
+
     // check if this parcel contains any DOM in element
     contains: function(elem){
       var all = this.fieldDom();

@@ -302,7 +302,7 @@ Screw.Unit(function() {
       };
 
       var person = $("#person").parcel(Person);
-      person.resetState();
+      person.revertState();
 
       expect(person.name.state()).to(equal, "smith");
     });
@@ -335,7 +335,7 @@ Screw.Unit(function() {
 
       var person = $("#person").parcel()
               .applyBehaviour(Person)
-              .resetState();
+              .revertState();
 
       expect(person.name.state()).to(equal, "luning");
     });
@@ -363,7 +363,7 @@ Screw.Unit(function() {
       expect(person.state()).to(contain_state, state);
     });
     
-    it("should apply initial state after applying behaviour", function() {
+    it("should save initial state after applying behaviour", function() {
       function Person(){
         this.name.state("not_smith");
       };
