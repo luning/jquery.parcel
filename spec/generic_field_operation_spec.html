@@ -89,17 +89,17 @@ Screw.Unit(function() {
 
     it("of a Parcel should be got/set", function() {
       var person = $("#person").parcel();
-      var state = { name: "josh", title: "Mr", gender: "Male", nationality: "OZ", city: "sydney" };
+      var state = { name: "josh", title: "Mr", gender: "Male", nationality: "OZ", city: "sydney", dob: {day: "01", month: "Jan", year: "1990"} };
       person.state(state);
       expect(person.state()).to(contain_state, state);
     });
 
-    it("of a Parcel should be got/set", function() {
+    it("of a Parcel sub-field should be got/set", function() {
       var person = $("#person").parcel();
       var dobState = {day: "01", month: "Feb", year: "1991"};
 
-      person.state({ dob: dobState });
-      expect(person.state()).to(contain_state, {dob: dobState});
+      person.dob.state(dobState);
+      expect(person.dob.state()).to(contain_state, dobState);
     });
 
     it("of a Parcel should be got/set by flaten object", function() {
@@ -134,11 +134,104 @@ Screw.Unit(function() {
 
   });
 
-  describe("Get Default State", function() {
+  describe("Default State", function() {
+
+    it("of Parcel should be got", function() {
+      var person = $("#person").parcel();
+      expect(person.defaultState()).to(contain_state, {name: "", title: "please select", gender: "Male", dob: {day: "please select", month: "please select", year: "please select"}});
+    });
+    
+    it("of Parcel should be set", function() {
+      var person = $("#person").parcel();
+      var state = {name: "smith", title: "Mr", gender: "Male", dob: {day: "01", month: "Jan", year: "1990"}};
+      person.defaultState(state);
+      expect(person.defaultState()).to(contain_state, state);
+    });
+    
+    it("of a normal field should be got", function() {
+      var person = $("#person").parcel();
+      expect(person.name.defaultState()).to(equal_state, "");
+    });  
+    
+    it("of a normal field should be set", function() {
+      var person = $("#person").parcel();
+      person.name.defaultState("smith");
+      expect(person.name.defaultState()).to(equal_state, "smith");
+    });  
+    
+    it("of a Parcel sub-field should be got", function() {
+      var person = $("#person").parcel();
+      expect(person.dob.defaultState()).to(equal_state, {day: "please select", month: "please select", year: "please select"});
+    });  
+    
+    it("of a Parcel sub-field should be set", function() {
+      var person = $("#person").parcel();
+      var state = {day: "01", month: "Jan", year: "1990"};
+      person.dob.defaultState(state);
+      expect(person.dob.defaultState()).to(equal_state, state);
+    });  
+    
+    it("of an Array field should be got", function() {
+      var person = $("#person").parcel();
+      expect(person.emails.defaultState()).to(equal_state, ["", ""]);
+    });  
+    
+    it("of an Array field should be set", function() {
+      var person = $("#person").parcel();
+      var state = ["1@my.com", "2@my.com"];
+      person.emails.defaultState(state);
+      expect(person.emails.defaultState()).to(equal_state, state);
+    });
+    
+    it("of a Virtual field should be got", function() {
+      var person = $("#person").parcel();
+      expect(person.contactInfo.defaultState()).to(equal_state, { emails: ["", ""], contacts: [{number: "", type: ""}] });
+    });
+
+    it("of a Virtual field should be set", function() {
+      var person = $("#person").parcel();
+      var state = { emails: ["1@my.com", "2@my.com"], contacts: [{number: "0123456789", type: "home"}] };
+      person.contactInfo.defaultState(state);
+      expect(person.contactInfo.defaultState()).to(equal_state, state);
+    });
 
   });
   
   describe("Reset State", function() {
+
+    it("should work for a Parcel", function() {
+      var person = $("#person").parcel();
+      var state = {name: "smith", title: "Mr", gender: "Male", dob: {day: "01", month: "Jan", year: "1990"}};
+      person.defaultState(state).resetState();
+      expect(person.state()).to(contain_state, state);
+    });
+    
+    it("should work for a normal field", function() {
+      var person = $("#person").parcel();
+      person.name.defaultState("smith").resetState();
+      expect(person.name.state()).to(equal_state, "smith");
+    });  
+    
+    it("should work for a Parcel sub-field", function() {
+      var person = $("#person").parcel();
+      var state = {day: "01", month: "Jan", year: "1990"};
+      person.dob.defaultState(state).resetState();
+      expect(person.dob.state()).to(equal_state, state);
+    });  
+    
+    it("should work for an Array field", function() {
+      var person = $("#person").parcel();
+      var state = ["1@my.com", "2@my.com"];
+      person.emails.defaultState(state).resetState();
+      expect(person.emails.state()).to(equal_state, state);
+    });  
+    
+    it("should work for a Virtual field", function() {
+      var person = $("#person").parcel();
+      var state = { emails: ["1@my.com", "2@my.com"], contacts: [{number: "0123456789", type: "home"}] };
+      person.contactInfo.defaultState(state).resetState();
+      expect(person.contactInfo.state()).to(equal_state, state);
+    });
 
   });
 

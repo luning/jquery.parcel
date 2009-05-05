@@ -121,6 +121,8 @@ Screw.Unit(function() {
     
     it("should not ignore property if it is null", function() {
       expect($.stateContain({ }, { name: null })).to(be_false);
+      expect($.stateContain({ name: "" }, { name: null })).to(be_false);
+      expect($.stateContain({ name: null }, { name: "" })).to(be_false);
     });  
     
     it("should do equality check for primative types", function() {

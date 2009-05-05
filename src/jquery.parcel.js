@@ -205,31 +205,62 @@
       }
     },
 
-    defaultState: function(){
-      if(this.is("div, fieldset")){
-        var parcel = this.closestParcel();
-        if(parcel){
-          return parcel.defaultState(this);
+    defaultState: function(s){
+      if(s === undefined){
+        if(this.is("div, fieldset")){
+          var parcel = this.closestParcel();
+          if(parcel){
+            return parcel.getDefaultState(this);
+          }
+        } else if (this.is(":checkbox")) {
+          var theDefault = $.grep(this, function(dom){
+            return $(dom).attr("default") !== undefined;
+          });
+          if(theDefault.length === 0){
+            theDefault = $.grep(this, function(dom){
+              return dom.defaultChecked;
+            });
+          }
+          return $.map(theDefault, function(dom){
+            return dom.value;
+          });
+        } else if (this.is("select")) {
+          var theDefault;
+          return this.attr("default") || (theDefault = this.find("option").filter(function(){ return this.defaultSelected; }),
+            (theDefault.length === 0 ? null : theDefault.val()));
+        } else if (this.is(":radio")) {
+          var theDefault = this.filter(function(){
+            return $(this).attr("default") !== undefined;
+          });
+          if(theDefault.length === 0){
+            theDefault = this.filter(function(){
+              return this.defaultChecked;
+            });
+          }
+          return theDefault.length === 0 ? null : theDefault.val();
+        } else {
+          return this.attr("default") || "";
         }
-      } else if (this.is(":checkbox")) {
-        var checked = $.grep(this, function(dom){
-          return dom.defaultChecked;
-        });
-        return $.map(checked, function(dom){
-          return dom.value;
-        });
-      } else if (this.is("select")) {
-        var defaultOption =  this.find("option").filter(function(){
-          return this.defaultSelected;
-        });
-        return defaultOption.length === 0 ? null : defaultOption.val();
-      } else if (this.is(":radio")) {
-        var defaultRadio = this.filter(function(){
-          return this.defaultChecked;
-        });
-        return defaultRadio.length === 0 ? null : defaultRadio.val();
       } else {
-        return "";
+        if(this.is("div, fieldset")){
+          var parcel = this.closestParcel();
+          if(parcel){
+            parcel.setDefaultState(s, this);
+          }
+        } else if(this.is(":checkbox")) {
+          if(!$.isArray(s)){
+            throw "ParcelError: set checkbox with invalid default state [" + s + "]";
+          }
+          this.removeAttr("default");
+          $.each(s, function(i, v){
+            this.filter("[value=" + v + "]").attr("default", true);
+          }.bind(this));
+        } else if(this.is(":radio")){
+          this.filter("[value=" + s + "]").attr("default", true);
+        } else {
+          this.attr("default", s);
+        }
+        return this;
       }
     },
 
@@ -443,34 +474,11 @@
     },
     
     getState: function(context){
-      var fields = this._fieldsIn(context);
-      if(this._nameConstraint){
-        return $.map(fields, function(field){ return field.state(); });
-      } else {
-        var state = {};
-        $.each(fields, function(i, field){
-          state[field.fname] = field.state();
-        });
-        return state;
-      }
+      return this._stateGetActionOnFields("state", context);
     },
     
     setState: function(s, context){
-      var fields = this._fieldsIn(context);
-      if(this._nameConstraint){
-        $.each(s, function(i, cur){
-          if(i < fields.length){
-            fields[i].state(cur);
-          }
-        });
-      } else {
-        $.each(fields, function(i, field){
-          if(s.hasOwnProperty(field.fname)){
-            field.state(s[field.fname]);
-          }
-        });
-      }
-      return this;
+      return this._stateSetActionOnFields(s, "state", context);
     },
     
     initialState: function(context){
@@ -501,22 +509,51 @@
       return this;
     },
     
-    defaultState: function(context){
+    defaultState: function(s){
+      return s === undefined ? this.getDefaultState() : this.setDefaultState(s);
+    },
+
+    getDefaultState: function(context){
+      return this._stateGetActionOnFields("defaultState", context);
+    },
+
+    _stateGetActionOnFields: function(fieldMethod, context){
       var fields = this._fieldsIn(context);
-      var contextIsField = (fields.length === 1) && this._contextIsField(context, fields[0]);
       
       if(this._nameConstraint){
-        var state = $.map(fields, function(field){
-          return field.defaultState(); 
+        return $.map(fields, function(field){
+          return field[fieldMethod](); 
         });
-        return contextIsField ? state[0] : state;
       } else {
         var state = {};
         $.each(fields, function(i, field){
-          state[field.fname] = field.defaultState();
+          state[field.fname] = field[fieldMethod]();
         });
-        return contextIsField ? state[fields[0].fname] : state;
+        return state;
       }
+    },
+
+    setDefaultState: function(s, context){
+      return this._stateSetActionOnFields(s, "defaultState", context);
+    },
+    
+    // call field method for every matched sub-state
+    _stateSetActionOnFields: function(state, fieldMethod, context){
+      var fields = this._fieldsIn(context);
+      if(this._nameConstraint){
+        $.each(state, function(i, curState){
+          if(i < fields.length){
+            fields[i][fieldMethod](curState);
+          }
+        });
+      } else {
+        $.each(fields, function(i, field){
+          if(state.hasOwnProperty(field.fname)){
+            field[fieldMethod](state[field.fname]);
+          }
+        });
+      }
+      return this;
     },
 
     // check if this parcel contains any DOM in element

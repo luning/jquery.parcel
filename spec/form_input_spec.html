@@ -19,8 +19,8 @@
     <input type="radio" value="Male" checked="checked" name="gender">Male</input>
     <input type="radio" value="Female" name="gender">Female</input>
   </div>
-  <input type="checkbox" value="Reading" name="hobby">
-  <input type="checkbox" value="Climbing" name="hobby" checked="true">
+  <input type="checkbox" value="Reading" name="hobby"></input>
+  <input type="checkbox" value="Climbing" name="hobby" checked="true"></input>
 </div>
 
 <script type="text/javascript">
@@ -36,6 +36,19 @@ Screw.Unit(function() {
     it("default state should be empty string", function() {
       var name = $("#fixture input[name=name]");
       expect(name.defaultState()).to(equal_state, "");
+    });
+    
+    it("default state should be specified by 'default' property in DOM", function() {
+      var elem = $("<input type='text' default='smith'></input>");
+      $("#fixture").append(elem);
+      
+      expect(elem.defaultState()).to(equal_state, "smith");
+    });
+    
+    it("should set default state", function() {
+      var name = $("#fixture input[name=name]");
+      name.defaultState("smith");
+      expect(name.defaultState()).to(equal_state, "smith");
     });
 
   });
@@ -57,7 +70,20 @@ Screw.Unit(function() {
       
       expect(title.defaultState() === null).to(be_true);
     });
-
+    
+    it("default state should be specified by 'default' property in DOM", function() {
+      var elem = $("<select default='B'><option>A</option><option>B</option><select>");
+      $("#fixture").append(elem);
+      
+      expect(elem.defaultState()).to(equal_state, "B");
+    });
+    
+    it("should set default state", function() {
+      var title = $("#fixture select[name=title]");
+      title.defaultState("Mr");
+      expect(title.defaultState()).to(equal_state, "Mr");
+    });
+    
   });
   
   describe("Radio", function() {
@@ -76,6 +102,19 @@ Screw.Unit(function() {
       gender.state("Female");
       
       expect(gender.defaultState() === null).to(be_true);
+    });
+    
+    it("default state should be specified by 'default' property in DOM", function() {
+      var elem = $("<input type='radio' value='Male' name='gender'></input><input type='radio' value='Female' default name='gender'></input>");
+      $("#fixture").append(elem);
+      
+      expect(elem.defaultState()).to(equal_state, "Female");
+    });
+
+    it("should set default state", function() {
+      var gender = $("#fixture :radio[name=gender]");
+      gender.defaultState("Female");
+      expect(gender.defaultState()).to(equal_state, "Female");
     });
 
   });
@@ -138,6 +177,42 @@ Screw.Unit(function() {
       expect(hobby.defaultState()).to(equal_state, ["Climbing"]);
     });
 
+    it("default state should be specified by 'default' property in DOM", function() {
+      var elem = $("<input type='checkbox' value='Reading' name='hobby'/><input type='checkbox' value='Climbing' name='hobby' default/>");
+      $("#fixture").append(elem);
+      
+      expect(elem.defaultState()).to(equal_state, ["Climbing"]);
+    });
+    
+    it("default state should reflect multiple checkboxs", function() {
+      var elem = $("<input type='checkbox' value='Reading' name='hobby' default/><input type='checkbox' value='Climbing' name='hobby' default/>");
+      $("#fixture").append(elem);
+      
+      expect(elem.defaultState()).to(equal_state, ["Reading", "Climbing"]);
+    });
+
+    it("should set default state", function() {
+      var hobby = $("#fixture :checkbox[name=hobby]");
+      hobby.defaultState(["Climbing"]);
+      expect(hobby.defaultState()).to(equal_state, ["Climbing"]);
+    });
+    
+    it("should set default state with multiple checkboxs", function() {
+      var hobby = $("#fixture :checkbox[name=hobby]");
+      hobby.defaultState(["Reading", "Climbing"]);
+      expect(hobby.defaultState()).to(equal_state, ["Reading", "Climbing"]);
+    });
+    
+    it("should not set default state with non-array", function() {
+      var hobby = $("#fixture :checkbox[name=hobby]");
+      try {
+        hobby.defaultState("Reading");
+        expect(true).to(be_false);
+      } catch(ex) {
+        expect(ex.toString()).to(match, "ParcelError");
+      }
+    });
+    
   });
 });
 </script>
