@@ -92,7 +92,7 @@ Screw.Unit(function() {
 
     it("should set default state of parcel if context is a jQuery object containing this parcel", function() {
       var person = $("#person").parcel();
-      var state = {name: "smith", title: "Mr", gender: "Male", dob: {day: "02", month: "Feb", year: "1991"}};
+      var state = {name: "smith", title: "Mr", gender: "Female", dob: {day: "02", month: "Feb", year: "1991"}};
       person.setDefaultState(state, $("#person"));
       expect(person.getDefaultState($("#person"))).to(contain_state, state);
     });
@@ -187,7 +187,7 @@ Screw.Unit(function() {
 
     it("should get state of parcel if context is a jQuery object containing this parcel", function() {
       var person = $("#person").parcel();
-      expect(person.getState(person)).to(equal_state, person.state());
+      expect(person.getState($("#person"))).to(contain_state, {name: "luning", title: "please select", gender: "Male", dob: {day: "please select", month: "please select", year: "please select"}});
     });
     
     it("should get state for context of a virtual field", function() {
@@ -198,6 +198,21 @@ Screw.Unit(function() {
   });
 
   describe("Set State", function() {
+
+    it("should set state of parcel if context is a jQuery object containing this parcel", function() {
+      var person = $("#person").parcel();
+      var state = {name: "smith", title: "Mr", gender: "Female", dob: {day: "02", month: "Feb", year: "1991"}};
+      person.setState(state, $("#person"))
+      expect(person.state()).to(contain_state, state);
+    });
+    
+    it("should set state for context of a virtual field", function() {
+      var person = $("#person").parcel();
+      var state = { emails: ["one@my.com"], contacts: [{number: "99999999", type: "office"}] };
+      person.setState(state, $("div[name=contactInfo]"))
+      expect(person.contactInfo.state()).to(equal_state, state);
+    });
+
   });
 
 });
