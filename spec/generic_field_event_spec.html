@@ -19,6 +19,10 @@
     <div name="emails" parcel="[email]" >
       <input type="text" value="luning.tw@gmail.com" name="email"></input>
     </div>
+    <input type="text" parcelignored name="ignoredInput"></input>
+    <div parcelignored name="ignoredDiv">
+      <input type="text" name="inIgnoredDiv"></input>
+    </div>
   </div>
   <div id="personDetails">
     <span id="span">span</span>
@@ -215,6 +219,20 @@ Screw.Unit(function() {
       expect(eventFired).to(be_false);
       person.spouseName.state("jessie");
       expect(eventFired).to(be_true);
+    });
+    
+    it("should not be triggered by parcel ignored DOM element", function() {
+      var person = $("#person").parcel();
+      var eventFired = false;
+      person.stateChange(function(s){
+        eventFired = true;
+      });
+      
+      expect(eventFired).to(be_false);
+      $("#person input[name=ignoredInput]").state("whatever");
+      expect(eventFired).to(be_false);
+      $("#person input[name=inIgnoredDiv]").state("whatever");
+      expect(eventFired).to(be_false);
     });
   });
 

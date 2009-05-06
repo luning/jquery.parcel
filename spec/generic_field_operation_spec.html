@@ -55,6 +55,10 @@
         </div>
       </div>
     </div>
+    <input type="text" parcelignored name="ignoredInput"></input>
+    <div parcelignored name="ignoredDiv">
+      <input type="text" name="inIgnoredDiv"></input>
+    </div>
   </div>
 </div>
 
@@ -434,6 +438,22 @@ Screw.Unit(function() {
       var person = $("#person").parcel();
       expect(person.emails.items[0].closestParcel()).to(equal, person.emails);
     });
+  });
+
+  describe("Parcel Ignored", function() {
+
+    it("should be ignored if has 'parcelignored' property in DOM", function() {
+      expect($("#person input[name=ignoredInput]").parcelIgnored()).to(be_true);
+    });
+
+    it("should be ignored if has 'parcelignored' property in DOM", function() {
+      expect($("#person input[name=inIgnoredDiv]").parcelIgnored()).to(be_true);
+    });
+
+    it("should not be ignored if has no 'parcelignored' property nor under any DOM element with 'parcelignored' property", function() {
+      expect($("#person input[name=name]").parcelIgnored()).to(be_false);
+    });
+
   });
   
 });

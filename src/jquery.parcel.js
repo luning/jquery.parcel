@@ -62,8 +62,18 @@
     // fire event if no handler
     stateChange: function(handler){
       var self = this;
-      this.change(handler ? function(){ handler.apply(this, [self.state()]); } : handler);
+      this.change(handler ? 
+        function(e){
+          if(!$(e.target).parcelIgnored()) {
+            handler.apply(this, [self.state()]); 
+          }
+        } 
+        : handler);
       return this;
+    },
+    
+    parcelIgnored: function(){
+      return this.is("[parcelignored],[parcelignored=],[parcelignored] *,[parcelignored=] *");
     },
     
     // change of this field will show/hide target, which is a jQuery selector or a field
