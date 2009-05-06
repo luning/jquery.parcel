@@ -90,6 +90,20 @@ Screw.Unit(function() {
   
   describe("Set Default State", function() {
 
+    it("should set default state of parcel if context is a jQuery object containing this parcel", function() {
+      var person = $("#person").parcel();
+      var state = {name: "smith", title: "Mr", gender: "Male", dob: {day: "02", month: "Feb", year: "1991"}};
+      person.setDefaultState(state, $("#person"));
+      expect(person.getDefaultState($("#person"))).to(contain_state, state);
+    });
+    
+    it("should set default state for context of a virtual field", function() {
+      var person = $("#person").parcel();
+      var state = { emails: ["one@my.com"], contacts: [{number: "99999999", type: "office"}] };
+      person.setDefaultState(state, $("div[name=contactInfo]"));
+      expect(person.getDefaultState($("div[name=contactInfo]"))).to(equal_state, state);
+    });
+
   });
   
   describe("Order Fields", function() {
