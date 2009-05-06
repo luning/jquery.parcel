@@ -176,9 +176,9 @@ Screw.Unit(function() {
       var person = $("#person").parcel();
       var added = false;
       var count = 0;
-      person.stateChange(function(s){
+      person.stateChange(function(e){
         if(added){
-          expect(s.education).to(equal, "college");
+          expect(e.field.state().education).to(equal, "college");
           count++;
         }
       })

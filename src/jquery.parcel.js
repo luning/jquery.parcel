@@ -52,8 +52,9 @@
     // target - jquery selector or a field
     bindState: function(target, converter){
       target = typeof(target) === "string" ? $(target) : target;
-      this.stateChange(function(state){
-        target.state( converter ? converter(state) : state );
+      this.stateChange(function(e){
+        var s = e.field.state();
+        target.state( converter ? converter(s) : s );
       }).stateChange();
       return this;
     },
@@ -65,7 +66,8 @@
       this.change(handler ? 
         function(e){
           if(!$(e.target).parcelIgnored()) {
-            handler.apply(this, [self.state()]); 
+            e.field = self;
+            handler.apply(this, [e]); 
           }
         } 
         : handler);
@@ -83,8 +85,8 @@
         };
         
       target = $(target);
-      this.stateChange(function(state){
-        if(showUp(state)){
+      this.stateChange(function(e){
+        if(showUp(e.field.state())){
           target.show();
         } else {
           target.hide();

@@ -172,9 +172,9 @@ Screw.Unit(function() {
     it("should fire on a jQuery", function() {
       var person = $("#person").parcel();
       var eventFired = false;
-      person.name.stateChange(function(s){ // TODO is this setup right on person.name?
+      person.name.stateChange(function(e){ // TODO is this setup right on person.name?
         eventFired = true;
-        expect(s).to(equal, "smith");
+        expect(e.field.state()).to(equal, "smith");
       });
       
       expect(eventFired).to(be_false);
@@ -185,9 +185,9 @@ Screw.Unit(function() {
     it("should fire on a Parcel", function() {
       var person = $("#person").parcel();
       var eventFired = false;
-      person.stateChange(function(s){
+      person.stateChange(function(e){
         eventFired = true;
-        expect(s).to(contain_state, { name: "smith" });
+        expect(e.field.state()).to(contain_state, { name: "smith" });
       });
       
       expect(eventFired).to(be_false);
@@ -198,9 +198,9 @@ Screw.Unit(function() {
     it("should fire on an Array field", function() {
       var person = $("#person").parcel();
       var eventFired = false;
-      person.emails.stateChange(function(s){
+      person.emails.stateChange(function(e){
         eventFired = true;
-        expect(s).to(equal_state, ["another@my.com"]);
+        expect(e.field.state()).to(equal_state, ["another@my.com"]);
       });
       
       expect(eventFired).to(be_false);
@@ -211,9 +211,9 @@ Screw.Unit(function() {
     it("should fire on a Virtual field", function() {
       var person = $("#person").parcel();
       var eventFired = false;
-      person.spouseInfo.stateChange(function(s){
+      person.spouseInfo.stateChange(function(e){
         eventFired = true;
-        expect(s).to(equal_state, { spouseName: "jessie" });
+        expect(e.field.state()).to(equal_state, { spouseName: "jessie" });
       });
       
       expect(eventFired).to(be_false);
@@ -224,7 +224,7 @@ Screw.Unit(function() {
     it("should not be triggered by parcel ignored DOM element", function() {
       var person = $("#person").parcel();
       var eventFired = false;
-      person.stateChange(function(s){
+      person.stateChange(function(){
         eventFired = true;
       });
       
