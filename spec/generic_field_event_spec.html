@@ -16,6 +16,8 @@
     <div virtualfield name="spouseInfo">
       <input type="text" name="spouseName"></input>
     </div>
+    <input type="checkbox" value="Reading" name="hobby">
+    <input type="checkbox" value="Climbing" name="hobby">
     <div name="emails" parcel="[email]" >
       <input type="text" value="luning.tw@gmail.com" name="email"></input>
     </div>
@@ -235,7 +237,7 @@ Screw.Unit(function() {
       expect(eventFired).to(be_false);
     });
     
-    it("should fire event for radio soon after clicking in IE[change event happens after losing focus in IE for radio]", function() {
+    it("should fire event for radio soon after clicking in IE[as a fix of timing problem of change event in IE]", function() {
       if(!$.browser.msie){
         return;
       }
@@ -248,6 +250,22 @@ Screw.Unit(function() {
       
       expect(count).to(equal, 0);
       person.marital.filter("[value=Yes]").click();
+      expect(count).to(equal, 1);
+    });
+    
+    it("should fire event for checkbox soon after clicking in IE[as a fix of timing problem of change event in IE]", function() {
+      if(!$.browser.msie){
+        return;
+      }
+      var person = $("#person").parcel();
+      var count = 0;
+      person.stateChange(function(e){
+        count++;
+        expect(e.field.state().hobby).to(equal_state, ["Reading"]);
+      });
+      
+      expect(count).to(equal, 0);
+      person.hobby.filter(":first").click();
       expect(count).to(equal, 1);
     });
   });

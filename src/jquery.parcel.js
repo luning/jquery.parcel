@@ -73,9 +73,11 @@
       this.change(handler ? newHandler : undefined);
       
       // change event of radio/checkbox in IE is fired after losing focus, borrow click event as a workaround
+      // CAVEAT : will fire event on click even when the real state is not changed.
       if($.browser.msie && handler){
         this.click(function(e){
-          if(e.target.type.toLowerCase().match(/^radio$/)) 
+          var t = e.target.type;
+          if(t === "radio" || t === "checkbox") 
             newHandler.apply(this, [e]);
         });
       }      
