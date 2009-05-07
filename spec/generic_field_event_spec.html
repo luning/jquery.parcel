@@ -234,6 +234,22 @@ Screw.Unit(function() {
       $("#person input[name=inIgnoredDiv]").state("whatever");
       expect(eventFired).to(be_false);
     });
+    
+    it("should fire event for radio soon after clicking in IE[change event happens after losing focus in IE for radio]", function() {
+      if(!$.browser.msie){
+        return;
+      }
+      var person = $("#person").parcel();
+      var count = 0;
+      person.stateChange(function(e){
+        count++;
+        expect(e.field.state().marital).to(equal_state, "Yes");
+      });
+      
+      expect(count).to(equal, 0);
+      person.marital.filter("[value=Yes]").click();
+      expect(count).to(equal, 1);
+    });
   });
 
   describe("Show Hide", function() {
