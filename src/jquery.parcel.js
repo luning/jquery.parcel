@@ -164,7 +164,15 @@
     }
   };
 
-  var inputSupports = [{
+  var defaultStrategy = {
+    match: function(){ return true; },
+    get: function(){ return this.text(); },
+    set: function(s){ this.text(s); },
+    getDefault: function() { return this.attr("default") !== undefined ? this.attr("default") : ""; },
+    setDefault: function(s) { this.attr("default", s); }
+  };
+
+  var allElementStrategies = [{
     ignoreEqualCheck: true,
     match: function(){ return $.hasTag(this, "div", "fieldset"); },
     get: function(){
@@ -181,16 +189,43 @@
       } else {
         this.val(s);
       }
+    },
+    getDefault: function(){
+      var parcel = this.closestParcel();
+      if(parcel){ return parcel.getDefaultState(this); }
+    },
+    setDefault: function(s){
+      var parcel = this.closestParcel();
+      if(parcel){ parcel.setDefaultState(s, this); }
     }
   },{
-    match: function(){ return $.hasType(this, "text") || $.hasTag(this, "select"); },
+    match: function(){ return $.hasType(this, "text"); },
     get: function(){ return this.val(); },
     set: function(s){
       this.focus()
           .val(s)
           .triggerNative("change")
           .blur();
-    }
+    },
+    getDefault: defaultStrategy.getDefault,
+    setDefault: defaultStrategy.setDefault
+  },{
+    match: function(){ return $.hasTag(this, "select"); },
+    get: function(){ return this.val(); },
+    set: function(s){
+      this.focus()
+          .val(s)
+          .triggerNative("change")
+          .blur();
+    },
+    getDefault: function(){
+      if(this.attr("default") !== undefined){
+        return this.attr("default");
+      }
+      var theDefault = this.find("option").filter(function(){ return this.defaultSelected; });
+      return theDefault.length === 0 ? null : theDefault.val();
+    },
+    setDefault: defaultStrategy.setDefault
   },{
     match: function(){ return $.hasType(this, "radio"); },
     get: function(){
@@ -207,6 +242,20 @@
           .click()
           .triggerNative("change");
       }
+    },
+    getDefault: function(){
+      var theDefault = this.filter(function(){
+        return $(this).attr("default") !== undefined;
+      });
+      if(theDefault.length === 0){
+        theDefault = this.filter(function(){
+          return this.defaultChecked;
+        });
+      }
+      return theDefault.length === 0 ? null : theDefault.val();
+    },
+    setDefault: function(s){
+      this.filter("[value=" + s + "]").attr("default", true);
     }
   },{
     match: function(){ return $.hasType(this, "checkbox"); },
@@ -224,18 +273,37 @@
            .triggerNative("change");
         }
       });
+    },
+    getDefault: function(){
+      var theDefault = $.grep(this, function(dom){
+        return $(dom).attr("default") !== undefined;
+      });
+      if(theDefault.length === 0){
+        theDefault = $.grep(this, function(dom){
+          return dom.defaultChecked;
+        });
+      }
+      return $.map(theDefault, function(dom){
+        return dom.value;
+      });
+    },
+    setDefault: function(s){
+      if(!$.isArray(s)){
+        throw "ParcelError: set checkbox with invalid default state [" + s + "]";
+      }
+      this.removeAttr("default");
+      $.each(s, function(i, v){
+        this.filter("[value=" + v + "]").attr("default", true);
+      }.bind(this));
     }
-  },{
-    match: function(){ return true; },
-    get: function(){ return this.text(); },
-    set: function(s){ this.text(s); }
-  }];
+  },
+  defaultStrategy];
 
   // extend jQuery for jQuery field and Virtual field
   $.extend($.fn, commonFieldMixin, {
     state: function(s) {
-      var matched = $.first(inputSupports, function(i, support){
-                                            return support.match.call(this);
+      var matched = $.first(allElementStrategies, function(i, elem){
+                                            return elem.match.call(this);
                                           }.bind(this));
 
       if(s === undefined) {
@@ -251,60 +319,14 @@
     },
 
     defaultState: function(s){
+      var matched = $.first(allElementStrategies, function(i, elem){
+                                            return elem.match.call(this);
+                                          }.bind(this));
+
       if(s === undefined){
-        if(this.is("div, fieldset")){
-          var parcel = this.closestParcel();
-          if(parcel){
-            return parcel.getDefaultState(this);
-          }
-        } else if (this.is(":checkbox")) {
-          var theDefault = $.grep(this, function(dom){
-            return $(dom).attr("default") !== undefined;
-          });
-          if(theDefault.length === 0){
-            theDefault = $.grep(this, function(dom){
-              return dom.defaultChecked;
-            });
-          }
-          return $.map(theDefault, function(dom){
-            return dom.value;
-          });
-        } else if (this.is("select")) {
-          var theDefault;
-          return this.attr("default") || (theDefault = this.find("option").filter(function(){ return this.defaultSelected; }),
-            (theDefault.length === 0 ? null : theDefault.val()));
-        } else if (this.is(":radio")) {
-          var theDefault = this.filter(function(){
-            return $(this).attr("default") !== undefined;
-          });
-          if(theDefault.length === 0){
-            theDefault = this.filter(function(){
-              return this.defaultChecked;
-            });
-          }
-          return theDefault.length === 0 ? null : theDefault.val();
-        } else {
-          return this.attr("default") || "";
-        }
+        return matched.getDefault.call(this);
       } else {
-        if(this.is("div, fieldset")){
-          var parcel = this.closestParcel();
-          if(parcel){
-            parcel.setDefaultState(s, this);
-          }
-        } else if(this.is(":checkbox")) {
-          if(!$.isArray(s)){
-            throw "ParcelError: set checkbox with invalid default state [" + s + "]";
-          }
-          this.removeAttr("default");
-          $.each(s, function(i, v){
-            this.filter("[value=" + v + "]").attr("default", true);
-          }.bind(this));
-        } else if(this.is(":radio")){
-          this.filter("[value=" + s + "]").attr("default", true);
-        } else {
-          this.attr("default", s);
-        }
+        matched.setDefault.call(this, s);
         return this;
       }
     },
@@ -529,15 +551,15 @@
     initialState: function(context){
       var fields = this._fieldsIn(context);
       var contextIsField = (fields.length === 1) && this._contextIsField(context, fields[0]);
-      
+      var state;
       if(this._nameConstraint){
-        var state = $.map(fields, function(field){
+        state = $.map(fields, function(field){
           return this._initialState[this.fieldIndex(field)]; 
         }.bind(this));
 
         return contextIsField ? state[0] : state;
       } else {
-        var state = {};
+        state = {};
         $.each(fields, function(i, field){
           if(this._initialState.hasOwnProperty(field.fname)){
             state[field.fname] = this._initialState[field.fname];
@@ -800,8 +822,8 @@
   };
 
   $.hasType = function(elem){
-    return elem[0].tagName.toLowerCase() === "input"
-        && $.inArray(elem[0].type, Array.prototype.slice.call(arguments, 1)) !== -1;
+    return elem[0].tagName.toLowerCase() === "input" &&
+          $.inArray(elem[0].type, Array.prototype.slice.call(arguments, 1)) !== -1;
   };
 
   // change event in IE doesn't bubble.
