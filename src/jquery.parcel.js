@@ -77,8 +77,9 @@
       if($.browser.msie && handler){
         this.click(function(e){
           var t = e.target.type;
-          if(t === "radio" || t === "checkbox") 
+          if(t === "radio" || t === "checkbox"){
             newHandler.apply(this, [e]);
+          }
         });
       }      
       return this;
@@ -163,65 +164,87 @@
     }
   };
 
+  var inputSupports = [{
+    ignoreEqualCheck: true,
+    match: function(){ return $.hasTag(this, "div", "fieldset"); },
+    get: function(){
+      var parcel = this.closestParcel();
+      if(parcel){
+        return parcel.getState(this);
+      }
+      return this.val();
+    },
+    set: function(s){
+      var parcel = this.closestParcel();
+      if(parcel){
+        parcel.setState(s, this);
+      } else {
+        this.val(s);
+      }
+    }
+  },{
+    match: function(){ return $.hasType(this, "text") || $.hasTag(this, "select"); },
+    get: function(){ return this.val(); },
+    set: function(s){
+      this.focus()
+          .val(s)
+          .triggerNative("change")
+          .blur();
+    }
+  },{
+    match: function(){ return $.hasType(this, "radio"); },
+    get: function(){
+      var checkedRadio = this.filter(":checked");
+      return (checkedRadio.length > 0) ? checkedRadio.val() : null;
+    },
+    set: function(s){
+      if (s === null) {
+        this.filter("[checked]")
+          .removeAttr("checked")
+          .triggerNative("change");
+      } else {
+        this.filter("[value=" + s + "]")
+          .click()
+          .triggerNative("change");
+      }
+    }
+  },{
+    match: function(){ return $.hasType(this, "checkbox"); },
+    get: function(){
+      return $.map(this.filter(":checked"), function(dom){ return dom.value; });
+    },
+    set: function(s){
+      if(!$.isArray(s)){
+        throw "ParcelError: set checkbox with invalid state [" + s + "]";
+      }
+      this.each(function(i, dom){
+        if($.xor($.inArray(dom.value, s) !== -1, dom.checked)){
+          $(dom)
+           .click()
+           .triggerNative("change");
+        }
+      });
+    }
+  },{
+    match: function(){ return true; },
+    get: function(){ return this.text(); },
+    set: function(s){ this.text(s); }
+  }];
+
   // extend jQuery for jQuery field and Virtual field
   $.extend($.fn, commonFieldMixin, {
     state: function(s) {
+      var matched = $.first(inputSupports, function(i, support){
+                                            return support.match.call(this);
+                                          }.bind(this));
+
       if(s === undefined) {
-        if(this.is("div, fieldset")){
-          var parcel = this.closestParcel();
-          if(parcel){
-            return parcel.getState(this);
-          } else {
-            return this.val();
-          }
-        } else if (this.is(":text, select")) {
-          return this.val();
-        } else if (this.is(":radio")) {
-          var checkedRadio = this.filter(":checked");
-          return (checkedRadio.length > 0) ? checkedRadio.val() : null;
-        } else if (this.is(":checkbox")) {
-          return $.map(this.filter(":checked"), function(dom){ return dom.value; });
-        } else {
-          return this.text();
-        }
+        return matched.get.call(this);
       } else {
-        if(this.is("div, fieldset")){
-          var parcel = this.closestParcel();
-          if(parcel){
-            parcel.setState(s, this);
-          } else {
-            this.val(s);
-          }
-        } else if ( !$.stateEqual(s, this.state()) ){
-          if (this.is(":text, select")) {
-            this.focus()
-              .val(s)
-              .triggerNative("change")
-              .blur();
-          } else if (this.is(":radio")) {
-            if (s === null) {
-              this.filter("[checked]")
-                .removeAttr("checked")
-                .triggerNative("change");
-            } else {
-              this.filter("[value=" + s + "]")
-                .click()
-                .triggerNative("change");
-            }
-          } else if (this.is(":checkbox")) {
-            if(!$.isArray(s)){
-              throw "ParcelError: set checkbox with invalid state [" + s + "]";
-            }
-            this.each(function(i, dom){
-              if($.xor($.inArray(dom.value, s) !== -1, dom.checked)){
-                $(dom)
-                 .click()
-                 .triggerNative("change");
-              }
-            });
-          } else {
-            this.text(s);
-          }
+        if(matched.ignoreEqualCheck){
+          matched.set.call(this, s);
+        } else if (!$.stateEqual(s, this.state())){
+          matched.set.call(this, s);
         }
         return this;
       }
@@ -762,7 +785,7 @@
   // find the first item in array that matchs the filter fn.
   $.first = function(array, fn){
     for(var i = 0; i < array.length; i++){
-      if(fn(i, array[i])){
+      if(fn.call(array[i], i, array[i])){
         return array[i];
       }
     }
@@ -772,15 +795,26 @@
     return (a? 1:0) ^ (b? 1:0);
   };
   
+  $.hasTag = function(elem){
+    return $.inArray(elem[0].tagName.toLowerCase(), Array.prototype.slice.call(arguments, 1)) !== -1;
+  };
+
+  $.hasType = function(elem){
+    return elem[0].tagName.toLowerCase() === "input"
+        && $.inArray(elem[0].type, Array.prototype.slice.call(arguments, 1)) !== -1;
+  };
+
   // change event in IE doesn't bubble.
   $.support.bubbleOnChange = !$.browser.msie;
   // in IE, === will return false SOMETIME even when comparing the same DOM, use == instead.
   $.support.trippleEqualOnDom = !$.browser.msie;
 })(jQuery);
 
-Function.prototype.bind = function(context) {
-  var method = this;
-  return function() {
-    return method.apply(context, arguments);
+if(!Function.prototype.bind){
+  Function.prototype.bind = function(context) {
+    var method = this;
+    return function() {
+      return method.apply(context, arguments);
+    };
   };
-};
+}
