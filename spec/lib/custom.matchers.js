@@ -9,7 +9,16 @@ Screw.Matchers.be_same_dom_element_as = {
     return actual == expected;
   },
   failure_message: function(expected, actual, not) {
-    return 'expected ' + $.print(actual) + 'to' + (not ? ' not' : '') + ' be same as ' + $.print(expected);
+    return 'expected ' + $.print(actual) + ' to' + (not ? ' not' : '') + ' be same as ' + $.print(expected);
+  }
+};
+
+Screw.Matchers.be_same = {
+  match: function(expected, actual) {
+    return actual === expected;
+  },
+  failure_message: function(expected, actual, not) {
+    return 'expected ' + $.print(actual) + ' to' + (not ? ' not' : '') + ' be same as ' + $.print(expected);
   }
 };
 
@@ -57,17 +66,7 @@ Screw.Matchers.be_enabled = {
   },
 
   failure_message: function(expected, actual, not) {
-    return 'expected [' + actual + '] to be enabled, but it was not.';
-  }
-};
-
-Screw.Matchers.be_disabled = {
-  match: function(expected, actual) {
-    return $(actual).attr("disabled");
-  },
-
-  failure_message: function(expected, actual, not) {
-    return 'expected [' + actual + '] to be disabled, but it was not.';
+    return 'expected [' + actual + '] to' + (not ? ' not' : '') + ' be enabled, but it was' + (not ? '.' : ' not.');
   }
 };
 

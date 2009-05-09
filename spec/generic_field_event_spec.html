@@ -374,6 +374,28 @@ Screw.Unit(function() {
       person.marital.filter("[value=Yes]").click();
       expect(person.spouseInfo).to(be_visible);
     });
+    
+    it("should fire callback with proper parameters after the completion of show/hide animation", function() {
+      // this is not easy to be unit tested due to its async nature, below shows the usage indeed.
+      var person = $("#person").parcel();
+      var shouldBeVisible = false;
+      var fired = false;
+      person.showHide(person.spouseInfo, { marital: "Yes" }, function(){
+        fired = true;
+        expect(this).to(be_same_dom_element_as, person.spouseInfo[0]);
+        shouldBeVisible ? expect(this).to(be_visible) : expect(this).to_not(be_visible);
+      });
+
+      fired = false;
+      shouldBeVisible = true;
+      person.marital.state("Yes");
+      expect(fired).to(be_true);
+
+      fired = false;
+      shouldBeVisible = false;
+      person.marital.state("No");
+      expect(fired).to(be_true);
+    });
   });
 });
 </script>

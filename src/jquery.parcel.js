@@ -93,25 +93,37 @@
     
     /*
       change of this field will show/hide target, which is a jQuery selector or a field
+      showHide(target, showUpState, resetTarget[optional], callback[optional])
+      callback is executed whenever the animation completes, 'this' in callback body is the dom element of target.
+      
       in IE, checkbox/radio become checked after click event handler on it is executed, then handler in parent gets executed.
-      so, showHide on checkbox/radio will not reflect corrent state in handler, call showHide on parent as a workaround.
+      so, showHide on checkbox/radio will not reflect current state in handler, call showHide on parent as a workaround.
       radio.showHide(target, "Yes") => parent.showHide(target, {radio: "Yes"})
     */
-    showHide: function(target, showUpStateOrCallback, resetStateIfHidden){
-      var showUp = $.isFunction(showUpStateOrCallback) ? showUpStateOrCallback : function(state){
-          return $.stateContain(state, showUpStateOrCallback);
+    showHide: function(target, showUpState){
+      var showUp = $.isFunction(showUpState) ? showUpState : function(state){
+          return $.stateContain(state, showUpState);
         };
         
+      var resetTarget = arguments[2], callback = arguments[3];
+      if($.isFunction(resetTarget)){
+        callback = resetTarget;
+        resetTarget = false;
+      }
+      
       target = $(target);
       var handler = function(e){
-        //alert($.print(e.field.closestParcel().state()));
         if(showUp(e.field.state())){
-          target.show();
+          target.slideDown("fast", callback);
         } else {
-          target.hide();
-          if(resetStateIfHidden){
-            target.resetState();
+          if(resetTarget){
+            var old = callback;
+            callback = function(){
+              target.resetState();
+              if(old) { old.apply(this, arguments); }
+            }
           }
+          target.slideUp("fast", callback);
         }
       };
       
