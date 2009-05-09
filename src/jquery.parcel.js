@@ -425,7 +425,7 @@
     this._nameConstraint = this._parseNameConstraint();
     this._behaviour = behaviour || this._parseBehaviour() || function(){ };
     this._initialState = state || (this._nameConstraint ? [] : {});
-    this.items = this._fields = [];
+    this.items = this.fields = [];
 
     this._init();
     this.applyBehaviour(this._behaviour);
@@ -478,7 +478,7 @@
     // remove fields if the corresponding DOM element(s) is(are) no longer in DOM tree.
     clean: function(){
       var deadFields = [];
-      $.each(this._fields, function(n, field) {
+      $.each(this.fields, function(n, field) {
         if(field.clean){
           field.clean();
         }
@@ -487,9 +487,9 @@
         }
       });
       $.each(deadFields, function(n, deadField){
-        for(var i = 0; i < this._fields.length; i++){
-          if(this._fields[i] === deadField){
-            this._fields.splice(i, 1);
+        for(var i = 0; i < this.fields.length; i++){
+          if(this.fields[i] === deadField){
+            this.fields.splice(i, 1);
             if(this[deadField.fname] === deadField){
               delete this[deadField.fname];
             }
@@ -507,8 +507,8 @@
    
     // parameter field could be name or object
     fieldIndex: function(field) {
-      for(var i = 0; i < this._fields.length; i++){
-        var curField = typeof(field) === "string" ? this._fields[i].fname : this._fields[i];
+      for(var i = 0; i < this.fields.length; i++){
+        var curField = typeof(field) === "string" ? this.fields[i].fname : this.fields[i];
         if(curField === field){
           return i;
         }
@@ -554,9 +554,9 @@
         if(cur < next){
           continue;
         }
-        var nextField = this._fields[next];
-        this._fields.splice(next, 1);
-        this._fields.splice(this.fieldIndex(arguments[i]) + 1, 0, nextField);
+        var nextField = this.fields[next];
+        this.fields.splice(next, 1);
+        this.fields.splice(this.fieldIndex(arguments[i]) + 1, 0, nextField);
       }
       return this;
     },
@@ -564,7 +564,7 @@
     // get all field DOM including container DOM for Parcel or Array Parcel
     fieldDom: function(){
       var all = this.get();
-      $.each(this._fields, function(i, field) {
+      $.each(this.fields, function(i, field) {
         all = all.concat(field.fieldDom());
       });
       return all;
@@ -669,13 +669,13 @@
     _fieldsIn: function(context){
       if(context){
         var contextDom = context.get(0);
-        return $(this._fields).filter(function(){
+        return $(this.fields).filter(function(){
           var parents = $(this.get(0)).parents().andSelf();
           return $.indexInArray(contextDom, parents) >= 0;
         }).get();
       } else {
         // return cloned array
-        return this._fields.slice();
+        return this.fields.slice();
       }
     },
 
@@ -692,8 +692,8 @@
       }
     },
     
-    // all fields are stored in this._fields array, and convenient field accessors on this are assigned if applicable(not conflict with existing property)
-    // inferOrder is only for efficency, will add new field to the end of this._fields by default, if not specified. can always be true.
+    // all fields are stored in this.fields array, and convenient field accessors on this are assigned if applicable(not conflict with existing property)
+    // inferOrder is only for efficency, will add new field to the end of this.fields by default, if not specified. can always be true.
     _addField: function(fname, elem, inferOrder){
       var field = this._constructField(elem);
       field.fname = fname;
@@ -707,8 +707,8 @@
         }
       }
 
-      var insertIndex = inferOrder ? this._suggestedIndex(field) : this._fields.length;
-      this._fields.splice(insertIndex, 0, field);
+      var insertIndex = inferOrder ? this._suggestedIndex(field) : this.fields.length;
+      this.fields.splice(insertIndex, 0, field);
     },
 
     // infer index of given field based on the occurance sequence in DOM
@@ -717,8 +717,8 @@
       var posOfField = $.indexInArray(field.get(0), all);
 
       var index = 0;
-      for(; index < this._fields.length; index++){
-        var pos = $.indexInArray(this._fields[index].get(0), all);
+      for(; index < this.fields.length; index++){
+        var pos = $.indexInArray(this.fields[index].get(0), all);
         if(pos > posOfField){
           break;
         }
