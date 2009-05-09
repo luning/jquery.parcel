@@ -4,11 +4,10 @@ TODO
 [ ] use smoke mocks rather than roll our own
 [ ] consider renaming initialState() => initial or pristine?, resetState() => reset or revert, captureState() => save. 4 actions: get the last saved state, reset to blank, revert to the last saved state, save state.
 [ ] support textarea, multi-select and select-one
-[ ] add behaviour with parameters
 [ ] make show/hide speed configurable
+[ ] change field name(s) after construction
 [ ] make jquery.parcel extend friendly
 [ ] jQuery object out of the scope of all parts may listen to state change of below parts some how
-
 
 potential problems:
 [ ] remove a DOM with many fields will fire change event multiple times unexpectedly, once on each field's closest alive original parent.

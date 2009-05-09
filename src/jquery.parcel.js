@@ -33,7 +33,9 @@
     },
     
     sync: function(){
-      return this.trigger("sync");
+      var addedFields = [];
+      this.trigger("sync", [addedFields]);
+      return addedFields;
     },
     
     getParcel: function(){
@@ -437,67 +439,16 @@
     // TODO : consider short selector for potential better performance by sacrificing some flexibility
     FIELD_SELECTOR: ":input:not([parcelignored],[parcelignored=],[parcelignored] *,[parcelignored=] *),[parcel]:not([parcelignored],[parcelignored=],[parcelignored] *,[parcelignored=] *),[parcel=]:not([parcelignored],[parcelignored=],[parcelignored] *,[parcelignored=] *)",
     
-    _parseNameConstraint: function(){
-      var def, match;
-      if((def = this.attr("parcel")) && (match = def.match(/\[(\w+)\]/))){
-        return match[1];
-      }
-    },
-    
-    _parseBehaviour: function(){
-      var behav, def, match;
-      if((def = this.attr("parcel")) && (match = def.match(/^(\w+)|,(\w+)/)) && (behav = match[1] || match[2])){
-        if(!$.isFunction(window[behav])){
-          throw "ParcelError: behavior [" + behav + "] should be a global function.";
-        }
-        return window[behav];
-      }
-    },
-    
-    _init: function(){
-      this.bind("sync", function(event){
-        event.stopPropagation();
-        this.sync(event.target);
-      }.bind(this));
-
-      this._buildFields(this);
-      this._buildVirtualFields(this);
-    },
-    
     // sync with DOM changes
     sync: function(dom){
       if(dom === undefined){ // DOM removed
-        this.clean();
+        this._clean();
       } else { // DOM added
         var elem = $(dom);
-        this._buildFields(elem, true);
+        var addedFields = this._buildFields(elem, true);
         elem.change();
+        return addedFields;
       }
-    },
-
-    // remove fields if the corresponding DOM element(s) is(are) no longer in DOM tree.
-    clean: function(){
-      var deadFields = [];
-      $.each(this.fields, function(n, field) {
-        if(field.clean){
-          field.clean();
-        }
-        if(field.dead()){
-          deadFields.push(field);
-        }
-      });
-      $.each(deadFields, function(n, deadField){
-        for(var i = 0; i < this.fields.length; i++){
-          if(this.fields[i] === deadField){
-            this.fields.splice(i, 1);
-            if(this[deadField.fname] === deadField){
-              delete this[deadField.fname];
-            }
-            deadField._removed();
-            break;
-          }
-        }
-      }.bind(this));
     },
 
     // parameter field could be name or object
@@ -539,8 +490,45 @@
         if(!this._nameConstraint && this.hasField(fname)){
           throw "ParcelError: field with name [" + fname + "] already exist in parcel.";
         }
-        this._addField(fname, elem);
+        this._addField(elem, fname);
       }.bind(this));
+    },
+
+    _buildFields: function(context, inferOrder){
+      var addedFields = [];
+      var all = this._selectInContext(context, this.FIELD_SELECTOR);
+      all.each(function(i, dom){
+        if(this.contains(dom)){
+          return;
+        }
+        var elem = $(dom);
+        var fname = this._name(elem);
+        if(!fname || (this._nameConstraint && this._nameConstraint !== fname)){
+          return; // ignore this element
+        }
+        addedFields.push(this._addField(elem, fname, inferOrder));
+      }.bind(this));
+      return addedFields;
+    },
+
+    // all fields are stored in this.fields array, and convenient field accessors on this are assigned if applicable(not conflict with existing property)
+    // inferOrder is only for efficency, will add new field to the end of this.fields by default, if not specified. can always be true.
+    _addField: function(elem, fname, inferOrder){
+      var field = this._constructField(elem);
+      field.fname = fname;
+
+      if (!this._nameConstraint){
+        if(this.hasField(fname)){
+          throw "ParcelError: field with name [" + fname + "] already exists.";
+        }
+        if(!(fname in this)){
+          this[fname] = field;
+        }
+      }
+
+      var insertIndex = inferOrder ? this._suggestedIndex(field) : this.fields.length;
+      this.fields.splice(insertIndex, 0, field);
+      return field;
     },
 
     // orderFields("fieldName1", "fieldName2", ... ,"fieldNameN"), pass in only the fields need order ensurance.
@@ -618,6 +606,48 @@
       return this._stateGetActionOnFields("defaultState", context);
     },
 
+    setDefaultState: function(s, context){
+      return this._stateSetActionOnFields(s, "defaultState", context);
+    },
+
+    // check if this parcel contains any DOM in element
+    contains: function(elem){
+      var all = this.fieldDom();
+      return !!$.first($(elem).get(), function(i, dom){
+        return $.indexInArray(dom, all) !== -1;
+      });
+    },
+
+    _init: function(){
+      this.bind("sync", function(event, addedFields){
+        event.stopPropagation();
+        var added = this.sync(event.target);
+        $.each(added, function(){
+          addedFields.push(this);
+        });
+      }.bind(this));
+
+      this._buildFields(this);
+      this._buildVirtualFields(this);
+    },
+
+    _parseNameConstraint: function(){
+      var def, match;
+      if((def = this.attr("parcel")) && (match = def.match(/\[(\w+)\]/))){
+        return match[1];
+      }
+    },
+
+    _parseBehaviour: function(){
+      var behav, def, match;
+      if((def = this.attr("parcel")) && (match = def.match(/^(\w+)|,(\w+)/)) && (behav = match[1] || match[2])){
+        if(!$.isFunction(window[behav])){
+          throw "ParcelError: behavior [" + behav + "] should be a global function.";
+        }
+        return window[behav];
+      }
+    },
+
     _stateGetActionOnFields: function(fieldMethod, context){
       var fields = this._fieldsIn(context);
       
@@ -634,10 +664,6 @@
       }
     },
 
-    setDefaultState: function(s, context){
-      return this._stateSetActionOnFields(s, "defaultState", context);
-    },
-    
     // call field method for every matched sub-state
     _stateSetActionOnFields: function(state, fieldMethod, context){
       var fields = this._fieldsIn(context);
@@ -657,14 +683,6 @@
       return this;
     },
 
-    // check if this parcel contains any DOM in element
-    contains: function(elem){
-      var all = this.fieldDom();
-      return !!$.first($(elem).get(), function(i, dom){
-        return $.indexInArray(dom, all) !== -1;
-      });
-    },
-
     // find fields in context
     _fieldsIn: function(context){
       if(context){
@@ -681,36 +699,17 @@
 
     // construct field for jQuery element
     _constructField: function(elem) {
-      if(elem.is("[parcel],[parcel=]")) {
+      if(elem.attr("parcel") !== undefined) {
         return elem.parcel();
-      } else if (elem.is(":radio")) {
+      } else if ($.hasType(elem, "radio")) {
         return this.find(":radio[name=" + elem.attr("name") + "]")._preparingAsField();
-      } else if (elem.is(":checkbox")) {
+      } else if ($.hasType(elem, "checkbox")) {
         return this.find(":checkbox[name=" + elem.attr("name") + "]")._preparingAsField();
       } else {
         return elem._preparingAsField();
       }
     },
     
-    // all fields are stored in this.fields array, and convenient field accessors on this are assigned if applicable(not conflict with existing property)
-    // inferOrder is only for efficency, will add new field to the end of this.fields by default, if not specified. can always be true.
-    _addField: function(fname, elem, inferOrder){
-      var field = this._constructField(elem);
-      field.fname = fname;
-
-      if (!this._nameConstraint){
-        if(this.hasField(fname)){
-          throw "ParcelError: field with name [" + fname + "] already exists.";
-        }
-        if(!(fname in this)){
-          this[fname] = field;
-        }
-      }
-
-      var insertIndex = inferOrder ? this._suggestedIndex(field) : this.fields.length;
-      this.fields.splice(insertIndex, 0, field);
-    },
-
     // infer index of given field based on the occurance sequence in DOM
     _suggestedIndex: function(field){
       var all = this.find(this.FIELD_SELECTOR);
@@ -747,18 +746,28 @@
             .not(this);    
     },
 
-    _buildFields: function(context, inferOrder){
-      var all = this._selectInContext(context, this.FIELD_SELECTOR);
-      all.each(function(i, dom){
-        if(this.contains(dom)){
-          return;
+    // remove fields if the corresponding DOM element(s) is(are) no longer in DOM tree.
+    _clean: function(){
+      var deadFields = [];
+      $.each(this.fields, function(n, field) {
+        if(field._clean){
+          field._clean();
         }
-        var elem = $(dom);
-        var fname = this._name(elem);
-        if(!fname || (this._nameConstraint && this._nameConstraint !== fname)){
-          return; // ignore this element
+        if(field.dead()){
+          deadFields.push(field);
         }
-        this._addField(fname, elem, inferOrder);
+      });
+      $.each(deadFields, function(n, deadField){
+        for(var i = 0; i < this.fields.length; i++){
+          if(this.fields[i] === deadField){
+            this.fields.splice(i, 1);
+            if(this[deadField.fname] === deadField){
+              delete this[deadField.fname];
+            }
+            deadField._removed();
+            break;
+          }
+        }
       }.bind(this));
     },
 
