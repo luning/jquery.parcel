@@ -59,9 +59,13 @@
       return this;
     },
 
-    // current state will be passed to handler as the first parameter. 'this' in handler is the target DOM element.
-    // fire event if no handler
-    stateChange: function(handler){
+    /*
+      current state will be passed to handler as the first parameter. 'this' in handler is the target DOM element.
+      fire event if no handler provided.
+      includingClickInIE: internal used while setting handler, 'true' will fire event on clicking radio/checkbox in IE even when the real state is not changed.
+                          change event of radio/checkbox in IE is fired after losing focus, borrow click event as a workaround of potential timing issue.
+    */
+    stateChange: function(handler, includingClickInIE){
       var self = this;
       var newHandler = function(e){
         if(!$(e.target).parcelIgnored()) {
@@ -72,9 +76,7 @@
       
       this.change(handler ? newHandler : undefined);
       
-      // change event of radio/checkbox in IE is fired after losing focus, borrow click event as a workaround
-      // CAVEAT : will fire event on click even when the real state is not changed.
-      if($.browser.msie && handler){
+      if(includingClickInIE && $.browser.msie && handler){
         this.click(function(e){
           var t = e.target.type;
           if(t === "radio" || t === "checkbox"){
@@ -89,14 +91,20 @@
       return this.is("[parcelignored],[parcelignored=],[parcelignored] *,[parcelignored=] *");
     },
     
-    // change of this field will show/hide target, which is a jQuery selector or a field
+    /*
+      change of this field will show/hide target, which is a jQuery selector or a field
+      in IE, checkbox/radio become checked after click event handler on it is executed, then handler in parent gets executed.
+      so, showHide on checkbox/radio will not reflect corrent state in handler, call showHide on parent as a workaround.
+      radio.showHide(target, "Yes") => parent.showHide(target, {radio: "Yes"})
+    */
     showHide: function(target, showUpStateOrCallback, resetStateIfHidden){
       var showUp = $.isFunction(showUpStateOrCallback) ? showUpStateOrCallback : function(state){
           return $.stateContain(state, showUpStateOrCallback);
         };
         
       target = $(target);
-      this.stateChange(function(e){
+      var handler = function(e){
+        //alert($.print(e.field.closestParcel().state()));
         if(showUp(e.field.state())){
           target.show();
         } else {
@@ -105,7 +113,10 @@
             target.resetState();
           }
         }
-      }).stateChange();
+      };
+      
+      this.stateChange(handler, true).stateChange();
+      return this;
     },
     
     resetState: function(){
@@ -172,7 +183,9 @@
     setDefault: function(s) { this.attr("default", s); }
   };
 
-  var allElementStrategies = [{
+  var elementStrategies = [
+  // for div and fieldset
+  {
     ignoreEqualCheck: true,
     match: function(){ return $.hasTag(this, "div", "fieldset"); },
     get: function(){
@@ -198,7 +211,9 @@
       var parcel = this.closestParcel();
       if(parcel){ parcel.setDefaultState(s, this); }
     }
-  },{
+  },
+  // for text input
+  {
     match: function(){ return $.hasType(this, "text"); },
     get: function(){ return this.val(); },
     set: function(s){
@@ -209,7 +224,9 @@
     },
     getDefault: defaultStrategy.getDefault,
     setDefault: defaultStrategy.setDefault
-  },{
+  },
+  // for select
+  {
     match: function(){ return $.hasTag(this, "select"); },
     get: function(){ return this.val(); },
     set: function(s){
@@ -226,7 +243,9 @@
       return theDefault.length === 0 ? null : theDefault.val();
     },
     setDefault: defaultStrategy.setDefault
-  },{
+  },
+  // for radio
+  {
     match: function(){ return $.hasType(this, "radio"); },
     get: function(){
       var checkedRadio = this.filter(":checked");
@@ -255,9 +274,11 @@
       return theDefault.length === 0 ? null : theDefault.val();
     },
     setDefault: function(s){
-      this.filter("[value=" + s + "]").attr("default", true);
+      this.removeAttr("default").filter("[value=" + s + "]").attr("default", true);
     }
-  },{
+  },
+  // for checkbox
+  {
     match: function(){ return $.hasType(this, "checkbox"); },
     get: function(){
       return $.map(this.filter(":checked"), function(dom){ return dom.value; });
@@ -297,12 +318,13 @@
       }.bind(this));
     }
   },
+  // for all other input types
   defaultStrategy];
 
   // extend jQuery for jQuery field and Virtual field
   $.extend($.fn, commonFieldMixin, {
     state: function(s) {
-      var matched = $.first(allElementStrategies, function(i, elem){
+      var matched = $.first(elementStrategies, function(i, elem){
                                             return elem.match.call(this);
                                           }.bind(this));
 
@@ -319,7 +341,7 @@
     },
 
     defaultState: function(s){
-      var matched = $.first(allElementStrategies, function(i, elem){
+      var matched = $.first(elementStrategies, function(i, elem){
                                             return elem.match.call(this);
                                           }.bind(this));
 

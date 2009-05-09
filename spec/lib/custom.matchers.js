@@ -19,17 +19,7 @@ Screw.Matchers.be_visible = {
   },
 
   failure_message: function(expected, actual, not) {
-    return 'expected [' + actual + '] to be visible, but it was not.';
-  }
-};
-
-Screw.Matchers.not_be_visible = {
-  match: function(expected, actual) {
-    return !$(actual).is(":visible");
-  },
-
-  failure_message: function(expected, actual, not) {
-    return 'expected [' + actual + '] to not be visible, but it was.';
+    return 'expected [' + actual + '] to' + (not ? ' not' : '') + ' be visible, but it was' + (not ? '.' : ' not.');
   }
 };
 

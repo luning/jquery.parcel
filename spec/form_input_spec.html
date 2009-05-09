@@ -54,7 +54,7 @@ Screw.Unit(function() {
   });
 
   describe("Select", function() {
-    
+
     it("default state should be decided by the defaultSelected option", function() {
       var title = $("#fixture select[name=title]");
       title.state("Mr");
@@ -70,20 +70,27 @@ Screw.Unit(function() {
       
       expect(title.defaultState() === null).to(be_true);
     });
-    
+
     it("default state should be specified by 'default' property in DOM", function() {
       var elem = $("<select default='B'><option>A</option><option>B</option><select>");
       $("#fixture").append(elem);
       
       expect(elem.defaultState()).to(equal_state, "B");
     });
-    
+
     it("should set default state", function() {
       var title = $("#fixture select[name=title]");
       title.defaultState("Mr");
       expect(title.defaultState()).to(equal_state, "Mr");
     });
-    
+
+    it("set default state should clear old setting", function() {
+      var title = $("#fixture select[name=title]");
+      title.defaultState("Mr");
+      title.defaultState("Mrs");
+      expect(title.defaultState()).to(equal_state, "Mrs");
+    });
+
   });
   
   describe("Radio", function() {
@@ -113,6 +120,13 @@ Screw.Unit(function() {
 
     it("should set default state", function() {
       var gender = $("#fixture :radio[name=gender]");
+      gender.defaultState("Female");
+      expect(gender.defaultState()).to(equal_state, "Female");
+    });
+
+    it("set default state should clear old setting", function() {
+      var gender = $("#fixture :radio[name=gender]");
+      gender.defaultState("Male");
       gender.defaultState("Female");
       expect(gender.defaultState()).to(equal_state, "Female");
     });
@@ -212,7 +226,14 @@ Screw.Unit(function() {
         expect(ex.toString()).to(match, "ParcelError");
       }
     });
-    
+
+    it("set default state should clear old setting", function() {
+      var hobby = $("#fixture :checkbox[name=hobby]");
+      hobby.defaultState(["Reading"]);
+      hobby.defaultState(["Climbing"]);
+      expect(hobby.defaultState()).to(equal_state, ["Climbing"]);
+    });
+
   });
 });
 </script>
