@@ -473,26 +473,6 @@
       $.extend(this, behaviour.prototype);
       return this;
     },
-    // fieldDefs = { fieldName1: "selector1", fieldName2: "selector2" }, fields are ordered.
-    // TODO: this method is not useful, consider to remove it.
-    addFields: function(fieldDefs){
-      $.each(fieldDefs, function(fname, selector){
-        var elem = this.find(selector);
-        if(elem.length === 0){
-          throw "ParcelError: can not find [" + selector + "] in container.";
-        }
-        if(this.contains(elem)){
-          throw "ParcelError: field for [" + selector + "] is already defined.";
-        }
-        if(this._nameConstraint && this._nameConstraint !== fname){
-          throw "ParcelError: field with name [" + fname + "] does not match the name constraint [" + this._nameConstraint + "].";
-        }
-        if(!this._nameConstraint && this.hasField(fname)){
-          throw "ParcelError: field with name [" + fname + "] already exist in parcel.";
-        }
-        this._addField(elem, fname);
-      }.bind(this));
-    },
 
     _buildFields: function(context, inferOrder){
       var addedFields = [];

@@ -127,62 +127,6 @@ Screw.Unit(function() {
     });
   });
 
-  describe("Add Fields", function() {
-    it("should add field ignored during default construction", function() {
-      $("#nationality").removeAttr("id"); // #nationality will be ignored
-
-      var person = $("#person").parcel(function Person(){
-        this.addFields({
-          nationality: "input[someproperty=nationality]"
-        });
-      });
-
-      person.nationality.state("OZ");
-      expect(person.nationality.state()).to(equal, "OZ");
-    });
-
-    it("should not add field for dom element which is already captured by other field", function() {
-      try{
-        $("#person").parcel(function Person(){
-          this.addFields({
-            myField: "#nationality"
-          });
-        });
-        expect(true).to(be_false);
-      } catch(ex) {
-        expect(ex.toString()).to(match, "ParcelError");
-      }
-    });
-
-    it("should not add field without matched dom element", function() {
-      try{
-        $("#person").parcel(function Person(){
-          this.addFields({
-            notexist: "#notexist"
-          });
-        });
-        expect(true).to(be_false);
-      } catch(ex) {
-        expect(ex.toString()).to(match, "ParcelError");
-      }
-    });
-
-    it("should not add field with duplicated name", function() {
-      $("#nationality").removeAttr("id"); // #nationality will be ignored
-
-      try{
-        $("#person").parcel(function Person(){
-          this.addFields({
-            name: "[someproperty=nationality]"
-          });
-        });
-        expect(true).to(be_false);
-      } catch(ex) {
-        expect(ex.toString()).to(match, "ParcelError");
-      }
-    });
-  });
-  
   describe("Get State", function() {
 
     it("should get state of parcel if context is a jQuery object containing this parcel", function() {
