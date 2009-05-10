@@ -44,7 +44,7 @@
   });
 
   // applied to all field types(jQuery, Parcel, ArrayParcel and Virtual)
-  var commonFieldMixin = {
+  var fieldMixin = {
     // determine if field is still in dom tree
     dead: function(){
       return $(this.get(0)).parents().filter("body").length === 0;
@@ -188,7 +188,7 @@
       return this;
     }
   };
-
+  
   var defaultStrategy = {
     match: function(){ return true; },
     get: function(){ return this.text(); },
@@ -336,33 +336,41 @@
   defaultStrategy];
 
   // extend jQuery for jQuery field and Virtual field
-  $.extend($.fn, commonFieldMixin, {
+  $.extend($.fn, fieldMixin, {
     state: function(s) {
-      var matched = $.first(elementStrategies, function(i, elem){
-                                            return elem.match.call(this);
-                                          }.bind(this));
+      var matched = $.first(elementStrategies, function(i, elem){ return elem.match.call(this); }.bind(this));
+
+      var extGet = ($.extension.elementStrategy && $.extension.elementStrategy.get) || emptyFn;
+      var extSet = ($.extension.elementStrategy && $.extension.elementStrategy.set) || emptyFn;
 
       if(s === undefined) {
-        return matched.get.call(this);
+        var ret = extGet.call(this);
+        return ret === undefined ? matched.get.call(this) : ret;
       } else {
-        if(matched.ignoreEqualCheck){
-          matched.set.call(this, s);
-        } else if (!$.stateEqual(s, this.state())){
-          matched.set.call(this, s);
+        if(extSet.call(this, s) === undefined){
+          if(matched.ignoreEqualCheck){
+            matched.set.call(this, s);
+          } else if (!$.stateEqual(s, this.state())){
+            matched.set.call(this, s);
+          }
         }
         return this;
       }
     },
 
     defaultState: function(s){
-      var matched = $.first(elementStrategies, function(i, elem){
-                                            return elem.match.call(this);
-                                          }.bind(this));
+      var matched = $.first(elementStrategies, function(i, elem){ return elem.match.call(this); }.bind(this));
+
+      var extGetDefault = ($.extension.elementStrategy && $.extension.elementStrategy.getDefault) || emptyFn;
+      var extSetDefault = ($.extension.elementStrategy && $.extension.elementStrategy.setDefault) || emptyFn;
 
       if(s === undefined){
-        return matched.getDefault.call(this);
+        var ret = extGetDefault.call(this);
+        return ret === undefined ? matched.getDefault.call(this) : ret;
       } else {
-        matched.setDefault.call(this, s);
+        if(extSetDefault.call(this, s) === undefined){
+          matched.setDefault.call(this, s);
+        }
         return this;
       }
     },
@@ -430,12 +438,16 @@
     this.items = this.fields = [];
 
     this._init();
+    this._applyExtension();
     this.applyBehaviour(this._behaviour);
     this.state(this._initialState);
     this.captureState();
   };
-
-  $.extend($.parcel.prototype, commonFieldMixin, {
+  
+  // as an extension point
+  $.parcelFn = $.parcel.prototype;
+  
+  $.extend($.parcelFn, fieldMixin, {
     // TODO : consider short selector for potential better performance by sacrificing some flexibility
     FIELD_SELECTOR: ":input:not([parcelignored],[parcelignored=],[parcelignored] *,[parcelignored=] *),[parcel]:not([parcelignored],[parcelignored=],[parcelignored] *,[parcelignored=] *),[parcel=]:not([parcelignored],[parcelignored=],[parcelignored] *,[parcelignored=] *)",
     
@@ -472,6 +484,17 @@
       // TODO : mixin behaviour this way lose the efficiency of prototype. properties defined on this may be overwriten ON PURPOSE.
       $.extend(this, behaviour.prototype);
       return this;
+    },
+
+    _applyExtension: function(){
+      if($.extension.behaviours){
+        $.each($.extension.behaviours, function(i, behav){
+          if(!$.isFunction(behav)){
+            throw "ParcelError: invalid behaviour [" + behav + "] in parcel setting.";
+          }
+          this.applyBehaviour(behav);
+        }.bind(this));
+      }
     },
 
     _buildFields: function(context, inferOrder){
@@ -788,6 +811,20 @@
       return context && context.get(0) == field.get(0);
     }
   });
+  
+  var emptyFn = function(){};
+  
+  $.extension = {
+    // the behaviours will be applied to all created parcels
+    behaviours: [],
+    // extend state() and defaultState() for input elements
+    elementStrategy: {
+      get: emptyFn,
+      set: emptyFn,
+      getDefault: emptyFn,
+      setDefault: emptyFn
+    }
+  };
 
   var compare = function(one, another, recursiveCallback){
     for (var p in another) {
