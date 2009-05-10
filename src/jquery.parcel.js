@@ -529,6 +529,28 @@
       return this;
     },
 
+    renameFields: function(setting){
+      $.each(setting, function(newName, oldName){
+        if(newName !== oldName && this._field(newName)){
+          throw "ParcelError: failed to rename [" + oldName + "] to [" + newName + "], due to name conflict.";
+        }
+        var f = this._field(oldName);
+        if(f){
+          if(this._nameConstraint){
+            throw "ParcelError: can not rename fields of a parcel with name constraint.";
+          }
+          f.fname = newName; 
+          if(this[oldName] === f){
+            delete this[oldName];
+          }
+          if(this[newName] === undefined){
+            this[newName] = f;
+          }
+        }        
+      }.bind(this));
+      return this;
+    },
+
     // get all field DOM including container DOM for Parcel or Array Parcel
     fieldDom: function(){
       var all = this.get();
@@ -663,6 +685,10 @@
       return this;
     },
 
+    _field: function(fname){
+      return this.fields[this.fieldIndex(fname)];
+    },
+    
     // find fields in context
     _fieldsIn: function(context){
       if(context){

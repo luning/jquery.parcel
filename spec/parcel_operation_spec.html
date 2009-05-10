@@ -127,6 +127,114 @@ Screw.Unit(function() {
     });
   });
 
+  describe("Rename Fields", function() {
+    it("should rename fields", function() {
+      var person = $("#person").parcel();
+      person.renameFields({
+        Gender: "gender",
+        Title: "title"
+      });
+      
+      expect(person.hasField("gender")).to(be_false);
+      expect(person.hasField("title")).to(be_false);
+      
+      expect(person.hasField("Gender")).to(be_true);
+      expect(person.hasField("Title")).to(be_true);
+    });
+
+    it("should remove old convenient field accessors and create new ones", function() {
+      var person = $("#person").parcel();
+      person.renameFields({
+        Gender: "gender",
+        Title: "title"
+      });
+      
+      expect(person.gender).to(be_undefined);
+      expect(person.title).to(be_undefined);
+      
+      expect(person.Gender).to_not(be_undefined);
+      expect(person.Title).to_not(be_undefined);
+
+      expect(person.Gender.state()).to(equal_state, "Male");
+      expect(person.Title.state()).to(equal_state, "please select");
+    });
+
+    it("should not rename field with name conflict", function() {
+      try{
+        var person = $("#person").parcel(function Person(){
+          this.renameFields({
+            title: "gender"
+          });
+        });
+        expect(true).to(be_false);
+      } catch(ex){
+        expect(ex.toString()).to(match, "ParcelError");
+      }
+    });
+    
+    it("should not rename field of parcel with name constraint", function() {
+      var person = $("#person").parcel();
+      try{
+        person.emails.renameFields({ newEmail: "email" });
+        expect(true).to(be_false);
+      } catch(ex){
+        expect(ex.toString()).to(match, "ParcelError");
+      }
+    });
+    
+    it("should not touch non-field property of parcel given its name is same as a field to rename", function() {
+      // make a field with the same name as an existing property of parcel
+      $("#person input[name=name]").attr("name", "state");
+      var person = $("#person").parcel();
+      
+      person.renameFields({ name: "state" });
+      expect(typeof person.state).to(equal, "function");
+    });
+    
+    it("should create new convenient field accessor even if the old one does not exist", function() {
+      // make a field with the same name as an existing property of parcel, no convenient field accessor for it.
+      $("#person input[name=name]").attr("name", "state");
+      var person = $("#person").parcel();
+      expect(typeof person.state).to(equal, "function");
+      expect(person.name).to(be_undefined);
+
+      person.renameFields({ name: "state" });
+      expect(person.name).to_not(be_undefined);
+      expect(person.name.state()).to(equal_state, "luning");
+    });
+    
+    it("should not create new convenient field accessor if name conflict with existing property", function() {
+      var person = $("#person").parcel();
+      expect(person.name).to_not(be_undefined);
+      
+      person.renameFields({ state: "name" });
+      expect(typeof person.state).to(equal, "function");
+      expect(person.name).to(be_undefined);
+    });
+    
+    it("should ignore if field with old name does not exist", function() {
+      var person = $("#person").parcel();
+      person.renameFields({ newName: "notExist" });
+      
+      expect(person.hasField("newName")).to(be_false);
+      expect(person.newName).to(be_undefined);
+    });
+    
+    it("should ignore(no exception) if all fields with old names do not exist even for parcel with name constraint", function() {
+      var person = $("#person").parcel();
+      person.emails.renameFields({
+        newName: "notExist",
+        anotherNewName: "anotherNotExist"
+      });
+
+      expect(person.hasField("newName")).to(be_false);
+      expect(person.hasField("anotherNewName")).to(be_false);
+      
+      expect(person.newName).to(be_undefined);
+      expect(person.anotherNewName).to(be_undefined);
+    });
+  });
+
   describe("Get State", function() {
 
     it("should get state of parcel if context is a jQuery object containing this parcel", function() {
