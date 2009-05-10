@@ -340,14 +340,14 @@
     state: function(s) {
       var matched = $.first(elementStrategies, function(i, elem){ return elem.match.call(this); }.bind(this));
 
-      var extGet = ($.extension.elementStrategy && $.extension.elementStrategy.get) || emptyFn;
-      var extSet = ($.extension.elementStrategy && $.extension.elementStrategy.set) || emptyFn;
+      var customGet = ($.config.elementStrategy && $.config.elementStrategy.get) || emptyFn;
+      var customSet = ($.config.elementStrategy && $.config.elementStrategy.set) || emptyFn;
 
       if(s === undefined) {
-        var ret = extGet.call(this);
+        var ret = customGet.call(this);
         return ret === undefined ? matched.get.call(this) : ret;
       } else {
-        if(extSet.call(this, s) === undefined){
+        if(customSet.call(this, s) === undefined){
           if(matched.ignoreEqualCheck){
             matched.set.call(this, s);
           } else if (!$.stateEqual(s, this.state())){
@@ -361,14 +361,14 @@
     defaultState: function(s){
       var matched = $.first(elementStrategies, function(i, elem){ return elem.match.call(this); }.bind(this));
 
-      var extGetDefault = ($.extension.elementStrategy && $.extension.elementStrategy.getDefault) || emptyFn;
-      var extSetDefault = ($.extension.elementStrategy && $.extension.elementStrategy.setDefault) || emptyFn;
+      var customGetDefault = ($.config.elementStrategy && $.config.elementStrategy.getDefault) || emptyFn;
+      var customSetDefault = ($.config.elementStrategy && $.config.elementStrategy.setDefault) || emptyFn;
 
       if(s === undefined){
-        var ret = extGetDefault.call(this);
+        var ret = customGetDefault.call(this);
         return ret === undefined ? matched.getDefault.call(this) : ret;
       } else {
-        if(extSetDefault.call(this, s) === undefined){
+        if(customSetDefault.call(this, s) === undefined){
           matched.setDefault.call(this, s);
         }
         return this;
@@ -487,10 +487,10 @@
     },
 
     _applyExtension: function(){
-      if($.extension.behaviours){
-        $.each($.extension.behaviours, function(i, behav){
+      if($.config.behaviours){
+        $.each($.config.behaviours, function(i, behav){
           if(!$.isFunction(behav)){
-            throw "ParcelError: invalid behaviour [" + behav + "] in parcel setting.";
+            throw "ParcelError: invalid behaviour [" + behav + "] in parcel config.";
           }
           this.applyBehaviour(behav);
         }.bind(this));
@@ -552,6 +552,7 @@
       return this;
     },
 
+    // setting: { newName1: "oldName1", newName2: "oldName2" }
     renameFields: function(setting){
       $.each(setting, function(newName, oldName){
         if(newName !== oldName && this._field(newName)){
@@ -814,7 +815,7 @@
   
   var emptyFn = function(){};
   
-  $.extension = {
+  $.config = {
     // the behaviours will be applied to all created parcels
     behaviours: [],
     // extend state() and defaultState() for input elements

@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>Parcel Extension Spec</title>
+  <title>Config and Extension Spec</title>
   <script src="../lib/jquery-1.3.2.js"></script>
   <script src="lib/screw.dependencies.js"></script>
   <script src="lib/test.helper.js"></script>
@@ -61,12 +61,12 @@ Screw.Unit(function() {
 
   before(function() {
     $("#fixture").html(fixtureHtml);
-    $.extension = {};
+    $.config = {};
   });
   
-  describe("Extend Parcel Construction with Generic Behaviours", function() {
+  describe("Apply Generic Behaviours to Parcel Construction", function() {
     it("should apply generic behaviour to all constructed parcels", function() {
-      $.extension.behaviours = [
+      $.config.behaviours = [
         function(){
           this.renameFields({ Name: "name", Title: "title" });
         }
@@ -81,7 +81,7 @@ Screw.Unit(function() {
     });
 
     it("should not apply invalid generic behaviour", function() {
-      $.extension.behaviours = ["invalid behaviour"];
+      $.config.behaviours = ["invalid behaviour"];
 
       try{
         var person = $("#person").parcel();
@@ -92,7 +92,7 @@ Screw.Unit(function() {
     });
     
     it("should apply multiple generic behaviours", function() {
-      $.extension.behaviours = [
+      $.config.behaviours = [
         function(){
           this.renameFields({ Name: "name" });
         },
@@ -110,7 +110,7 @@ Screw.Unit(function() {
     });
     
     it("should apply generic behaviour before applying normal behaviour", function() {
-      $.extension.behaviours = [
+      $.config.behaviours = [
         function(){
           this.renameFields({ Name: "name" });
         }
@@ -124,13 +124,10 @@ Screw.Unit(function() {
 
   });
   
-  describe("Extend Parcel Operations", function() {
-  });
-  
-  describe("Extend state() and defaultState() for Input Elements", function() {
+  describe("Customize state() and defaultState() for Input Elements", function() {
   
     it("should overwrite getting state for specified input type", function() {
-      $.extension.elementStrategy = {get: function(){
+      $.config.elementStrategy = {get: function(){
         if(this[0].type === "text"){ return "SMITH"; }
       }};
       
@@ -141,7 +138,7 @@ Screw.Unit(function() {
     });
     
     it("should overwrite setting state for specified input type", function() {
-      $.extension.elementStrategy = {set: function(s){
+      $.config.elementStrategy = {set: function(s){
         if(this[0].type === "text"){
           this.val("prefix_" + s);
           return true;
@@ -157,7 +154,7 @@ Screw.Unit(function() {
     });
     
     it("should overwrite getting default state for specified input type", function() {
-      $.extension.elementStrategy = {getDefault: function(){
+      $.config.elementStrategy = {getDefault: function(){
         if(this[0].type === "text"){ return "DEFAULT"; }
       }};
       
@@ -168,7 +165,7 @@ Screw.Unit(function() {
     });
     
     it("should overwrite setting default state for specified input type", function() {
-      $.extension.elementStrategy = {setDefault: function(s){
+      $.config.elementStrategy = {setDefault: function(s){
         if(this[0].type === "text"){
           this.attr("default", "DEFAULT_" + s);
           return true;
@@ -184,7 +181,7 @@ Screw.Unit(function() {
     });
     
     it("should ignore if ext method return 'undefined'", function() {
-      $.extension.elementStrategy = {
+      $.config.elementStrategy = {
         get: function(){},
         set: function(){},
         getDefault: function(){},
