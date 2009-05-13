@@ -7,11 +7,11 @@ jQuery.parcel is a *jQuery plugin* designed to simplify working with complex for
 # "API Reference":#api
 # "Q&A":#qa
 
-<h2 id='quickTour'>Two Minute Tour</h2>
+<h2 id="quickTour">Two Minute Tour</h2>
 
 h3. Build a Parcel
 
-Given an HTML snippet:
+Given a HTML snippet:
 
 <pre>
   <div id="person">
