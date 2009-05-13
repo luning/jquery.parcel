@@ -1,10 +1,10 @@
-h1. Coconut
+h1. jQuery.parcel
 
-Coconut is a *jQuery plugin* designed to simplify working with complex forms. It provides an *Object-Oriented* encapsulation of forms and their field groups using a straighforward declarative syntax. It enables some very powerful ways for decomposing forms into conceptual parts, and provides meaningful abstractions for these parts.
+jQuery.parcel is a *jQuery plugin* designed to simplify working with complex forms. It provides an *Object-Oriented* encapsulation of forms and their field groups using a straighforward declarative syntax. It enables some very powerful ways for decomposing forms into conceptual parcels, and provides meaningful abstractions for these parcels.
 
 h2. Two Minute Tour
 
-h3. Build a Part
+h3. Build a Parcel
 
 Given an HTML snippet:
 
@@ -19,15 +19,15 @@ Given an HTML snippet:
   </div>
 </pre>
 
-You create a *part* like this:
+You create a *parcel* like this:
 
 <pre>
-  var person = $("#person").part();
+  var person = $("#person").parcel();
 </pre>
 
-This builds a *part* representing @person@ with all *fields* set up automatically from their *name* attribute of the input field.
+This builds a *parcel* representing @person@ with all *fields* set up automatically from their *name* attribute of the input field.
 
-(The fields are actually jQuery wrappers of each form field element in the specified *part*)
+(The fields are actually jQuery wrappers of each form field element in the specified *parcel*)
 
 <pre>
   person.title;
@@ -53,7 +53,7 @@ To change @firstname@ to new value, just pass the value into the @state()@ metho
 
 This is just like @person.firstname.val("John")@ in jQuery, but with the appropriate events are fired as if a real user typed the value into the field.
 
-Setting the values of the entire person part is just as easy!
+Setting the values of the entire person parcel is just as easy!
 
 <pre>
   person.state({ title: "Mr", firstname: "John", lastname: "Smith"});
@@ -61,7 +61,7 @@ Setting the values of the entire person part is just as easy!
 
 Remember that all the user events get fired (ie. change, blur, click, etc).
 
-Calling @state()@ on the person part simply returns the current state of the part as an object:
+Calling @state()@ on the person parcel simply returns the current state of the parcel as an object:
 
 <pre>
   person.state();
@@ -77,7 +77,7 @@ You can tell if the state has changed with @isDirty()@:
 
 Person is flagged as dirty, since the state of person has been changed since initialization.
 
-Set the original state to the part with @resetState()@
+Set the original state to the parcel with @resetState()@
 
 <pre>
   person.resetState();
@@ -111,13 +111,13 @@ Any changes to person fields will now update the summary span using the specifie
   person.stateChange(function(state) { /* custom logic */});
 </pre>
 
-State change of the @firstname@ field or @person@ part will trigger the custom handlers and pass in the latest state object.
+State change of the @firstname@ field or @person@ parcel will trigger the custom handlers and pass in the latest state object.
 
 h2. Learn More
 
-h3. Mixin Behaviors
+h3. Mixin Behaviours
 
-You can extend a part by mixing in new behaviour.
+You can extend a parcel by mixing in new behaviour.
 
 <pre>
   function Person() {
@@ -127,18 +127,18 @@ You can extend a part by mixing in new behaviour.
     }
   }
 
-  var person = $("#person").part(Person);
+  var person = $("#person").parcel(Person);
   person.summary();
 </pre>
 
-Define behaviour @Person@ as a function, build part with the behaviour, and the @summary()@ method will be mixed into the part.
+Define behaviour @Person@ as a function, build parcel with the behaviour, and the @summary()@ method will be mixed into the parcel.
 
-_**Behaviour mixins are the recommended way to include custom logic for a specific part.**_
+_**Behaviour mixins are the recommended way to include custom logic for a specific parcel.**_
 
-You can also specify the behaviour function in the containing DOM element by supplying a @part@ attribute:
+You can also specify the behaviour function in the containing DOM element by supplying a @parcel@ attribute:
 
 <pre>
-  <div id="person" part="Person">
+  <div id="person" parcel="Person">
     ...
   </div>
 </pre>
@@ -146,22 +146,22 @@ You can also specify the behaviour function in the containing DOM element by sup
 Then:
 
 <pre>
-  var person = $("#person").part();
+  var person = $("#person").parcel();
   person.summary();
 </pre>
 
-Coconut will mixin the @Person@ behaviour for you automatically.
+jQuery.parcel will mixin the @Person@ behaviour for you automatically.
 
-h3. Building Composite Parts
+h3. Building Composite Parcels
 
-You can build a composite part with another part as field by setting up @part@ property on any DOM element which can be used as a container (typically _div_s, _fieldset_s, etc).
+You can build a composite parcel with another parcel as field by setting up @parcel@ property on any DOM element which can be used as a container (typically _div_s, _fieldset_s, etc).
 
 With this HTML:
 
 <pre>
   <div id="person">
     ...
-    <div part="" name="contact">
+    <div parcel name="contact">
       <input type="text" name="number" value="+61 2 9555 0123" />
       <input type="text" name="type" value="work" />
     </div>
@@ -171,7 +171,7 @@ With this HTML:
 Then:
 
 <pre>
-  var person = $("#person").part();
+  var person = $("#person").parcel();
 
   person.state();  #=> { title: "Mr", firstname: "John", lastname: "Smith", contact: { number: "+61 2 9555 0123", type: "work" } }
 
@@ -181,39 +181,41 @@ Then:
 </pre>
 
 
-Build a part with a field containing an array of sub-fields with the same name (e.g. person may have multiple emails) by setting @fieldtype@ property to @array@ on the first field element.
+Build a parcel with a field containing an array of sub-fields with the same name (e.g. person may have multiple emails) by setting @parcel@ property to @[sub_field_name]@ on the container DOM element.
 
 Given this HTML:
 
 <pre>
   <div id="person">
     ...
-    <input type="text" name="email" fieldtype="array" value="a@my.com" />
-    <input type="text" name="email" value="b@my.com" />
+    <div parcel="[email]">
+      <input type="text" name="email" value="a@my.com" />
+      <input type="text" name="email" value="b@my.com" />
+    <div>
   </div>
 </pre>
 
 Then:
 
 <pre>
-  var person = $("#person").part();
+  var person = $("#person").parcel();
 
-  person.state();  #=> { title: "Mr", firstname: "John", lastname: "Smith", emails: ["a@my.com", "b@my.com"] }
+  person.state();  #=> { title: "Mr", firstname: "John", lastname: "Smith", email: ["a@my.com", "b@my.com"] }
 
-  person.emails.state();  #=> ["a@my.com", "b@my.com"]
+  person.email.state();  #=> ["a@my.com", "b@my.com"]
 
-  person.emails[0].state();  #=> "a@my.com"
+  person.email.items[0].state();  #=> "a@my.com"
 </pre>
 
 
-h3. Dynamic Behaviour (Syncing between the DOM and the Part)
+h3. Dynamic Behaviour (Syncing between the DOM and the Parcel)
 
-Adding a new DOM element dynamically will add the corresponding field. Any event registered on a part works for the newly added field too. (Pretty much like jQuery live events).
+Adding a new DOM element dynamically will add the corresponding field. Any event registered on a parcel works for the newly added field too. (Pretty much like jQuery live events).
 
 Given two emails in the DOM already, then:
 
 <pre>
-  var person = $("#person").part();
+  var person = $("#person").parcel();
 
   var newEmail = $("<input type="text" name="email"></input>");
   person.container.append(newEmail);
@@ -224,14 +226,14 @@ Given two emails in the DOM already, then:
 
 @emailCount@ is @3@, reflects the added email. 
 
-*Coconut* extends jQuery with the @sync()@ method. Just call it after the new elements are added.
+*jQuery.parcel* extends jQuery with the @sync()@ method. Just call it after the new elements are added.
 
 The same thing happens when removing DOM elements, the fields will be removed.
 
 Say we have two emails in the DOM already, and we remove the last one:
 
 <pre>
-  var person = $("#person").part();
+  var person = $("#person").parcel();
 
   person.container.find("input[name=email]:last").remove();
   person.sync();
@@ -241,13 +243,13 @@ Say we have two emails in the DOM already, and we remove the last one:
 
 @emailCount@ is now @1@, reflecting the removal.
 
-Call @sync()@ on a part after removing DOM elements.
+Call @sync()@ on a parcel after removing DOM elements.
 
 h3. Virtual Field
 
-A virtual field in Coconut is a jQuery object of a div, fieldset or other container like dom element, which contains all Fields in it's scope.
+A virtual field in jQuery.parcel is a jQuery object of a div, fieldset or other container like dom element, which contains fields in it's scope.
 
-It represents a partial of part. You can treat a virtual field as a normal Field, that means you can call @state()@, @isDirty()@, @resetState()@, and do event operations like @bindState()@, @stateChange()@ on it.
+It represents a virtual part of parcel. You can treat a virtual field as a normal Field, that means you can call @state()@, @isDirty()@, @resetState()@, and do event operations like @bindState()@, @stateChange()@ on it.
 
 Given this HTML:
 
@@ -265,7 +267,7 @@ Given this HTML:
 Then:
 
 <pre>
-  var person = $("#person").part();
+  var person = $("#person").parcel();
   
   var basicInfo = $("#basicInfo");
   
@@ -289,9 +291,9 @@ h1. Design Suggestions
 
 h1. API Reference
 
-h2. Part
+h2. Parcel
 
-h3. Building a Part
+h3. Building a Parcel
 
 * Common
 
@@ -299,13 +301,13 @@ h3. Building a Part
 
 * With Array Field
 
-* With Part as Field
+* With Parcel as Field
 
 * With Virtual Field
 
 * With Behaviour
 
-h3. Part Operations
+h3. Parcel Operations
 
 * sync(context)
 
@@ -319,7 +321,7 @@ h3. Part Operations
 
 h2. Field
 
-Field in part is the core concept in Coconut, it can be an extended *jQuery* object, an extended *Array* contains other fields or another *Part*. *Virtual Field* is not necessarily being stored internally in its parent part, but can be treated as a normal field. All these forms the concept Field and all field operations and events are availiable to them.
+Field in parcel is the core concept in Coconut, it can be an extended *jQuery* object, an extended *Array* contains other fields or another *Parcel*. *Virtual Field* is not necessarily being stored internally in its parent parcel, but can be treated as a normal field. All these forms the concept Field and all field operations and events are availiable to them.
 
 h3. Field Operations
 
@@ -333,7 +335,7 @@ h3. Field Operations
 
 * resetState()
 
-* closestPart()
+* closestParcel()
 
 * sync()
 
@@ -347,7 +349,7 @@ h3. Field Events
 
 * showHide(context, showState[showStateCallback], needReset) 
 
-h2. Part Dom Sync
+h2. Parcel Dom Sync
 
 h2. Utility
 
