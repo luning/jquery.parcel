@@ -1,4 +1,3 @@
-h1. jQuery.parcel
 
 jQuery.parcel is a *jQuery plugin* designed to simplify working with complex forms. It provides an *Object-Oriented* encapsulation of forms and their field groups using a straighforward declarative syntax. It enables some very powerful ways for decomposing forms into conceptual parcels, and provides meaningful abstractions for these parcels.
 
@@ -7,9 +6,9 @@ jQuery.parcel is a *jQuery plugin* designed to simplify working with complex for
 # "API Reference":#api
 # "Q&A":#qa
 
-<h2><p name="quickTour">Two Minute Tour</p></h2>
+<h1 name="quickTour">Two Minute Tour</h1>
 
-h3. Build a Parcel
+h2. Build a Parcel
 
 Given a HTML snippet:
 
@@ -41,7 +40,7 @@ This builds a *parcel* representing @person@ with all *fields* set up automatica
 </pre>
 
 
-h3. State and Field Operations
+h2. State and Field Operations
 
 @firstname@ is a person field and calling @state()@ will simply return the field value, just like @val()@ on a jQuery object.
 
@@ -90,7 +89,7 @@ Set the original state to the parcel with @resetState()@
 </pre>
 
 
-h3. Events Operations
+h2. Events Operations
 
 Let's say you want to have a @label@ element update with changes in the value of a field. Use the @bindState()@ method passing in the CSS selector:
 
@@ -118,9 +117,9 @@ Any changes to person fields will now update the summary span using the specifie
 
 State change of the @firstname@ field or @person@ parcel will trigger the custom handlers and pass in the latest state object.
 
-h2. Learn More
+<h1 name="more">Learn More</h1>
 
-h3. Mixin Behaviours
+h2. Mixin Behaviours
 
 You can extend a parcel by mixing in new behaviour.
 
@@ -157,7 +156,7 @@ Then:
 
 jQuery.parcel will mixin the @Person@ behaviour for you automatically.
 
-h3. Building Composite Parcels
+h2. Building Composite Parcels
 
 You can build a composite parcel with another parcel as field by setting up @parcel@ property on any DOM element which can be used as a container (typically _div_s, _fieldset_s, etc).
 
@@ -213,7 +212,7 @@ Then:
 </pre>
 
 
-h3. Dynamic Behaviour (Syncing between the DOM and the Parcel)
+h2. Dynamic Behaviour (Syncing between the DOM and the Parcel)
 
 Adding a new DOM element dynamically will add the corresponding field. Any event registered on a parcel works for the newly added field too. (Pretty much like jQuery live events).
 
@@ -250,7 +249,7 @@ Say we have two emails in the DOM already, and we remove the last one:
 
 Call @sync()@ on a parcel after removing DOM elements.
 
-h3. Virtual Field
+h2. Virtual Field
 
 A virtual field in jQuery.parcel is a jQuery object of a div, fieldset or other container like dom element, which contains fields in it's scope.
 
@@ -290,11 +289,7 @@ Then:
 
 The flexibility of virtual field makes the event wiring up much more expressive and easier.
 
-h1. Rationale
-
-h1. Design Suggestions
-
-h1. API Reference
+<h1 name="api">API Reference</h1>
 
 h2. Parcel
 
@@ -364,4 +359,4 @@ h2. Utility
 
 * $.cloneState(s)
 
-h1. Q&A
+<h1 name="qa">Q&A</h1>
