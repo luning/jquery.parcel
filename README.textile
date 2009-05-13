@@ -7,7 +7,7 @@ jQuery.parcel is a *jQuery plugin* designed to simplify working with complex for
 # "API Reference":#api
 # "Q&A":#qa
 
-h2(#quickTour). Two Minute Tour
+h2(highlight#quickTour). Two Minute Tour
 
 h3. Build a Parcel
 
