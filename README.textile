@@ -6,7 +6,7 @@ jQuery.parcel is a *jQuery plugin* designed to simplify working with complex for
 # "API Reference":#api
 # "Q&A":#qa
 
-<h1 name="quickTour">Two Minute Tour</h1>
+<h1><a name="quickTour">Two Minute Tour</a></h1>
 
 h2. Build a Parcel
 
@@ -117,7 +117,7 @@ Any changes to person fields will now update the summary span using the specifie
 
 State change of the @firstname@ field or @person@ parcel will trigger the custom handlers and pass in the latest state object.
 
-<h1 name="more">Learn More</h1>
+<h1><a name="more">Learn More</a></h1>
 
 h2. Mixin Behaviours
 
@@ -289,7 +289,7 @@ Then:
 
 The flexibility of virtual field makes the event wiring up much more expressive and easier.
 
-<h1 name="api">API Reference</h1>
+<h1><a name="api">API Reference</a></h1>
 
 h2. Parcel
 
@@ -359,4 +359,4 @@ h2. Utility
 
 * $.cloneState(s)
 
-<h1 name="qa">Q&A</h1>
+<h1><a name="qa">Q&A</a></h1>
