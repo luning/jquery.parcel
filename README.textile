@@ -2,14 +2,12 @@ h1. jQuery.parcel
 
 jQuery.parcel is a *jQuery plugin* designed to simplify working with complex forms. It provides an *Object-Oriented* encapsulation of forms and their field groups using a straighforward declarative syntax. It enables some very powerful ways for decomposing forms into conceptual parcels, and provides meaningful abstractions for these parcels.
 
-<ul>
-<li><a href="#History"><span>1</span> <span>History</span></a></li>
-<li><a href="#Uses"><span>2</span> <span>Uses</span></a></li>
-<li><a href="#Fashion_and_textile_designs"><span>3</span> <span>Fashion and textile designs</span></a></li>
-<li><a href="#Sources_and_types"><span>4</span> <span>Sources and types</span></a></li>
-<ul>
+# "Two Minute Tour":#quickTour
+# "Learn More":#more
+# "API Reference":#api
+# "Q&A":#qa
 
-h2. Two Minute Tour
+h2.(#quickTour) Two Minute Tour
 
 h3. Build a Parcel
 
