@@ -312,7 +312,7 @@ The flexibility of virtual field makes the event wiring up much more expressive 
 
 <h3><a name="api_parcel_build">Build Parcel</a></h3>
 
-p(. *parcel([behaviour], [state])*        Returns: *Parcel*
+*parcel([behaviour], [state])*        Returns: *Parcel*
 
 Common logic
 
@@ -332,15 +332,15 @@ Build multiple Parcels at once
 
 <h3><a name="api_parcel_op">Parcel Operations</a></h3>
 
-p(. *sync(context)*        Returns: *Parcel*
+*sync(context)*        Returns: *Parcel*
 
-p(. *captureState()*        Returns: *Parcel*
+*captureState()*        Returns: *Parcel*
 
-p(. *orderFields(fieldName1, fieldName2, [...])*        Returns: *Parcel*
+*orderFields(fieldName1, fieldName2, [...])*        Returns: *Parcel*
 
-p(. *renameFields(setting)*        Returns: *Parcel*
+*renameFields(setting)*        Returns: *Parcel*
 
-p(. *addBahaviour(behaviour)*        Returns: *Parcel*
+*addBahaviour(behaviour)*        Returns: *Parcel*
 
 <h2><a name="api_field">Field</a></h2>
 
@@ -348,70 +348,70 @@ Field in parcel is the core concept in Coconut, it can be an extended *jQuery* o
 
 <h3><a name="api_field_op">Field Operations</a></h3>
 
-p(. *state()*        Returns: *object/string/array*
+*state()*        Returns: *object/string/array*
 
-p(. *state(s)*        Returns: *Field*
+*state(s)*        Returns: *Field*
 
-p(. *defaultState()*        Returns: *object/string/array*
+*defaultState()*        Returns: *object/string/array*
 
-p(. *defaultState(s)*        Returns: *Field*
+*defaultState(s)*        Returns: *Field*
 
-p(. *resetState()*        Returns: *Field*
+*resetState()*        Returns: *Field*
 
-p(. *initialState()*        Returns: *object*
+*initialState()*        Returns: *object*
 
-p(. *isDirty()*        Returns: *boolean*
+*isDirty()*        Returns: *boolean*
 
-p(. *revertState()*        Returns: *Field*
+*revertState()*        Returns: *Field*
 
-p(. *closestParcel()*        Returns: *Parcel*
+*closestParcel()*        Returns: *Parcel*
 
-p(. *getParcel()*        Returns: *Parcel*
+*getParcel()*        Returns: *Parcel*
 
-p(. *sync()*        Returns: *array* of added fields
+*sync()*        Returns: *array* of added fields
 
-p(. *removeMe()*        Returns: *Field*
+*removeMe()*        Returns: *Field*
 
-p(. *parcelIgnored()*        Returns: *boolean*
+*parcelIgnored()*        Returns: *boolean*
 
-p(. *fieldDom()*        Returns: *array* of DOM elements
+*fieldDom()*        Returns: *array* of DOM elements
 
 <h3><a name="api_field_event">Field Events</a></h3>
 
-p(. *bindState(context, converter)*        Returns: *Field*
+*bindState(context, converter)*        Returns: *Field*
 
-p(. *change(handler)*        Returns: *Field*
+*change(handler)*        Returns: *Field*
 
-p(. *stateChange(handler)*        Returns: *Field*
+*stateChange(handler)*        Returns: *Field*
 
-p(. *showHide(target, showUpState/showUpCallback, [resetTarget], [callback])*        Returns: *Field*
+*showHide(target, showUpState/showUpCallback, [resetTarget], [callback])*        Returns: *Field*
 
 <h2><a name="api_input">Form Inputs</a></h2>
 
-p(. textbox
+textbox
 
-p(. select
+select
 
-p(. radio
+radio
 
-p(. checkbox
+checkbox
 
 <h2><a name="api_ext">Extend Parcel</a></h2>
 
-p(. *$.config*
+*$.config*
 
-p(. *$.parcelFn*
+*$.parcelFn*
 
-p(. *$.fn*
+*$.fn*
 
 <h2><a name="api_util">Utility</a></h2>
 
-p(. *$.stateEqual(s1, s2)*        Returns: *boolean*
+*$.stateEqual(s1, s2)*        Returns: *boolean*
 
-p(. *$.stateContain(whole, partial)*        Returns: *boolean*
+*$.stateContain(whole, partial)*        Returns: *boolean*
 
-p(. *$.stateEmpty()*        Returns: *boolean*
+*$.stateEmpty()*        Returns: *boolean*
 
-p(. *$.cloneState(s)*        Returns: *object/string/array*
+*$.cloneState(s)*        Returns: *object/string/array*
 
 <h1><a name="qa">Q&A</a></h1>
