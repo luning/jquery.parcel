@@ -2,23 +2,23 @@
 jQuery.parcel is a *jQuery plugin* designed to simplify working with complex forms. It provides an *Object-Oriented* encapsulation of forms and their field groups using a straighforward declarative syntax. It enables some very powerful ways for decomposing forms into conceptual parcels, and provides meaningful abstractions for these parcels.
 
 # "Two Minute Tour":#quickTour
-## "Build a Parcel":#quickTour_buildParcel
-## "Simple Operations":#quickTour_simpleOp
-## "Bind Events":#quickTour_event
+** "Build a Parcel":#quickTour_buildParcel
+** "Simple Operations":#quickTour_simpleOp
+** "Bind Events":#quickTour_event
 # "Learn More":#more
-## "Mixin Behaviours":#more_behav
-## "Building Composite Parcels":#more_compositeParcel
-## "Add/Remove DOM elements Dynamically":#more_sync
-## "Virtual Field":#more_virtual
+** "Mixin Behaviours":#more_behav
+** "Building Composite Parcels":#more_compositeParcel
+** "Add/Remove DOM elements Dynamically":#more_sync
+** "Virtual Field":#more_virtual
 # "API Reference":#api
-## "Parcel":#api_parcel
-### "Building a Parcel":#api_parcel_build
-### "Parcel Operations":#api_parcel_op
-## "Field":#api_field
-### "Field Operations":#api_field_op
-### "Field Events":#api_field_event
-## "Parcel Dom Sync":#api_sync
-## "Utility":#api_util
+** "Parcel":#api_parcel
+*** "Building a Parcel":#api_parcel_build
+*** "Parcel Operations":#api_parcel_op
+** "Field":#api_field
+*** "Field Operations":#api_field_op
+*** "Field Events":#api_field_event
+** "Parcel Dom Sync":#api_sync
+** "Utility":#api_util
 # "Q&A":#qa
 
 <h1><a name="quickTour">Two Minute Tour</a></h1>
