@@ -18,7 +18,6 @@ jQuery.parcel is a *jQuery plugin* designed to simplify working with complex for
 *** "Field Operations":#api_field_op
 *** "Field Events":#api_field_event
 ** "Form Inputs":#api_input
-** "Parcel Dom Sync":#api_sync
 ** "Extend Parcel":#api_ext
 ** "Utility":#api_util
 # "Q&A":#qa
@@ -313,33 +312,33 @@ The flexibility of virtual field makes the event wiring up much more expressive 
 
 <h3><a name="api_parcel_build">Build Parcel</a></h3>
 
-* Common logic
+p({background:LightBlue}. Common logic
 
-* With normal jQuery field
+p({background:LightBlue}. With normal jQuery field
 
-* With array field
+p({background:LightBlue}. With array field
 
-* With Parcel as field
+p(. With Parcel as field
 
-* With virtual field
+p(. With virtual field
 
-* With behaviour
+p(. With behaviour
 
-* With initial state
+p(. With initial state
 
-* Build multiple Parcels at once
+p(. Build multiple Parcels at once
 
 <h3><a name="api_parcel_op">Parcel Operations</a></h3>
 
-* sync(context)  Returns: Parcel
+p(. sync(context)        Returns: Parcel
 
-* captureState()  Returns: Parcel
+p(. captureState()        Returns: Parcel
 
-* orderFields(fieldName1, fieldName2, [...])  Returns: Parcel
+p(. orderFields(fieldName1, fieldName2, [...])        Returns: Parcel
 
-* renameFields(setting)  Returns: Parcel
+p(. renameFields(setting)        Returns: Parcel
 
-* addBahaviour(behaviour)  Returns: Parcel
+p(. addBahaviour(behaviour)        Returns: Parcel
 
 <h2><a name="api_field">Field</a></h2>
 
@@ -347,70 +346,70 @@ Field in parcel is the core concept in Coconut, it can be an extended *jQuery* o
 
 <h3><a name="api_field_op">Field Operations</a></h3>
 
-* state()  Returns: object/string/array
+p(. state()        Returns: object/string/array
 
-* state(s)  Returns: Field
+p(. state(s)        Returns: Field
 
-* defaultState()  Returns: object/string/array
+p(. defaultState()        Returns: object/string/array
 
-* defaultState(s)  Returns: Field
+p(. defaultState(s)        Returns: Field
 
-* resetState()  Returns: Field
+p(. resetState()        Returns: Field
 
-* initialState()  Returns: object
+p(. initialState()        Returns: object
 
-* isDirty()  Returns: boolean
+p(. isDirty()        Returns: boolean
 
-* revertState()  Returns: Field
+p(. revertState()        Returns: Field
 
-* closestParcel()  Returns: Parcel
+p(. closestParcel()        Returns: Parcel
 
-* getParcel()  Returns: Parcel
+p(. getParcel()        Returns: Parcel
 
-* sync()  Returns: array of added fields
+p(. sync()        Returns: array of added fields
 
-* removeMe()  Returns: Field
+p(. removeMe()        Returns: Field
 
-* parcelIgnored()  Returns: boolean
+p(. parcelIgnored()        Returns: boolean
 
-* fieldDom()  Returns: array of DOM elements
+p(. fieldDom()        Returns: array of DOM elements
 
 <h3><a name="api_field_event">Field Events</a></h3>
 
-* bindState(context, converter)  Returns: Field
+p(. bindState(context, converter)        Returns: Field
 
-* change(handler)  Returns: Field
+p(. change(handler)        Returns: Field
 
-* stateChange(handler)  Returns: Field
+p(. stateChange(handler)        Returns: Field
 
-* showHide(target, showUpState/showUpCallback, [resetTarget], [callback])  Returns: Field
+p(. showHide(target, showUpState/showUpCallback, [resetTarget], [callback])        Returns: Field
 
 <h2><a name="api_input">Form Inputs</a></h2>
 
-* textbox
+p(. textbox
 
-* select
+p(. select
 
-* radio
+p(. radio
 
-* checkbox
+p(. checkbox
 
 <h2><a name="api_ext">Extend Parcel</a></h2>
 
-* $.config
+p(. $.config
 
-* $.parcelFn
+p(. $.parcelFn
 
-* $.fn
+p(. $.fn
 
 <h2><a name="api_util">Utility</a></h2>
 
-* $.stateEqual(s1, s2)  Returns: boolean
+p(. $.stateEqual(s1, s2)        Returns: boolean
 
-* $.stateContain(whole, partial)  Returns: boolean
+p(. $.stateContain(whole, partial)        Returns: boolean
 
-* $.stateEmpty()  Returns: boolean
+p(. $.stateEmpty()        Returns: boolean
 
-* $.cloneState(s)  Returns: object/string/array
+p(. $.cloneState(s)        Returns: object/string/array
 
 <h1><a name="qa">Q&A</a></h1>
