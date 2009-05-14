@@ -7,17 +7,19 @@ jQuery.parcel is a *jQuery plugin* designed to simplify working with complex for
 ** "Bind Events":#quickTour_event
 # "Learn More":#more
 ** "Mixin Behaviours":#more_behav
-** "Building Composite Parcels":#more_compositeParcel
+** "Build Composite Parcel":#more_compositeParcel
 ** "Add/Remove DOM elements Dynamically":#more_sync
 ** "Virtual Field":#more_virtual
 # "API Reference":#api
 ** "Parcel":#api_parcel
-*** "Building a Parcel":#api_parcel_build
+*** "Build Parcel":#api_parcel_build
 *** "Parcel Operations":#api_parcel_op
 ** "Field":#api_field
 *** "Field Operations":#api_field_op
 *** "Field Events":#api_field_event
+** "Form Inputs":#api_input
 ** "Parcel Dom Sync":#api_sync
+** "Extend Parcel":#api_ext
 ** "Utility":#api_util
 # "Q&A":#qa
 
@@ -171,7 +173,7 @@ Then:
 
 jQuery.parcel will mixin the @Person@ behaviour for you automatically.
 
-<h2><a name="more_compositeParcel">Building Composite Parcels</a></h2>
+<h2><a name="more_compositeParcel">Build Composite Parcel</a></h2>
 
 You can build a composite parcel with another parcel as field by setting up @parcel@ property on any DOM element which can be used as a container (typically _div_s, _fieldset_s, etc).
 
@@ -309,31 +311,35 @@ The flexibility of virtual field makes the event wiring up much more expressive 
 
 <h2><a name="api_parcel">Parcel</a></h2>
 
-<h3><a name="api_parcel_build">Building a Parcel</a></h3>
+<h3><a name="api_parcel_build">Build Parcel</a></h3>
 
-* Common
+* Common logic
 
-* With jQuery Field
+* With normal jQuery field
 
-* With Array Field
+* With array field
 
-* With Parcel as Field
+* With Parcel as field
 
-* With Virtual Field
+* With virtual field
 
-* With Behaviour
+* With behaviour
+
+* With initial state
+
+* Build multiple Parcels at once
 
 <h3><a name="api_parcel_op">Parcel Operations</a></h3>
 
-* sync(context)
+* sync(context)  Returns: Parcel
 
-* captureState()
+* captureState()  Returns: Parcel
 
-* orderFields(fieldName1, fieldName2, ...)
+* orderFields(fieldName1, fieldName2, [...])  Returns: Parcel
 
-* addFields(context)
+* renameFields(setting)  Returns: Parcel
 
-* addBahaviour(behaviour)
+* addBahaviour(behaviour)  Returns: Parcel
 
 <h2><a name="api_field">Field</a></h2>
 
@@ -341,38 +347,70 @@ Field in parcel is the core concept in Coconut, it can be an extended *jQuery* o
 
 <h3><a name="api_field_op">Field Operations</a></h3>
 
-* get(index)
+* state()  Returns: object/string/array
 
-* state(s)
+* state(s)  Returns: Field
 
-* initialState()
+* defaultState()  Returns: object/string/array
 
-* isDirty()
+* defaultState(s)  Returns: Field
 
-* resetState()
+* resetState()  Returns: Field
 
-* closestParcel()
+* initialState()  Returns: object
 
-* sync()
+* isDirty()  Returns: boolean
+
+* revertState()  Returns: Field
+
+* closestParcel()  Returns: Parcel
+
+* getParcel()  Returns: Parcel
+
+* sync()  Returns: array of added fields
+
+* removeMe()  Returns: Field
+
+* parcelIgnored()  Returns: boolean
+
+* fieldDom()  Returns: array of DOM elements
 
 <h3><a name="api_field_event">Field Events</a></h3>
 
-* bindState(context, converter)
+* bindState(context, converter)  Returns: Field
 
-* change(handler)
+* change(handler)  Returns: Field
 
-* stateChange(handler)
+* stateChange(handler)  Returns: Field
 
-* showHide(context, showState[showStateCallback], needReset) 
+* showHide(target, showUpState/showUpCallback, [resetTarget], [callback])  Returns: Field
 
-<h2><a name="api_sync">Parcel Dom Sync</a></h2>
+<h2><a name="api_input">Form Inputs</a></h2>
+
+* textbox
+
+* select
+
+* radio
+
+* checkbox
+
+<h2><a name="api_ext">Extend Parcel</a></h2>
+
+* $.config
+
+* $.parcelFn
+
+* $.fn
 
 <h2><a name="api_util">Utility</a></h2>
 
-* $.stateEqual(s1, s2)
+* $.stateEqual(s1, s2)  Returns: boolean
 
-* $.stateContain(whole, partial)
+* $.stateContain(whole, partial)  Returns: boolean
 
-* $.cloneState(s)
+* $.stateEmpty()  Returns: boolean
+
+* $.cloneState(s)  Returns: object/string/array
 
 <h1><a name="qa">Q&A</a></h1>

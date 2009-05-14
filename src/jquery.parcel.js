@@ -1,5 +1,5 @@
 ﻿/*
- * jquery.parcel JavaScript Library v0.0.1
+ * jQuery.parcel JavaScript Library v0.1
  * http://www.github.com/luning/jquery.parcel
  */
 
