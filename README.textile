@@ -2,13 +2,28 @@
 jQuery.parcel is a *jQuery plugin* designed to simplify working with complex forms. It provides an *Object-Oriented* encapsulation of forms and their field groups using a straighforward declarative syntax. It enables some very powerful ways for decomposing forms into conceptual parcels, and provides meaningful abstractions for these parcels.
 
 # "Two Minute Tour":#quickTour
+## "Build a Parcel":#quickTour_buildParcel
+## "Simple Operations":#quickTour_simpleOp
+## "Bind Events":#quickTour_event
 # "Learn More":#more
+## "Mixin Behaviours":#more_behav
+## "Building Composite Parcels":#more_compositeParcel
+## "Add/Remove DOM elements Dynamically":#more_sync
+## "Virtual Field":#more_virtual
 # "API Reference":#api
+## "Parcel":#api_parcel
+### "Building a Parcel":#api_parcel_build
+### "Parcel Operations":#api_parcel_op
+## "Field":#api_field
+### "Field Operations":#api_field_op
+### "Field Events":#api_field_event
+## "Parcel Dom Sync":#api_sync
+## "Utility":#api_util
 # "Q&A":#qa
 
 <h1><a name="quickTour">Two Minute Tour</a></h1>
 
-h2. Build a Parcel
+<h2><a name="quickTour_buildParcel">Build a Parcel</a></h2>
 
 Given a HTML snippet:
 
@@ -40,7 +55,7 @@ This builds a *parcel* representing @person@ with all *fields* set up automatica
 </pre>
 
 
-h2. State and Field Operations
+<h2><a name="quickTour_simpleOp">Simple Operations</a></h2>
 
 @firstname@ is a person field and calling @state()@ will simply return the field value, just like @val()@ on a jQuery object.
 
@@ -89,7 +104,7 @@ Set the original state to the parcel with @resetState()@
 </pre>
 
 
-h2. Events Operations
+<h2><a name="quickTour_event">Bind Events</a></h2>
 
 Let's say you want to have a @label@ element update with changes in the value of a field. Use the @bindState()@ method passing in the CSS selector:
 
@@ -119,7 +134,7 @@ State change of the @firstname@ field or @person@ parcel will trigger the custom
 
 <h1><a name="more">Learn More</a></h1>
 
-h2. Mixin Behaviours
+<h2><a name="more_behav">Mixin Behaviours</a></h2>
 
 You can extend a parcel by mixing in new behaviour.
 
@@ -156,7 +171,7 @@ Then:
 
 jQuery.parcel will mixin the @Person@ behaviour for you automatically.
 
-h2. Building Composite Parcels
+<h2><a name="more_compositeParcel">Building Composite Parcels</a></h2>
 
 You can build a composite parcel with another parcel as field by setting up @parcel@ property on any DOM element which can be used as a container (typically _div_s, _fieldset_s, etc).
 
@@ -212,7 +227,7 @@ Then:
 </pre>
 
 
-h2. Dynamic Behaviour (Syncing between the DOM and the Parcel)
+<h2><a name="more_sync">Add/Remove DOM elements Dynamically</a></h2>
 
 Adding a new DOM element dynamically will add the corresponding field. Any event registered on a parcel works for the newly added field too. (Pretty much like jQuery live events).
 
@@ -249,7 +264,8 @@ Say we have two emails in the DOM already, and we remove the last one:
 
 Call @sync()@ on a parcel after removing DOM elements.
 
-h2. Virtual Field
+
+<h2><a name="more_virtual">Virtual Field</a></h2>
 
 A virtual field in jQuery.parcel is a jQuery object of a div, fieldset or other container like dom element, which contains fields in it's scope.
 
@@ -291,9 +307,9 @@ The flexibility of virtual field makes the event wiring up much more expressive 
 
 <h1><a name="api">API Reference</a></h1>
 
-h2. Parcel
+<h2><a name="api_parcel">Parcel</a></h2>
 
-h3. Building a Parcel
+<h3><a name="api_parcel_build">Building a Parcel</a></h3>
 
 * Common
 
@@ -307,7 +323,7 @@ h3. Building a Parcel
 
 * With Behaviour
 
-h3. Parcel Operations
+<h3><a name="api_parcel_op">Parcel Operations</a></h3>
 
 * sync(context)
 
@@ -319,11 +335,11 @@ h3. Parcel Operations
 
 * addBahaviour(behaviour)
 
-h2. Field
+<h2><a name="api_field">Field</a></h2>
 
 Field in parcel is the core concept in Coconut, it can be an extended *jQuery* object, an extended *Array* contains other fields or another *Parcel*. *Virtual Field* is not necessarily being stored internally in its parent parcel, but can be treated as a normal field. All these forms the concept Field and all field operations and events are availiable to them.
 
-h3. Field Operations
+<h3><a name="api_field_op">Field Operations</a></h3>
 
 * get(index)
 
@@ -339,7 +355,7 @@ h3. Field Operations
 
 * sync()
 
-h3. Field Events
+<h3><a name="api_field_event">Field Events</a></h3>
 
 * bindState(context, converter)
 
@@ -349,9 +365,9 @@ h3. Field Events
 
 * showHide(context, showState[showStateCallback], needReset) 
 
-h2. Parcel Dom Sync
+<h2><a name="api_sync">Parcel Dom Sync</a></h2>
 
-h2. Utility
+<h2><a name="api_util">Utility</a></h2>
 
 * $.stateEqual(s1, s2)
 
