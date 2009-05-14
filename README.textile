@@ -312,33 +312,35 @@ The flexibility of virtual field makes the event wiring up much more expressive 
 
 <h3><a name="api_parcel_build">Build Parcel</a></h3>
 
-p({background:LightBlue}. Common logic
+p(. *parcel([behaviour], [state])*        Returns: *Parcel*
 
-p({background:LightBlue}. With normal jQuery field
+Common logic
 
-p({background:LightBlue}. With array field
+With normal jQuery field
 
-p(. With Parcel as field
+With array field
 
-p(. With virtual field
+With Parcel as field
 
-p(. With behaviour
+With virtual field
 
-p(. With initial state
+With behaviour
 
-p(. Build multiple Parcels at once
+With initial state
+
+Build multiple Parcels at once
 
 <h3><a name="api_parcel_op">Parcel Operations</a></h3>
 
-p(. sync(context)        Returns: Parcel
+p(. *sync(context)*        Returns: *Parcel*
 
-p(. captureState()        Returns: Parcel
+p(. *captureState()*        Returns: *Parcel*
 
-p(. orderFields(fieldName1, fieldName2, [...])        Returns: Parcel
+p(. *orderFields(fieldName1, fieldName2, [...])*        Returns: *Parcel*
 
-p(. renameFields(setting)        Returns: Parcel
+p(. *renameFields(setting)*        Returns: *Parcel*
 
-p(. addBahaviour(behaviour)        Returns: Parcel
+p(. *addBahaviour(behaviour)*        Returns: *Parcel*
 
 <h2><a name="api_field">Field</a></h2>
 
@@ -346,43 +348,43 @@ Field in parcel is the core concept in Coconut, it can be an extended *jQuery* o
 
 <h3><a name="api_field_op">Field Operations</a></h3>
 
-p(. state()        Returns: object/string/array
+p(. *state()*        Returns: *object/string/array*
 
-p(. state(s)        Returns: Field
+p(. *state(s)*        Returns: *Field*
 
-p(. defaultState()        Returns: object/string/array
+p(. *defaultState()*        Returns: *object/string/array*
 
-p(. defaultState(s)        Returns: Field
+p(. *defaultState(s)*        Returns: *Field*
 
-p(. resetState()        Returns: Field
+p(. *resetState()*        Returns: *Field*
 
-p(. initialState()        Returns: object
+p(. *initialState()*        Returns: *object*
 
-p(. isDirty()        Returns: boolean
+p(. *isDirty()*        Returns: *boolean*
 
-p(. revertState()        Returns: Field
+p(. *revertState()*        Returns: *Field*
 
-p(. closestParcel()        Returns: Parcel
+p(. *closestParcel()*        Returns: *Parcel*
 
-p(. getParcel()        Returns: Parcel
+p(. *getParcel()*        Returns: *Parcel*
 
-p(. sync()        Returns: array of added fields
+p(. *sync()*        Returns: *array* of added fields
 
-p(. removeMe()        Returns: Field
+p(. *removeMe()*        Returns: *Field*
 
-p(. parcelIgnored()        Returns: boolean
+p(. *parcelIgnored()*        Returns: *boolean*
 
-p(. fieldDom()        Returns: array of DOM elements
+p(. *fieldDom()*        Returns: *array* of DOM elements
 
 <h3><a name="api_field_event">Field Events</a></h3>
 
-p(. bindState(context, converter)        Returns: Field
+p(. *bindState(context, converter)*        Returns: *Field*
 
-p(. change(handler)        Returns: Field
+p(. *change(handler)*        Returns: *Field*
 
-p(. stateChange(handler)        Returns: Field
+p(. *stateChange(handler)*        Returns: *Field*
 
-p(. showHide(target, showUpState/showUpCallback, [resetTarget], [callback])        Returns: Field
+p(. *showHide(target, showUpState/showUpCallback, [resetTarget], [callback])*        Returns: *Field*
 
 <h2><a name="api_input">Form Inputs</a></h2>
 
@@ -396,20 +398,20 @@ p(. checkbox
 
 <h2><a name="api_ext">Extend Parcel</a></h2>
 
-p(. $.config
+p(. *$.config*
 
-p(. $.parcelFn
+p(. *$.parcelFn*
 
-p(. $.fn
+p(. *$.fn*
 
 <h2><a name="api_util">Utility</a></h2>
 
-p(. $.stateEqual(s1, s2)        Returns: boolean
+p(. *$.stateEqual(s1, s2)*        Returns: *boolean*
 
-p(. $.stateContain(whole, partial)        Returns: boolean
+p(. *$.stateContain(whole, partial)*        Returns: *boolean*
 
-p(. $.stateEmpty()        Returns: boolean
+p(. *$.stateEmpty()*        Returns: *boolean*
 
-p(. $.cloneState(s)        Returns: object/string/array
+p(. *$.cloneState(s)*        Returns: *object/string/array*
 
 <h1><a name="qa">Q&A</a></h1>
