@@ -9,55 +9,57 @@
 <body>
 
 <div id="fixture">
-  <div id="person">
-    <input type="text" value="luning" name="name"></input>
-    <select name="title">
-      <option selected="selected">please select</option>
-      <option>Mr</option>
-      <option>Mrs</option>
-    </select>
-    <div>
-      <input type="radio" value="Male" checked="checked" name="gender">Male</input>
-      <input type="radio" value="Female" name="gender">Female</input>
-    </div>
-    <div parcel name="dob">
-      <select name="day">
+  <div id="container">
+    <div id="person">
+      <input type="text" value="luning" name="name"></input>
+      <select name="title">
         <option selected="selected">please select</option>
-        <option>01</option>
-        <option>02</option>
+        <option>Mr</option>
+        <option>Mrs</option>
       </select>
-      <select name="month">
-        <option selected="selected">please select</option>
-        <option>Jan</option>
-        <option>Feb</option>
-      </select>
-      <select name="year">
-        <option selected="selected">please select</option>
-        <option>1990</option>
-        <option>1991</option>
-      </select>
-    </div>
-    <input id="nationality" type="text" someproperty="nationality"></input>
-    <input id="id_city" type="text" fieldname="city"></input>
-    <div parcel name="locality">
-      <input type="text" name="no"></input>
-      <input type="text" name="street"></input>
-    </div>
-    <div virtualfield name="contactInfo">
-      <div name="emails" parcel="[email]" >
-        <input type="text" value="first@my.com" name="email"></input>
-        <input type="text" value="second@my.com" name="email"></input>
+      <div>
+        <input type="radio" value="Male" checked="checked" name="gender">Male</input>
+        <input type="radio" value="Female" name="gender">Female</input>
       </div>
-      <div name="contacts" parcel="[contact]">
-        <div parcel name="contact">
-          <input type="text" name="number"></input>
-          <input type="text" name="type"></input>
+      <div parcel name="dob">
+        <select name="day">
+          <option selected="selected">please select</option>
+          <option>01</option>
+          <option>02</option>
+        </select>
+        <select name="month">
+          <option selected="selected">please select</option>
+          <option>Jan</option>
+          <option>Feb</option>
+        </select>
+        <select name="year">
+          <option selected="selected">please select</option>
+          <option>1990</option>
+          <option>1991</option>
+        </select>
+      </div>
+      <input id="nationality" type="text" someproperty="nationality"></input>
+      <input id="id_city" type="text" fieldname="city"></input>
+      <div parcel name="locality">
+        <input type="text" name="no"></input>
+        <input type="text" name="street"></input>
+      </div>
+      <div virtualfield name="contactInfo">
+        <div name="emails" parcel="[email]" >
+          <input type="text" value="first@my.com" name="email"></input>
+          <input type="text" value="second@my.com" name="email"></input>
+        </div>
+        <div name="contacts" parcel="[contact]">
+          <div parcel name="contact">
+            <input type="text" name="number"></input>
+            <input type="text" name="type"></input>
+          </div>
         </div>
       </div>
-    </div>
-    <input type="text" parcelignored name="ignoredInput"></input>
-    <div parcelignored name="ignoredDiv">
-      <input type="text" name="inIgnoredDiv"></input>
+      <input type="text" parcelignored name="ignoredInput"></input>
+      <div parcelignored name="ignoredDiv">
+        <input type="text" name="inIgnoredDiv"></input>
+      </div>
     </div>
   </div>
 </div>
@@ -135,7 +137,12 @@ Screw.Unit(function() {
       
       expect(person.state()).to(contain_state, s);
     });
-
+/*
+    it("of Virtual field without any parent parcel should be got", function() {
+      var person = $("#person").parcel();
+      expect($("#container").state()).to(contain_state, [{ name: "luning", title: "please select", gender: "Male" }]);
+    });
+*/    
   });
 
   describe("Default State", function() {
@@ -384,26 +391,30 @@ Screw.Unit(function() {
     it("of a jQuery field should remove itself and fire change event on parent DOM", function() {
       var person = $("#person").parcel();
       var count = 0;
+      var error;
       person.change(function(e){
-        expect(e.target).to(be_same_dom_element_as, person[0]);
+        error = errorOfExpect(function() { expect(e.target).to(be_same_dom_element_as, person[0]); });
         count++;
       })
       
       person.title.removeMe();
       expect(person.title).to(be_undefined);
+      expect(error).to(be_undefined);
       expect(count).to(equal, 1);
     });
 
     it("of a Parcel should remove itself as a field and fire change event on parent DOM", function() {
       // TODO
       // var count = 0;
+      // var error;
       // person.change(function(e){
-        // expect(e.target).to(equal, person.container[0]);
+        // error = errorOfExpect(function() { expect(e.target).to(equal, person.container[0]); });
         // count++;
       // })
       
       // person.locality.removeMe();
       // expect(person.locality).to(be_undefined);
+      // expect(error).to(be_undefined);
       // expect(count).to(equal, 1);
     });
 

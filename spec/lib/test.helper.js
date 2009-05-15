@@ -7,3 +7,11 @@ $(document).ready(function() {
     return false;
   });
 });
+
+var errorOfExpect = function(fn){
+  try{
+    fn();
+  } catch(ex) {
+    return ex.toString();
+  }
+}

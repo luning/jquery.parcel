@@ -186,9 +186,10 @@ Screw.Unit(function() {
       var person = $("#person").parcel();
       var added = false;
       var count = 0;
+      var error;
       person.stateChange(function(e){
         if(added){
-          expect(e.field.state().education).to(equal, "college");
+          error = errorOfExpect(function() { expect(e.field.state().education).to(equal, "college"); });
           count++;
         }
       })
@@ -199,6 +200,7 @@ Screw.Unit(function() {
 
       added = true;
       person.education.state("college");
+      expect(error).to(be_undefined);
       expect(count).to(equal, 1);
     });    
   });
@@ -273,14 +275,16 @@ Screw.Unit(function() {
       var person = $("#person").parcel();
 
       var count = 0;
+      var error;
       person.change(function(e){
-        expect(e.target).to(be_same_dom_element_as, aDiv[0]);
+        error = errorOfExpect(function() { expect(e.target).to(be_same_dom_element_as, aDiv[0]); });
         count++;
       })
       
       person.education.remove();
       person.sync();
       
+      expect(error).to(be_undefined);
       expect(count).to(equal, 1);
     });
     
@@ -290,14 +294,16 @@ Screw.Unit(function() {
       var person = $("#person").parcel();
 
       var count = 0;
+      var error;
       person.change(function(e){
-        expect(e.target).to(be_same_dom_element_as, emailsDiv[0]);
+        error = errorOfExpect(function() { expect(e.target).to(be_same_dom_element_as, emailsDiv[0]); });
         count++;
       })
       
       person.emails.items[0].remove();
       person.sync();
       
+      expect(error).to(be_undefined);
       expect(count).to(equal, 1);
     });
     
@@ -305,8 +311,9 @@ Screw.Unit(function() {
       var person = $("#person").parcel();
 
       var count = 0;
+      var error;
       person.change(function(e){
-        expect(e.target).to(be_same_dom_element_as, person.emails.get(0));
+        error = errorOfExpect(function() { expect(e.target).to(be_same_dom_element_as, person.emails.get(0)); });
         count++;
       })
       
@@ -314,6 +321,7 @@ Screw.Unit(function() {
       person.sync();
       
       expect(person.emails.items.length).to(equal, 0);
+      expect(error).to(be_undefined);
       expect(count).to(equal, 1);
     });
     

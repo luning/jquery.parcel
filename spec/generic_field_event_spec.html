@@ -9,25 +9,27 @@
 <body>
 
 <div id="fixture">
-  <div id="person">
-    <input type="text" value="luning" name="name"></input>
-    <input type="radio" value="No" checked="checked" name="marital">No</input>
-    <input type="radio" value="Yes" name="marital">Yes</input>
-    <div virtualfield name="spouseInfo">
-      <input type="text" name="spouseName"></input>
+  <div id="container">
+    <div id="person">
+      <input type="text" value="luning" name="name"></input>
+      <input type="radio" value="No" checked="checked" name="marital">No</input>
+      <input type="radio" value="Yes" name="marital">Yes</input>
+      <div virtualfield name="spouseInfo">
+        <input type="text" name="spouseName"></input>
+      </div>
+      <input type="checkbox" value="Reading" name="hobby">
+      <input type="checkbox" value="Climbing" name="hobby">
+      <div name="emails" parcel="[email]" >
+        <input type="text" value="luning.tw@gmail.com" name="email"></input>
+      </div>
+      <input type="text" parcelignored name="ignoredInput"></input>
+      <div parcelignored name="ignoredDiv">
+        <input type="text" name="inIgnoredDiv"></input>
+      </div>
     </div>
-    <input type="checkbox" value="Reading" name="hobby">
-    <input type="checkbox" value="Climbing" name="hobby">
-    <div name="emails" parcel="[email]" >
-      <input type="text" value="luning.tw@gmail.com" name="email"></input>
+    <div id="personDetails">
+      <span id="span">span</span>
     </div>
-    <input type="text" parcelignored name="ignoredInput"></input>
-    <div parcelignored name="ignoredDiv">
-      <input type="text" name="inIgnoredDiv"></input>
-    </div>
-  </div>
-  <div id="personDetails">
-    <span id="span">span</span>
   </div>
 </div>
   
@@ -174,55 +176,78 @@ Screw.Unit(function() {
     it("should fire on a jQuery", function() {
       var person = $("#person").parcel();
       var eventFired = false;
+      var error;
       person.name.stateChange(function(e){ // TODO is this setup right on person.name?
         eventFired = true;
-        expect(e.field.state()).to(equal, "smith");
+        error = errorOfExpect(function() { expect(e.field.state()).to(equal, "smith"); });
       });
       
       expect(eventFired).to(be_false);
       person.name.state("smith");
       expect(eventFired).to(be_true);
+      expect(error).to(be_undefined);
     }); 
   
     it("should fire on a Parcel", function() {
       var person = $("#person").parcel();
       var eventFired = false;
+      var error;
       person.stateChange(function(e){
         eventFired = true;
-        expect(e.field.state()).to(contain_state, { name: "smith" });
+        error = errorOfExpect(function() { expect(e.field.state()).to(contain_state, { name: "smith" }); });
       });
       
       expect(eventFired).to(be_false);
       person.name.state("smith");
       expect(eventFired).to(be_true);
+      expect(error).to(be_undefined);
     }); 
     
     it("should fire on an Array field", function() {
       var person = $("#person").parcel();
       var eventFired = false;
+      var error;
       person.emails.stateChange(function(e){
         eventFired = true;
-        expect(e.field.state()).to(equal_state, ["another@my.com"]);
+        error = errorOfExpect(function() { expect(e.field.state()).to(equal_state, ["another@my.com"]); });
       });
       
       expect(eventFired).to(be_false);
       person.emails.items[0].state("another@my.com");
       expect(eventFired).to(be_true);
+      expect(error).to(be_undefined);
     });
     
     it("should fire on a Virtual field", function() {
       var person = $("#person").parcel();
       var eventFired = false;
+      var error;
       person.spouseInfo.stateChange(function(e){
         eventFired = true;
-        expect(e.field.state()).to(equal_state, { spouseName: "jessie" });
+        error = errorOfExpect(function() { expect(e.field.state()).to(equal_state, { spouseName: "jessie" }); });
       });
       
       expect(eventFired).to(be_false);
       person.spouseName.state("jessie");
       expect(eventFired).to(be_true);
+      expect(error).to(be_undefined);
     });
-    
+/*    
+    it("should fire on a Virtual field without any parent parcel", function() {
+      var person = $("#person").parcel();
+      var error;
+      var eventFired = false;
+      $("#container").stateChange(function(e){
+        eventFired = true;
+        error = errorOfExpect(function() { expect(e.field.state()).to(contain_state, [{ name: "smith" }]); });
+      });
+      
+      expect(eventFired).to(be_false);
+      person.name.state("smith");
+      expect(eventFired).to(be_true);
+      expect(error).to(be_undefined);
+    });
+*/    
     it("should not be triggered by parcel ignored DOM element", function() {
       var person = $("#person").parcel();
       var eventFired = false;
@@ -243,14 +268,16 @@ Screw.Unit(function() {
       }
       var person = $("#person").parcel();
       var count = 0;
+      var error;
       person.stateChange(function(e){
         count++;
-        expect(e.field.state().marital).to(equal_state, "Yes");
+        error = errorOfExpect(function() { expect(e.field.state().marital).to(equal_state, "Yes"); });
       }, true);
       
       expect(count).to(equal, 0);
       person.marital.filter("[value=Yes]").click();
       expect(count).to(equal, 1);
+      expect(error).to(be_undefined);
     });
     
     it("should fire event soon after clicking checkbox in IE if set includingClickInIE to true", function() {
@@ -259,16 +286,18 @@ Screw.Unit(function() {
       }
       var person = $("#person").parcel();
       var count = 0;
+      var error;
       person.stateChange(function(e){
         count++;
-        expect(e.field.state().hobby).to(equal_state, ["Reading"]);
+        error = errorOfExpect(function() { expect(e.field.state().hobby).to(equal_state, ["Reading"]); });
       }, true);
       
       expect(count).to(equal, 0);
       person.hobby.filter("[value=Reading]").click();
       expect(count).to(equal, 1);
+      expect(error).to(be_undefined);
     });
-
+    
   });
 
   describe("Show Hide", function() {
@@ -380,21 +409,27 @@ Screw.Unit(function() {
       var person = $("#person").parcel();
       var shouldBeVisible = false;
       var fired = false;
+      var error;
       person.showHide(person.spouseInfo, { marital: "Yes" }, function(){
         fired = true;
-        expect(this).to(be_same_dom_element_as, person.spouseInfo[0]);
-        shouldBeVisible ? expect(this).to(be_visible) : expect(this).to_not(be_visible);
+        var self = this;
+        error = errorOfExpect(function() { expect(self).to(be_same_dom_element_as, person.spouseInfo[0]); })
+             || errorOfExpect(function() { shouldBeVisible ? expect(self).to(be_visible) : expect(self).to_not(be_visible); });
       });
 
       fired = false;
+      error = undefined;
       shouldBeVisible = true;
       person.marital.state("Yes");
       expect(fired).to(be_true);
+      expect(error).to(be_undefined);
 
       fired = false;
+      error = undefined;
       shouldBeVisible = false;
       person.marital.state("No");
       expect(fired).to(be_true);
+      expect(error).to(be_undefined);
     });
   });
 });
