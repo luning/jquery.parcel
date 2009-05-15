@@ -691,20 +691,32 @@
     },
 
     // call field method for every matched sub-state
+    // in strict mode($.config.strict == true), setting state/defaultState for inexistent field is not allowed
     _stateSetActionOnFields: function(state, fieldMethod, context){
+      if($.config.strict){
+        state = $.cloneState(state);
+      }
       var fields = this._fieldsIn(context);
       if(this._nameConstraint){
         $.each(state, function(i, curState){
           if(i < fields.length){
             fields[i][fieldMethod](curState);
+          } else if ($.config.strict){
+            throw state.slice(i);
           }
         });
       } else {
         $.each(fields, function(i, field){
           if(state.hasOwnProperty(field.fname)){
             field[fieldMethod](state[field.fname]);
+            if($.config.strict){
+              delete state[field.fname];
+            }
           }
         });
+        if($.config.strict && !$.stateEmpty(state)){
+          throw state;
+        }
       }
       return this;
     },
