@@ -193,6 +193,13 @@ Screw.Unit(function() {
       expect($.cloneState(undefined)).to(equal_state, undefined);
       expect($.cloneState(null)).to(equal_state, null);
     });
+    
+    it("should do shallow clone if specified", function() {
+      var origin = {n:{m:1}};
+      var clone = $.cloneState(origin, true);
+      origin.n.m = 2;
+      expect(clone.n.m).to(equal, 2);
+    });
   });
 });
 </script>

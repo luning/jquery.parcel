@@ -199,46 +199,6 @@ Screw.Unit(function() {
   
   });
 
-  describe("Set State in Strict Mode", function() {
-  
-    it("should throw exception with partial state of inexistent field(s) if try to set state with inexistent field(s)", function() {
-      $.config.strict = true;
-      
-      var person = $("#person").parcel();
-      try{
-        person.state({ name: "smith", notexist: "whatever", anothernotexist: "anotherwhatever" });
-        expect(true).to(be_false);
-      } catch(ex){
-        expect(ex).to(equal_state, { notexist: "whatever", anothernotexist: "anotherwhatever" });
-      }
-    });
-    
-    it("should throw exception with partial state of the first encountered field", function() {
-      $.config.strict = true;
-      
-      var person = $("#person").parcel();
-      try{
-        person.state({dob: {day:"01", notexist: "whatever"}, anothernotexist: "anotherwhatever"});
-        expect(true).to(be_false);
-      } catch(ex){
-        expect(ex).to(equal_state, { notexist: "whatever" });
-      }
-    });
-    
-    it("should throw exception with state of inexistent item(s) in array type field", function() {
-      $.config.strict = true;
-      
-      var person = $("#person").parcel();
-      try{
-        person.state({ emails: ["1@my.com", "2@my.com", "3@my.com"] });
-        expect(true).to(be_false);
-      } catch(ex){
-        expect(ex).to(equal_state, ["2@my.com", "3@my.com"]);
-      }
-    });
-    
-  });
-
 });
 </script>
 </body>

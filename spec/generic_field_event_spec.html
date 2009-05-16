@@ -30,6 +30,11 @@
     <div id="personDetails">
       <span id="span">span</span>
     </div>
+    <div>
+      <div id="car">
+        <input type="text" name="make"></input>
+      </div>
+    </div>
   </div>
 </div>
   
@@ -233,17 +238,28 @@ Screw.Unit(function() {
       expect(error).to(be_undefined);
     });
     
-    it("should fire on a Virtual field without any parent parcel", function() {
+    it("should fire on a Virtual field without any parent parcel when state changes in any top level parcels under it", function() {
       var person = $("#person").parcel();
+      var car = $("#car").parcel();
+      
       var error;
       var eventFired = false;
       $("#container").stateChange(function(e){
         eventFired = true;
-        error = errorOfExpect(function() { expect(e.field.state()).to(contain_state, [{ name: "smith" }]); });
+        error = errorOfExpect(function() {
+          var s = e.field.state();
+          expect(s[0].name).to_not(be_undefined); 
+          expect(s[1].make).to_not(be_undefined); 
+        });
       });
-      
       expect(eventFired).to(be_false);
+      
       person.name.state("smith");
+      expect(eventFired).to(be_true);
+      expect(error).to(be_undefined);
+      
+      eventFired = false;
+      car.make.state("toyota");
       expect(eventFired).to(be_true);
       expect(error).to(be_undefined);
     });

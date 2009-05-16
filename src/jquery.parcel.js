@@ -199,7 +199,7 @@
   var defaultStrategy = {
     match: function(){ return true; },
     get: function(){ return this.text(); },
-    set: function(s){ this.text(s); },
+    set: function(s, option){ this.text(s); },
     getDefault: function() { return this.attr("default") !== undefined ? this.attr("default") : ""; },
     setDefault: function(s) { this.attr("default", s); }
   };
@@ -207,7 +207,7 @@
   var elementStrategies = [
   // for div and fieldset
   {
-    ignoreEqualCheck: true,
+    isContainer: true,
     match: function(){ return $.hasTag(this, "div", "fieldset"); },
     get: function(){
       var parcel = this.closestParcel();
@@ -217,14 +217,14 @@
       var state = $.map(this.childParcels(), function(p){ return p.state(); });
       return state.length === 0 ? this.val() : state;
     },
-    set: function(s){
+    set: function(s, option){
       var parcel = this.closestParcel();
       if(parcel){
-        parcel.setState(s, this);
+        parcel.setState(s, option, this);
       } else if ($.isArray(s)) {
         $.each(this.childParcels(), function(i, p){
           if(i < s.length){
-            p.state(s[i]);
+            p.state(s[i], option);
           }          
         });
       } else {
@@ -362,7 +362,7 @@
 
   // extend jQuery for jQuery field and Virtual field
   $.extend($.fn, fieldMixin, {
-    state: function(s) {
+    state: function(s, option) {
       var matched = $.first(elementStrategies, function(i, elem){ return elem.match.call(this); }.bind(this));
 
       var customGet = ($.config.elementStrategy && $.config.elementStrategy.get) || emptyFn;
@@ -372,10 +372,14 @@
         var ret = customGet.call(this);
         return ret === undefined ? matched.get.call(this) : ret;
       } else {
-        if(customSet.call(this, s) === undefined){
-          if(matched.ignoreEqualCheck){
-            matched.set.call(this, s);
+        if(customSet.call(this, s, option) === undefined){
+          if(matched.isContainer){
+            matched.set.call(this, s, option);
           } else if (!$.stateEqual(s, this.state())){
+            option = option || {};
+            if(option.visible && this.is(":hidden")){
+              throw "ParcelError: the field is hidden and can not be assigned with state [" + s + "] under config";
+            }
             matched.set.call(this, s);
           }
         }
@@ -609,16 +613,16 @@
       return all;
     },
 
-    state: function(s){
-      return s === undefined ? this.getState() : this.setState(s);
+    state: function(s, option){
+      return s === undefined ? this.getState() : this.setState(s, option);
     },
     
     getState: function(context){
       return this._stateGetActionOnFields("state", context);
     },
     
-    setState: function(s, context){
-      return this._stateSetActionOnFields(s, "state", context);
+    setState: function(s, option, context){
+      return this._stateSetActionOnFields(s, option, "state", context);
     },
     
     initialState: function(context){
@@ -658,7 +662,7 @@
     },
 
     setDefaultState: function(s, context){
-      return this._stateSetActionOnFields(s, "defaultState", context);
+      return this._stateSetActionOnFields(s, {}, "defaultState", context);
     },
 
     // check if this parcel contains any DOM in element
@@ -716,30 +720,31 @@
     },
 
     // call field method for every matched sub-state
-    // in strict mode($.config.strict == true), setting state/defaultState for inexistent field is not allowed
-    _stateSetActionOnFields: function(state, fieldMethod, context){
-      if($.config.strict){
-        state = $.cloneState(state);
-      }
+    // setting state/defaultState for inexistent field is not allowed if option.exist is true
+    _stateSetActionOnFields: function(state, option, fieldMethod, context){
+      option = option || {};
       var fields = this._fieldsIn(context);
       if(this._nameConstraint){
         $.each(state, function(i, curState){
           if(i < fields.length){
-            fields[i][fieldMethod](curState);
-          } else if ($.config.strict){
+            fields[i][fieldMethod](curState, option);
+          } else if (option.exist){
             throw state.slice(i);
           }
         });
       } else {
+        if(option.exist){
+          state = $.cloneState(state, true);
+        }
         $.each(fields, function(i, field){
           if(state.hasOwnProperty(field.fname)){
-            field[fieldMethod](state[field.fname]);
-            if($.config.strict){
+            field[fieldMethod](state[field.fname], option);
+            if(option.exist){
               delete state[field.fname];
             }
           }
         });
-        if($.config.strict && !$.stateEmpty(state)){
+        if(option.exist && !$.stateEmpty(state)){
           throw state;
         }
       }
@@ -903,14 +908,14 @@
     return true;
   };
   
-  // do deep clone of state
-  $.cloneState = function(s){
+  // do deep clone of state unless shallow is true
+  $.cloneState = function(s, shallow){
     if(!s || typeof(s) === "string" || typeof(s) === "number"){
       return s;
     } else if(s instanceof Array){
-      return $.extend(true, [], s);
+      return $.extend(!shallow, [], s);
     } else {
-      return $.extend(true, {}, s);
+      return $.extend(!shallow, {}, s);
     }
   };
   
