@@ -143,7 +143,15 @@
     // find closest parent parcel including itself
     closestParcel: function(){
       return this.closest("[parcelInstance]").getParcel();
-    },	
+    },
+    
+    // find all top level parcel objects under this jQuery object
+    // return empty set if this jQuery object is a parcel of under any parcel
+    childParcels: function(){
+      return $.map(this.find("[parcelInstance]:not([parcelInstance] *)"), function(dom){
+        return $(dom).getParcel();
+      });
+    },
 	
     isDirty: function() {
       return !$.stateEqual(this.initialState(), this.state());
@@ -203,12 +211,19 @@
       if(parcel){
         return parcel.getState(this);
       }
-      return this.val();
+      var state = $.map(this.childParcels(), function(p){ return p.state(); });
+      return state.length === 0 ? this.val() : state;
     },
     set: function(s){
       var parcel = this.closestParcel();
       if(parcel){
         parcel.setState(s, this);
+      } else if ($.isArray(s)) {
+        $.each(this.childParcels(), function(i, p){
+          if(i < s.length){
+            p.state(s[i]);
+          }          
+        });
       } else {
         this.val(s);
       }
