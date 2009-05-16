@@ -232,22 +232,22 @@ Screw.Unit(function() {
       expect(eventFired).to(be_true);
       expect(error).to(be_undefined);
     });
-/*    
-    it("should fire on a Virtual field without any parent parcel", function() {
-      var person = $("#person").parcel();
-      var error;
-      var eventFired = false;
-      $("#container").stateChange(function(e){
-        eventFired = true;
-        error = errorOfExpect(function() { expect(e.field.state()).to(contain_state, [{ name: "smith" }]); });
-      });
+    
+    // it("should fire on a Virtual field without any parent parcel", function() {
+      // var person = $("#person").parcel();
+      // var error;
+      // var eventFired = false;
+      // $("#container").stateChange(function(e){
+        // eventFired = true;
+        // error = errorOfExpect(function() { expect(e.field.state()).to(contain_state, [{ name: "smith" }]); });
+      // });
       
-      expect(eventFired).to(be_false);
-      person.name.state("smith");
-      expect(eventFired).to(be_true);
-      expect(error).to(be_undefined);
-    });
-*/    
+      // expect(eventFired).to(be_false);
+      // person.name.state("smith");
+      // expect(eventFired).to(be_true);
+      // expect(error).to(be_undefined);
+    // });
+    
     it("should not be triggered by parcel ignored DOM element", function() {
       var person = $("#person").parcel();
       var eventFired = false;

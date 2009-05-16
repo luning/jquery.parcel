@@ -8,9 +8,10 @@ $(document).ready(function() {
   });
 });
 
-var errorOfExpect = function(fn){
+// screw does not report error of screw expect() call if it's in an event handler, use method below as a workaround
+var errorOfExpect = function(expectFn){
   try{
-    fn();
+    expectFn();
   } catch(ex) {
     return ex.toString();
   }

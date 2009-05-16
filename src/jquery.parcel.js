@@ -29,7 +29,9 @@
       
       $.extend(this, $.parcel.prototype);
       $.parcel.apply(this, arguments);
-      return this.data("parcel", this);
+      // this.attr(key, value) will convert value to string, so set attribute directly as below
+      this[0].parcelInstance = this;
+      return this;
     },
     
     sync: function(){
@@ -39,7 +41,7 @@
     },
     
     getParcel: function(){
-      return this.data("parcel");
+      return this.attr("parcelInstance");
     }
   });
 
