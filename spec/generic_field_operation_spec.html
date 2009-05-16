@@ -143,7 +143,7 @@ Screw.Unit(function() {
       expect(person.state()).to(contain_state, s);
     });
 
-    it("of Virtual field without any parent parcel should be got with states of all top level parcels under it", function() {
+    it("of Virtual field without parent parcel should be got with states of all top level parcels under it", function() {
       var person = $("#person").parcel();
       var car = $("#car").parcel();
       
@@ -154,7 +154,7 @@ Screw.Unit(function() {
       expect(s[1]).to(equal_state, car.state());
     });
     
-    it("of Virtual field without any parent parcel should be set with an array of states of top level parcels under it", function() {
+    it("of Virtual field without parent parcel should be set with an array of states of top level parcels under it", function() {
       var person = $("#person").parcel();
       var car = $("#car").parcel();
       
@@ -227,7 +227,27 @@ Screw.Unit(function() {
       person.contactInfo.defaultState(state);
       expect(person.contactInfo.defaultState()).to(equal_state, state);
     });
-
+    
+    it("of a Virtual field without parent parcel should be got with array of top level parcel's default state under it", function() {
+      var person = $("#person").parcel();
+      var car = $("#car").parcel();
+      
+      var s = $("#container").defaultState();
+      
+      expect(s.length).to(equal, 2);
+      expect(s[0]).to(contain_state, { name: "", title: "please select" });
+      expect(s[1]).to(contain_state, { make: "" });
+    });
+    
+    it("of a Virtual field without parent parcel should be set with array of default states of top level parcels under it", function() {
+      var person = $("#person").parcel();
+      var car = $("#car").parcel();
+      
+      var s = [{ name: "smith" }, { make: "GE" }];
+      $("#container").defaultState(s);
+      
+      expect($("#container").defaultState()).to(contain_state, s);
+    });
   });
   
   describe("Reset State", function() {
@@ -265,9 +285,66 @@ Screw.Unit(function() {
       person.contactInfo.defaultState(state).resetState();
       expect(person.contactInfo.state()).to(equal_state, state);
     });
+    
+    it("should work for a Virtual field without parent parcel", function() {
+      var person = $("#person").parcel();
+      var car = $("#car").parcel();
+      
+      var s = [{name: "smith", title: "Mr"}, {make: "GE"}];
+      $("#container").defaultState(s).resetState();
+      expect($("#container").state()).to(contain_state, s);
+    });
 
   });
 
+  describe("Get Initial State", function() {
+
+    it("should work for a jQuery field", function() {
+      var person = $("#person").parcel();
+      expect(person.name.initialState()).to(equal, "luning");
+    });
+    
+    it("should work for a Parcel field", function() {
+      var person = $("#person").parcel();
+      expect(person.locality.initialState()).to(equal_state, { no: "", street: "" });
+    });
+    
+    it("should work for an Array field", function() {
+      var person = $("#person").parcel();
+      expect(person.emails.initialState()).to(equal_state, ["first@my.com", "second@my.com"]);
+    });
+    
+    it("should work for a Virtual field", function() {
+      var person = $("#person").parcel();
+      expect(person.contactInfo.initialState()).to(equal_state, { emails: ["first@my.com", "second@my.com"], contacts: [{number: "", type: ""}]});
+    });
+    
+    it("should work for a Virtual field without parent parcel by returning an array of initial states of top level parcels under it", function() {
+      var person = $("#person").parcel();
+      var car = $("#car").parcel();
+      
+      var s = $("#container").initialState();
+      expect(s.length).to(equal, 2);
+      expect(s[0]).to(contain_state, { name: "luning", title: "please select" });
+      expect(s[1]).to(contain_state, { make: ""});
+    });
+    
+    it("should return a deep copy of initial state for a Parcel", function() {
+      var person = $("#person").parcel();
+      var s = person.initialState();
+      s.locality.no = "300";
+      expect(person.initialState().locality.no).to(equal, "");
+    });
+    
+    it("should return a deep copy of initial state for an Array field", function() {
+      var person = $("#person").parcel();
+      var s = person.emails.initialState();
+      s[0] = "1@my.com";
+      expect(person.emails.initialState()[0]).to(equal, "first@my.com");
+    });
+    
+  });
+  
   describe("Is Dirty", function() {
 
     it("of a Parcel should know if any field is changed after creation of this Parcel", function() {
@@ -305,46 +382,17 @@ Screw.Unit(function() {
       expect(person.contactInfo.isDirty()).to(be_true);
     });
     
-  });
+    it("of a Virtual field without parent parcel should know any change of the top level parcels under it", function() {
+      var person = $("#person").parcel();
+      var car = $("#car").parcel();
+      expect($("#container").isDirty()).to(be_false);
 
-  describe("Get Initial State", function() {
-
-    it("should work for a jQuery field", function() {
-      var person = $("#person").parcel();
-      expect(person.name.initialState()).to(equal, "luning");
-    });
-    
-    it("should work for a Parcel field", function() {
-      var person = $("#person").parcel();
-      expect(person.locality.initialState()).to(equal_state, { no: "", street: "" });
-    });
-    
-    it("should work for an Array field", function() {
-      var person = $("#person").parcel();
-      expect(person.emails.initialState()).to(equal_state, ["first@my.com", "second@my.com"]);
-    });
-    
-    it("should work for a Virtual field", function() {
-      var person = $("#person").parcel();
-      expect(person.contactInfo.initialState()).to(equal_state, { emails: ["first@my.com", "second@my.com"], contacts: [{number: "", type: ""}]});
-    });
-    
-    it("should return a deep copy of initial state for a Parcel", function() {
-      var person = $("#person").parcel();
-      var s = person.initialState();
-      s.locality.no = "300";
-      expect(person.initialState().locality.no).to(equal, "");
-    });
-    
-    it("should return a deep copy of initial state for an Array field", function() {
-      var person = $("#person").parcel();
-      var s = person.emails.initialState();
-      s[0] = "1@my.com";
-      expect(person.emails.initialState()[0]).to(equal, "first@my.com");
+      $("#container").state([{}, {make: "toyota"}]);
+      expect($("#container").isDirty()).to(be_true);
     });
     
   });
-  
+
   describe("Revert State", function() {
 
     it("on a jQuery field should revert state of it in parent parcel", function() {
@@ -404,6 +452,17 @@ Screw.Unit(function() {
       
       expect(person.name.state()).to(equal, "smith");
       expect(person.title.state()).to(equal, "Mr");
+    });
+    
+    it("on a Virtual field without parent parcel should revert all top level parcels under it", function() {
+      var person = $("#person").parcel();
+      var car = $("#car").parcel();
+      
+      $("#container")
+        .state([{ name: "smith", title: "Mr" }, { make: "toyota" }])
+        .revertState();
+      
+      expect($("#container").state()).to(contain_state, [{ name: "luning", title: "please select" }, { make: "" }]);
     });
 
   });

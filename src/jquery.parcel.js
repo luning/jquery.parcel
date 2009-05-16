@@ -167,6 +167,9 @@
       if(parcel){
         return parcel.initialState(this);
       }
+      return $.map(this.childParcels(), function(p){
+        return p.initialState();
+      });
     },
     
     fieldDom: function(){
@@ -230,11 +233,22 @@
     },
     getDefault: function(){
       var parcel = this.closestParcel();
-      if(parcel){ return parcel.getDefaultState(this); }
+      if(parcel){
+        return parcel.getDefaultState(this);
+      }
+      return $.map(this.childParcels(), function(p){ return p.defaultState(); });
     },
     setDefault: function(s){
       var parcel = this.closestParcel();
-      if(parcel){ parcel.setDefaultState(s, this); }
+      if(parcel){
+        parcel.setDefaultState(s, this);
+      } else if($.isArray(s)){
+        $.each(this.childParcels(), function(i, p){
+          if(i < s.length){
+            p.defaultState(s[i]);
+          }          
+        });
+      }
     }
   },
   // for text input
