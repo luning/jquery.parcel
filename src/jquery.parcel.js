@@ -49,7 +49,7 @@
   var fieldMixin = {
     // determine if field is still in dom tree
     dead: function(){
-      return $(this.get(0)).parents().filter("body").length === 0;
+      return $(this.get(0)).closest("body").length === 0;
     },
 
     // change of this field will set state of target with the state of this field
@@ -142,13 +142,7 @@
     
     // find closest parent parcel including itself
     closestParcel: function(){
-      var parents = this.add(this.parents());
-      for(var i = 0; i < parents.length; i++){
-        var parcel = $(parents[i]).getParcel();
-        if(parcel){
-          return parcel;
-        }
-      }
+      return this.closest("[parcelInstance]").getParcel();
     },	
 	
     isDirty: function() {
