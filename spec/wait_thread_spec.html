@@ -1,0 +1,40 @@
+<html>
+
+<head>
+  <title>Wait Thread Spec</title>
+  <script src="../lib/jquery-1.3.2.js"></script>
+  <script src="lib/screw.dependencies.js"></script>
+  <script src="lib/test.helper.js"></script>
+  <script src="../src/jquery.parcel.js"></script>
+</head>
+
+<body>
+  
+<script type="text/javascript">
+Screw.Unit(function() {
+
+  var thread;
+  
+  after(function() {
+    if(thread){
+      thread.stop();
+    }
+  });
+  
+  describe("Wait Thread", function() {
+    it("should evaluate condition function once before enter async thread", function() {
+      var executed;
+      thread = new $.WaitThread(function(){
+        return true;
+      }, function(){
+        executed = true;
+      }, 10);
+      thread.start();
+      expect(executed).to(be_true);
+    });       
+  });
+
+});
+</script>
+</body>
+</html>
