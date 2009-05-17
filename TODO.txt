@@ -1,11 +1,15 @@
 TODO
 
 [ ] update documentation according to recent changes
+[ ] build parcel with multiple behaviours
+[ ] set state will add/remove item to/from array parcel if needed, consider how to specify it in state object literal
+[ ] beforeSetState and afterSerState event on parcel(for accordion), set state with option of before and after items
+[ ] support setting state with ajax call(introduce WaitThread and countOfActiveAjaxRequest)
+[ ] turn off animation while setting state
 [ ] use smoke mocks rather than roll our own
 [ ] consider renaming initialState() => initial or pristine?, resetState() => reset or revert, captureState() => save. 4 actions: get the last saved state, reset to blank, revert to the last saved state, save state.
 [ ] support textarea, multi-select and select-one
 [ ] make show/hide speed configurable
-[ ] jQuery object out of the scope of all parts may listen to state change of below parts some how
 
 potential problems:
 [ ] remove a DOM with many fields will fire change event multiple times unexpectedly, once on each field's closest alive original parent.

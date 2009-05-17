@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>Generic Field Operation Spec</title>
+  <title>Field Operation Spec</title>
   <script src="../lib/jquery-1.3.2.js"></script>
   <script src="lib/screw.dependencies.js"></script>
   <script src="lib/test.helper.js"></script>
@@ -75,174 +75,6 @@ Screw.Unit(function() {
   
   before(function() {
     $("#fixture").html(fixtureHtml);
-  });
-
-  describe("Get Field DOM", function() {
-    it("of an Array field should get all DOM elements of sub fields including the container", function() {
-      var person = $("#person").parcel();
-      var all = person.emails.fieldDom();
-      expect(all.length).to(equal, 3);
-      
-      var containerAnd2Emails = person.emails.add($("#person input[name=email]")).get();
-      expect(all).to(be_same_dom_element_as, containerAnd2Emails);
-    });
-  });
-
-  describe("State", function() {
-
-    it("of a jQuery should be set even when it is hidden", function() {
-      var person = $("#person").parcel();
-      person.name.hide();
-      person.name.state("smith");
-
-      expect(person.name.state()).to(equal, "smith");
-    });
-
-    it("of a Parcel should be got/set", function() {
-      var person = $("#person").parcel();
-      var state = { name: "josh", title: "Mr", gender: "Male", nationality: "OZ", city: "sydney", dob: {day: "01", month: "Jan", year: "1990"} };
-      person.state(state);
-      expect(person.state()).to(contain_state, state);
-    });
-
-    it("of a Parcel sub-field should be got/set", function() {
-      var person = $("#person").parcel();
-      var dobState = {day: "01", month: "Feb", year: "1991"};
-
-      person.dob.state(dobState);
-      expect(person.dob.state()).to(contain_state, dobState);
-    });
-
-    it("of a Parcel should be got/set by flaten object", function() {
-        // TODO : expect(true).to(be_false);
-    });
-
-    it("of an Array field should be got", function() {
-      var person = $("#person").parcel();
-      expect(person.emails.state()).to(equal_state, ["first@my.com", "second@my.com"]);
-    });
-    
-    it("of an Array field should be set", function() {
-      var person = $("#person").parcel();
-      var s = ["first@my.org", "second@my.org"];
-      person.emails.state(s);
-      
-      expect(person.emails.state()).to(equal_state, s);
-    });
-
-    it("of Virtual field should be got", function() {
-      var person = $("#person").parcel();
-      expect(person.contactInfo.state()).to(equal_state, { emails: ["first@my.com", "second@my.com"], contacts: [{number: "", type: ""}] });
-    });
-    
-    it("of Virtual field should be set", function() {
-      var person = $("#person").parcel();
-      var s = { emails: ["1@my.com", "2@my.com"], contacts: [{number: "1234", type: "home"}] };
-      person.contactInfo.state(s);
-      
-      expect(person.state()).to(contain_state, s);
-    });
-
-    it("of Virtual field without parent parcel should be got with states of all top level parcels under it", function() {
-      var person = $("#person").parcel();
-      var car = $("#car").parcel();
-      
-      var s = $("#container").state();
-      
-      expect(s.length).to(equal, 2);
-      expect(s[0]).to(equal_state, person.state());
-      expect(s[1]).to(equal_state, car.state());
-    });
-    
-    it("of Virtual field without parent parcel should be set with an array of states of top level parcels under it", function() {
-      var person = $("#person").parcel();
-      var car = $("#car").parcel();
-      
-      var s = [{name: "smith", title: "Mr"}, {make: "Toyota"}];
-      $("#container").state(s);
-      
-      expect(person.state()).to(contain_state, s[0]);
-      expect(car.state()).to(contain_state, s[1]);
-    });
-
-    describe("Set State with Option", function() {
-
-      it("should throw the invalid part of state for inexistent field(s) if 'option.exist' is true", function() {
-        var person = $("#person").parcel();
-        try{
-          person.state({ name: "smith", notexist: "" }, { exist: true });
-          expect(true).to(be_false);
-        } catch(ex) {
-          expect(ex).to(equal_state, { notexist: "" });
-        }
-      });
-      
-      it("should throw the invalid part of state for inexistent item(s) in array type field if 'option.exist' is true", function() {
-        var person = $("#person").parcel();
-        try{
-          person.state({ name: "smith", emails: ["1@my.com", "2@my.com", "notexist1@my.com", "notexist2@my.com"] }, { exist: true });
-          expect(true).to(be_false);
-        } catch(ex){
-          expect(ex).to(equal_state, ["notexist1@my.com", "notexist2@my.com"]);
-        }
-      });
-
-      it("should throw only the invalid part of state for the first unsuccess sub parcel", function() {
-        var person = $("#person").parcel();
-        try{
-          person.state({dob: {day:"01", notexist: "whatever"}, anothernotexist: "anotherwhatever"}, { exist: true });
-          expect(true).to(be_false);
-        } catch(ex){
-          expect(ex).to(equal_state, { notexist: "whatever" });
-        }
-      });
-
-      it("should throw shallow copied state of inexistent field(s)", function() {
-        var person = $("#person").parcel();
-        var s = { notexist: {aField: 1} };
-        try{
-          person.state(s, { exist: true });
-        } catch(ex) {
-          ex.notexist.aField = 2;
-          expect(s.notexist.aField).to(equal, 2);
-        }
-      });
-      
-      it("should throw shallow copied state of inexistent item(s) in array field", function() {
-        var person = $("#person").parcel();
-        var s = { emails: ["1@my.com", "2@my.com", {aField: 1}] };
-        try{
-          person.state(s, { exist: true });
-        } catch(ex){
-          ex[0].aField = 2;
-          expect(s.emails[2].aField).to(equal, 2);
-        }
-      });
-
-      it("should throw exception when set state of a hidden jQuery object if 'option.visible' is true", function() {
-        $("#person select[name=title]").hide();
-        try{
-          $("#person select[name=title]").state("Mr", { visible: true });
-          expect(true).to(be_false);
-        } catch(ex) {
-          expect(ex.toString()).to(match, "ParcelError");
-          expect(ex.toString()).to(match, "Mr");
-        }
-      });
-
-      it("should throw exception when set state of hidden field if 'option.visible' is true", function() {
-        var person = $("#person").parcel();
-        person.title.hide();
-        try{
-          person.state({ title: "Mr" }, { visible: true });
-          expect(true).to(be_false);
-        } catch(ex) {
-          expect(ex.toString()).to(match, "ParcelError");
-          expect(ex.toString()).to(match, "Mr");
-        }
-      });
-
-    });
   });
 
   describe("Default State", function() {
@@ -649,6 +481,17 @@ Screw.Unit(function() {
       expect($("#person input[name=name]").parcelIgnored()).to(be_false);
     });
 
+  });
+
+  describe("Get Field DOM", function() {
+    it("of an Array field should get all DOM elements of sub fields including the container", function() {
+      var person = $("#person").parcel();
+      var all = person.emails.fieldDom();
+      expect(all.length).to(equal, 3);
+      
+      var containerAnd2Emails = person.emails.add($("#person input[name=email]")).get();
+      expect(all).to(be_same_dom_element_as, containerAnd2Emails);
+    });
   });
   
 });
