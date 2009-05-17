@@ -2,8 +2,8 @@ TODO
 
 [ ] update documentation according to recent changes
 [ ] build parcel with multiple behaviours
-[ ] set state will add/remove item to/from array parcel if needed, consider how to specify it in state object literal
-[ ] beforeSetState and afterSerState event on parcel(for accordion), set state with option of before and after items
+[ ]?? set state will remove item from array parcel if needed
+[ ] beforeSetState and afterSetState event on parcel(for accordion), set state with option of 'before' and 'after'
 [ ] support setting state with ajax call(introduce WaitThread and countOfActiveAjaxRequest)
 [ ] turn off animation while setting state
 [ ] use smoke mocks rather than roll our own

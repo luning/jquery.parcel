@@ -74,7 +74,7 @@
       var newHandler = function(e){
         if(!$(e.target).parcelIgnored()) {
           e.field = self;
-          handler.apply(this, [e]); 
+          handler.apply(this, arguments); 
         }
       };
       
@@ -84,11 +84,19 @@
         this.click(function(e){
           var t = e.target.type;
           if(t === "radio" || t === "checkbox"){
-            newHandler.apply(this, [e]);
+            newHandler.apply(this, arguments);
           }
         });
       }      
       return this;
+    },
+    
+    beforeSetState: function(handler){
+      var self = this;
+      this.bind("beforeSetState", function(e){
+        e.field = self;
+        handler.apply(this, arguments); 
+      });
     },
     
     parcelIgnored: function(){
@@ -379,6 +387,9 @@
             option = option || {};
             if(option.visible && this.is(":hidden")){
               throw "ParcelError: the field is hidden and can not be assigned with state [" + s + "] under config";
+            }
+            if(option.beforeEvent){
+              this.trigger("beforeSetState");
             }
             matched.set.call(this, s);
           }

@@ -178,6 +178,22 @@ Screw.Unit(function() {
       person.emails.state(s);
       expect(person.emails.state()).to(equal_state, s);
     });
+    
+    it("set state should add new sub field when needed if addItem method is provided by array field", function() {
+      var person = $("#person").parcel();
+      person.emails.applyBehaviour(function(){
+        this.addItem = function(){
+          var elem = $("<input type='text' name='email'></input>");
+          this.append(elem);
+          elem.sync();
+        };
+      });
+
+      expect(person.emails.items.length).to(equal, 2);
+      var s = ["first@my.org", "second@my.org", "new@my.org"];
+      person.emails.state(s);
+      expect(person.emails.state()).to(equal_state, s);
+    });
 
   });
 
@@ -272,6 +288,20 @@ Screw.Unit(function() {
         expect(ex.toString()).to(match, "ParcelError");
         expect(ex.toString()).to(match, "Mr");
       }
+    });
+
+    it("should trigger beforeSetState event if 'option.beforeEvent' is true", function() {
+      var person = $("#person").parcel();
+      var fired = false;
+      person.beforeSetState(function(){
+        fired = true;
+      });
+      
+      person.name.state("jessie");
+      expect(fired).to(be_false);
+
+      person.name.state("smith", {beforeEvent: true});
+      expect(fired).to(be_true);
     });
 
   });
