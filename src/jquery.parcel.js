@@ -1049,11 +1049,12 @@
         } catch(e){
         }
         this.stop();
+        return true;
       }
     };
 
     this.start = function() {
-      if(this.id === -1){
+      if(this.id === -1 && !this.doOnce()){
         this.id = window.setInterval(this.doOnce.bind(this), interval || 100);
       }
     };
