@@ -97,7 +97,49 @@ Screw.Unit(function() {
 
       person.name.state("jessie", {beforeEvent: true});
       expect(fired).to(be_false);
-    });   
+    });
+
+  });
+
+  describe("After Set State Event", function() {
+
+    it("should not fire if set state with 'option.afterEvent' not be true", function() {
+      var person = $("#person").parcel();
+      var fired;
+      person.afterSetState(function(e){
+        fired = true;
+      });
+
+      person.state({ name: "smith" }, {afterEvent: false});
+      expect(fired).to(be_false);
+    });
+    
+    it("should fire after parcel state is updated by setting state directly on parcel", function() {
+      var person = $("#person").parcel();
+      var fired, error;
+      person.afterSetState(function(e){
+        fired = true;
+        error = errorOfExpect(function(){ expect(e.target).to(be_same_dom_element_as, person[0]); })
+              || errorOfExpect(function(){ expect(e.field.state()).to(contain_state, { name: "smith" }); });
+      });
+
+      person.state({ name: "luning" }, {afterEvent: true});
+      expect(fired).to(be_false);
+
+      person.state({ name: "smith" }, {afterEvent: true});
+      expect(fired).to(be_true);
+    });
+
+    it("should not fire if set state not on a parcel", function() {
+      var person = $("#person").parcel();
+      var fired;
+      person.afterSetState(function(e){
+        fired = true;
+      });
+
+      person.name.state("jessie", {afterEvent: true});
+      expect(fired).to(be_false);
+    });
 
   });
 });

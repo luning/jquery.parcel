@@ -91,6 +91,24 @@
       return this;
     },
 
+    // this event is fired on parcel
+    beforeSetState: function(handler){
+      var self = this;
+      this.bind("beforeSetState", function(e){
+        e.field = self;
+        handler.apply(this, arguments); 
+      });
+    },
+
+    // this event is fired on parcel
+    afterSetState: function(handler){
+      var self = this;
+      this.bind("afterSetState", function(e){
+        e.field = self;
+        handler.apply(this, arguments); 
+      });
+    },
+
     parcelIgnored: function(){
       return this.is("[parcelignored],[parcelignored=],[parcelignored] *,[parcelignored=] *");
     },
@@ -624,23 +642,23 @@
       return all;
     },
 
-    beforeSetState: function(handler){
-      var self = this;
-      this.bind("beforeSetState", function(e){
-        e.field = self;
-        handler.apply(this, arguments); 
-      });
-    },
-
     state: function(s, option){
       if(s === undefined){
         return this.getState();
       } else {
         option = option || {};
-        if(option.beforeEvent && this.willUpdateWith(s)){
+        var willUpdate;
+        if(option.beforeEvent || option.afterEvent){
+          willUpdate = this.willUpdateWith(s);
+        }
+        if(option.beforeEvent && willUpdate){
           this.trigger("beforeSetState");
         }
-        return this.setState(s, option);
+        this.setState(s, option);
+        if(option.afterEvent && willUpdate){
+          this.trigger("afterSetState");
+        }
+        return this;
       }
     },
     
