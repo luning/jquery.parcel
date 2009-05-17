@@ -494,6 +494,21 @@ Screw.Unit(function() {
     });
   });
   
+  describe("Will Update With", function() {
+  
+    it("should be true if state will be updated after set with the state passed in", function() {
+      var person = $("#person").parcel();
+      expect(person.willUpdateWith({ name: "luning" })).to(be_false);
+      expect(person.willUpdateWith({ name: "smith" })).to(be_true);
+    });
+  
+    it("should ignore property of passed in state if no corresponding field", function() {
+      var person = $("#person").parcel();
+      expect(person.willUpdateWith({ notexist: "whatever" })).to(be_false);
+    });
+
+  });
+  
 });
 </script>
 </body>

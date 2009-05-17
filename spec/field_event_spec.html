@@ -449,48 +449,6 @@ Screw.Unit(function() {
     });
   });
 
-  describe("Before Set State Event", function() {
-
-    it("should not fire if set state with 'option.beforeEvent' not be true", function() {
-      var person = $("#person").parcel();
-      var fired;
-      person.name.beforeSetState(function(e){
-        fired = true;
-      });
-
-      person.name.state("smith", {beforeEvent: false});
-      expect(fired).to(be_false);
-    });
-
-    it("should be registered/fired on a jQuery object", function() {
-      var person = $("#person").parcel();
-      var fired, error;
-      person.name.beforeSetState(function(e){
-        fired = true;
-        error = errorOfExpect(function(){ expect(e.target).to(be_same_dom_element_as, person.name[0]); })
-              || errorOfExpect(function(){ expect(e.field.state()).to(equal_state, "luning"); });
-      });
-
-      person.name.state("smith", {beforeEvent: true});
-      expect(fired).to(be_true);
-      expect(error).to(be_undefined);
-    });
-
-    it("should be registered on parcel and fired on field", function() {
-      var person = $("#person").parcel();
-      var fired, error;
-      person.beforeSetState(function(e){
-        fired = true;
-        error = errorOfExpect(function(){ expect(e.target).to(be_same_dom_element_as, person.name[0]); })
-              || errorOfExpect(function(){ expect(e.field).to(be_same, person); });
-      });
-
-      person.name.state("smith", {beforeEvent: true});
-      expect(fired).to(be_true);
-      expect(error).to(be_undefined);
-    });
-
-  });
 });
 </script>
 </body>

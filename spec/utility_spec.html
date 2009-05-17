@@ -135,13 +135,22 @@ Screw.Unit(function() {
       expect($.stateContain(1, "1")).to(be_false);
       expect($.stateContain("1", 1)).to(be_false);
     });
-            
-    it("should check primative type with undefined or null", function() {
-      expect($.stateContain(0, undefined)).to(be_false);
-      expect($.stateContain(0, null)).to(be_false);
-      expect($.stateContain("", undefined)).to(be_false);
-      expect($.stateContain("", null)).to(be_false);
+    
+    it("object should contain undefined", function() {
+      expect($.stateContain({ }, undefined)).to(be_true);
+    });
 
+    it("primative type should contain undefined", function() {
+      expect($.stateContain(0, undefined)).to(be_true);
+      expect($.stateContain("", undefined)).to(be_true);
+    }); 
+
+    it("primative type should not contain null", function() {
+      expect($.stateContain(0, null)).to(be_false);
+      expect($.stateContain("", null)).to(be_false);
+    }); 
+
+    it("null or undefined should not contain primative type", function() {
       expect($.stateContain(undefined, 0)).to(be_false);
       expect($.stateContain(null, 0)).to(be_false);
       expect($.stateContain(undefined, "")).to(be_false);

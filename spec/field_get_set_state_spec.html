@@ -290,17 +290,14 @@ Screw.Unit(function() {
       }
     });
 
-    it("should trigger beforeSetState event if 'option.beforeEvent' is true", function() {
+    it("should trigger beforeSetState event on parcel if 'option.beforeEvent' is true", function() {
       var person = $("#person").parcel();
       var fired = false;
       person.beforeSetState(function(){
         fired = true;
       });
-      
-      person.name.state("jessie");
-      expect(fired).to(be_false);
 
-      person.name.state("smith", {beforeEvent: true});
+      person.state({ name: "smith" }, {beforeEvent: true});
       expect(fired).to(be_true);
     });
 

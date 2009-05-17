@@ -90,15 +90,7 @@
       }      
       return this;
     },
-    
-    beforeSetState: function(handler){
-      var self = this;
-      this.bind("beforeSetState", function(e){
-        e.field = self;
-        handler.apply(this, arguments); 
-      });
-    },
-    
+
     parcelIgnored: function(){
       return this.is("[parcelignored],[parcelignored=],[parcelignored] *,[parcelignored=] *");
     },
@@ -178,6 +170,17 @@
       return $.map(this.childParcels(), function(p){
         return p.initialState();
       });
+    },
+    
+    // return true if the state of this field will be updated/changed if set with the state passed in
+    willUpdateWith: function(state){
+      var cur = this.state();
+      for(var k in cur){
+        if(!$.stateContain(cur[k], state[k])){
+          return true;
+        }
+      }
+      return false;
     },
     
     fieldDom: function(){
@@ -387,9 +390,6 @@
             option = option || {};
             if(option.visible && this.is(":hidden")){
               throw "ParcelError: the field is hidden and can not be assigned with state [" + s + "] under config";
-            }
-            if(option.beforeEvent){
-              this.trigger("beforeSetState");
             }
             matched.set.call(this, s);
           }
@@ -624,8 +624,24 @@
       return all;
     },
 
+    beforeSetState: function(handler){
+      var self = this;
+      this.bind("beforeSetState", function(e){
+        e.field = self;
+        handler.apply(this, arguments); 
+      });
+    },
+
     state: function(s, option){
-      return s === undefined ? this.getState() : this.setState(s, option);
+      if(s === undefined){
+        return this.getState();
+      } else {
+        option = option || {};
+        if(option.beforeEvent && this.willUpdateWith(s)){
+          this.trigger("beforeSetState");
+        }
+        return this.setState(s, option);
+      }
     },
     
     getState: function(context){
@@ -912,6 +928,9 @@
   // do state check recursively
   // CAUTION: only for state object, not supposed to work with circular referenced object.
   $.stateContain = function(whole, subset) {
+    if(subset === undefined){
+      return true;
+    }
     if(!whole && subset){
       return $.stateEmpty(subset)? true : false;
     }

@@ -1,0 +1,106 @@
+<html>
+<head>
+  <title>Parcel Event Spec</title>
+  <script src="../lib/jquery-1.3.2.js"></script>
+  <script src="lib/screw.dependencies.js"></script>
+  <script src="lib/test.helper.js"></script>
+  <script src="../src/jquery.parcel.js"></script>
+</head>
+<body>
+
+<div id="fixture">
+  <div id="container">
+    <div id="person">
+      <input type="text" value="luning" name="name"></input>
+      <input type="radio" value="No" checked="checked" name="marital">No</input>
+      <input type="radio" value="Yes" name="marital">Yes</input>
+      <div virtualfield name="spouseInfo">
+        <input type="text" name="spouseName"></input>
+      </div>
+      <input type="checkbox" value="Reading" name="hobby">
+      <input type="checkbox" value="Climbing" name="hobby">
+      <div name="emails" parcel="[email]" >
+        <input type="text" value="luning.tw@gmail.com" name="email"></input>
+      </div>
+      <input type="text" parcelignored name="ignoredInput"></input>
+      <div parcelignored name="ignoredDiv">
+        <input type="text" name="inIgnoredDiv"></input>
+      </div>
+    </div>
+    <div id="personDetails">
+      <span id="span">span</span>
+    </div>
+    <div>
+      <div id="car">
+        <input type="text" name="make"></input>
+      </div>
+    </div>
+  </div>
+</div>
+  
+<script type="text/javascript">
+Screw.Unit(function() {
+
+  var fixtureHtml = $("#fixture").html();
+
+  before(function() {
+    $("#fixture").html(fixtureHtml);
+  });
+
+  describe("Before Set State Event", function() {
+
+    it("should not fire if set state with 'option.beforeEvent' not be true", function() {
+      var person = $("#person").parcel();
+      var fired;
+      person.beforeSetState(function(e){
+        fired = true;
+      });
+
+      person.state({ name: "smith" }, {beforeEvent: false});
+      expect(fired).to(be_false);
+    });
+
+    it("should be registered/fired on parcel", function() {
+      var person = $("#person").parcel();
+      var fired, error;
+      person.beforeSetState(function(e){
+        fired = true;
+        error = errorOfExpect(function(){ expect(e.target).to(be_same_dom_element_as, person[0]); })
+              || errorOfExpect(function(){ expect(e.field.state()).to(contain_state, { name: "luning" }); });
+      });
+
+      person.state({ name: "smith" }, {beforeEvent: true});
+      expect(fired).to(be_true);
+      expect(error).to(be_undefined);
+    });
+    
+    it("should fire only if state of parcel will change after the setting", function() {
+      var person = $("#person").parcel();
+      var fired;
+      person.beforeSetState(function(e){
+        fired = true;
+      });
+
+      person.state({ name: "luning" }, {beforeEvent: true});
+      expect(fired).to(be_false);
+
+      person.state({ name: "smith" }, {beforeEvent: true});
+      expect(fired).to(be_true);
+    });
+    
+    it("should not fire if set state not on a parcel", function() {
+      var person = $("#person").parcel();
+      var fired;
+      person.beforeSetState(function(e){
+        fired = true;
+      });
+
+      person.name.state("jessie", {beforeEvent: true});
+      expect(fired).to(be_false);
+    });   
+
+  });
+});
+</script>
+</body>
+</html>
