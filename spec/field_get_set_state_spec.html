@@ -106,19 +106,6 @@ Screw.Unit(function() {
         // TODO : expect(true).to(be_false);
     });
 
-    it("of an Array field should be got", function() {
-      var person = $("#person").parcel();
-      expect(person.emails.state()).to(equal_state, ["first@my.com", "second@my.com"]);
-    });
-    
-    it("of an Array field should be set", function() {
-      var person = $("#person").parcel();
-      var s = ["first@my.org", "second@my.org"];
-      person.emails.state(s);
-      
-      expect(person.emails.state()).to(equal_state, s);
-    });
-
     it("of Virtual field should be got", function() {
       var person = $("#person").parcel();
       expect(person.contactInfo.state()).to(equal_state, { emails: ["first@my.com", "second@my.com"], contacts: [{number: "", type: ""}] });
@@ -155,6 +142,45 @@ Screw.Unit(function() {
     });
   });
 
+  describe("State of Array Field", function() {
+
+    it("should be got", function() {
+      var person = $("#person").parcel();
+      expect(person.emails.state()).to(equal_state, ["first@my.com", "second@my.com"]);
+    });
+    
+    it("should be set", function() {
+      var person = $("#person").parcel();
+      var s = ["first@my.org", "second@my.org"];
+      person.emails.state(s);
+      
+      expect(person.emails.state()).to(equal_state, s);
+    });
+    
+    it("set state should ignore items in state which have no corresponding sub fields", function() {
+      var person = $("#person").parcel();
+      person.emails.state(["first@my.org", "second@my.org", "notexist1@my.org", "notexist2@my.org"]);
+      expect(person.emails.state()).to(equal_state, ["first@my.org", "second@my.org"]);
+    });
+
+    it("set state should add new sub field when needed if addItem method is provided by array field", function() {
+      var person = $("#person").parcel();
+      person.emails.applyBehaviour(function(){
+        this.addItem = function(){
+          var elem = $("<input type='text' name='email'></input>");
+          this.append(elem);
+          elem.sync();
+        };
+      });
+
+      expect(person.emails.items.length).to(equal, 2);
+      var s = ["first@my.org", "second@my.org", "new@my.org"];
+      person.emails.state(s);
+      expect(person.emails.state()).to(equal_state, s);
+    });
+
+  });
+
   describe("Set State with Option", function() {
 
     it("should throw the invalid part of state for inexistent field(s) if 'option.exist' is true", function() {
@@ -167,7 +193,7 @@ Screw.Unit(function() {
       }
     });
     
-    it("should throw the invalid part of state for inexistent item(s) in array type field if 'option.exist' is true", function() {
+    it("should throw the invalid part of state for inexistent item(s) in array field if 'option.exist' is true", function() {
       var person = $("#person").parcel();
       try{
         person.state({ name: "smith", emails: ["1@my.com", "2@my.com", "notexist1@my.com", "notexist2@my.com"] }, { exist: true });
@@ -177,6 +203,22 @@ Screw.Unit(function() {
       }
     });
 
+    it("should throw if failed to add new sub field when needed for array field if 'option.exist' is true", function() {
+      var person = $("#person").parcel();
+      person.emails.applyBehaviour(function(){
+        this.addItem = function(){
+          // do nothing and will not add item as needed
+        };
+      });
+
+      try{
+        person.emails.state(["first@my.org", "second@my.org", "new@my.org"], { exist: true });
+        expect(true).to(be_false);
+      } catch(ex){
+        expect(ex).to(equal_state, ["new@my.org"]);
+      }
+    });
+    
     it("should throw only the invalid part of state for the first unsuccess sub parcel", function() {
       var person = $("#person").parcel();
       try{

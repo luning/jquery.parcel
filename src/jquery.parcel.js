@@ -669,7 +669,7 @@
     contains: function(elem){
       var all = this.fieldDom();
       return !!$.first($(elem).get(), function(i, dom){
-        return $.indexInArray(dom, all) !== -1;
+        return $.inDOMArray(dom, all) !== -1;
       });
     },
 
@@ -728,10 +728,21 @@
         $.each(state, function(i, curState){
           if(i < fields.length){
             fields[i][fieldMethod](curState, option);
-          } else if (option.exist){
-            throw state.slice(i);
+          } else {
+            // try add an item to array field
+            if (this.addItem){
+              this.addItem();
+            }
+            // do set action on the newly added item
+            if(fields[i]){
+              fields[i][fieldMethod](curState, option);
+            }
+            // throw if ensure existent is specified in option and failed to do this setting eventually
+            else if (option.exist){
+              throw state.slice(i);
+            }
           }
-        });
+        }.bind(this));
       } else {
         if(option.exist){
           state = $.cloneState(state, true);
@@ -757,15 +768,14 @@
     
     // find fields in context
     _fieldsIn: function(context){
-      if(context){
+      if(!context || $.sameDOM(context.get(0), this.get(0))){
+        return this.fields;
+      } else {
         var contextDom = context.get(0);
         return $(this.fields).filter(function(){
           var parents = $(this.get(0)).parents().andSelf();
-          return $.indexInArray(contextDom, parents) >= 0;
+          return $.inDOMArray(contextDom, parents) >= 0;
         }).get();
-      } else {
-        // return cloned array
-        return this.fields.slice();
       }
     },
 
@@ -785,11 +795,11 @@
     // infer index of given field based on the occurance sequence in DOM
     _suggestedIndex: function(field){
       var all = this.find(this.FIELD_SELECTOR);
-      var posOfField = $.indexInArray(field.get(0), all);
+      var posOfField = $.inDOMArray(field.get(0), all);
 
       var index = 0;
       for(; index < this.fields.length; index++){
-        var pos = $.indexInArray(this.fields[index].get(0), all);
+        var pos = $.inDOMArray(this.fields[index].get(0), all);
         if(pos > posOfField){
           break;
         }
@@ -920,17 +930,18 @@
   };
   
   // get index of DOM in a DOM array(can be jQuery object)
-  $.indexInArray = function(item, array){
-    if($.support.trippleEqualOnDom){
-      return $.inArray(item, array);
-    } else {
-      for(var i = 0; i < array.length; i++){
-        if(array[i] == item){
-          return i;
-        }
+  $.inDOMArray = function(item, domArray){
+    for(var i = 0; i < domArray.length; i++){
+      if($.sameDOM(domArray[i], item)){
+        return i;
       }
-      return -1;
     }
+    return -1;
+  };
+  
+  // return true if the two DOM elements are same one
+  $.sameDOM = function(one, another){
+    return $.support.trippleEqualOnDom ? one === another : one == another;
   };
   
   // find the first item in array that matchs the filter fn.
