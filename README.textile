@@ -312,80 +312,192 @@ The flexibility of virtual field makes the event wiring up much more expressive 
 
 <h3><a name="api_parcel_build">Build Parcel</a></h3>
 
-*parcel([behaviour], [state])*        Returns: *Parcel*
+*parcel([behaviour], [state])*        Returns: *Parcel*/*array*
 
-Common logic
+    for each element in jQuery, create a parcel and return the set of created parcels, return single parcel if only one element in jQuery object.
 
-With normal jQuery field
+    *behaviour* - optional, a function which will be mixed in after the parcel is created.
 
-With array field
+    *state* - optional, the initial state of the parcel.
 
-With Parcel as field
+    Common logic
 
-With virtual field
+    Build with normal jQuery field
 
-With behaviour
+    Build with array field
 
-With initial state
+    Build with Parcel as field
 
-Build multiple Parcels at once
+    Build with virtual field
+
+    Build with behaviour
+
+    Build with initial state
+
+    Build multiple Parcels at once
 
 <h3><a name="api_parcel_op">Parcel Operations</a></h3>
 
-*sync(context)*        Returns: *Parcel*
+*sync([dom])*        Returns: *Parcel*
+
+    create field(s) with the DOM element passed in or remove field(s) reflecting some DOM element is removed if DOM element is not provided.
+    
+    *dom* - optional, newly created DOM element
 
 *captureState()*        Returns: *Parcel*
 
+    capture current state as initial state of the parcel.
+
 *orderFields(fieldName1, fieldName2, [...])*        Returns: *Parcel*
+
+    reorder fields of the parcel. call orderField("name", "title") if you want to make sure that title is filled in after name.
+    
+    Problem:
+    
+    The order is determined by their occurence in DOM tree by default, and used as the sequence of setting each field's state. You need to change the order if it's different with the fill-in order in real user interaction.
 
 *renameFields(setting)*        Returns: *Parcel*
 
-*addBahaviour(behaviour)*        Returns: *Parcel*
+    Rename fields with setting. Field name is determined by property of DOM element in this sequence: 'fieldname' -> 'name' -> 'id', and you can rename after parcel is created by this method.
+    
+    *setting* - format: {newName1: "originalName1", newName2: "originalName2", ...}
+
+*applyBahaviour(behaviour)*        Returns: *Parcel*
+
+    apply the passed in behaviour to this parcel.
+    
+    *behaviour* - a function encaptured related logic. It may add new property to parcel, do event wiring up and more.
 
 <h2><a name="api_field">Field</a></h2>
 
-Field in parcel is the core concept in Coconut, it can be an extended *jQuery* object, an extended *Array* contains other fields or another *Parcel*. *Virtual Field* is not necessarily being stored internally in its parent parcel, but can be treated as a normal field. All these forms the concept Field and all field operations and events are availiable to them.
+*Field* is the core concept in jQuery.parcel. *A field is a jQuery object*, and conceptually can be:
+
+    - a *parcel*, build from div or fieldset, constructed by parcel() function, and containing other fields with different name.
+    
+    - an *array parcel*, build from div or fieldset, constructed by parcel() function, and containing sub fields with same name. e.g. a div of a list of textboxs representing multiple emails.
+    
+    - a normal jQuery object, representing single input or input group in DOM. e.g. textbox or radio group.
+    
+    - a *virtual field*, jQuery object created from div or fieldset containing other fields.
+
+    Normal jQuery object or virtual Field are not necessarily stored as a property in its parent parcel, they can be created on the fly like @$("#id")@.
+
+    All field operations and events are availiable to them.
 
 <h3><a name="api_field_op">Field Operations</a></h3>
 
 *state()*        Returns: *object/string/array*
 
-*state(s)*        Returns: *Field*
+    get state of field.
+
+*state(s, [optoin])*        Returns: *Field*
+
+    set state of field.
+    
+    *s* - state to set.
+    
+    *option* - optional, fine control the setting with below options:
+    
+        exist: true to ensure property in *s* has corresponding UI element.
+        
+        editable: true to ensure the UI element is both visible and enabled, ready for user interaction.
+        
+        sync: true to turn off animation and async of ajax call during setting process.
+        
+        check: true to make sure the state is actually updated as expected after setting.
 
 *defaultState()*        Returns: *object/string/array*
 
+    get the default state of field, which is the state to reset to.
+    
 *defaultState(s)*        Returns: *Field*
+
+    set the default state of field.
+    
+    Intercept getting default state by providing $.config.elementStrategy.getDefault is another way of specify default state if the default state follows strong conventions, e.g. the first option in select is the default, empty string is the default for textbox.
 
 *resetState()*        Returns: *Field*
 
+    reset state of field to default state.
+
 *initialState()*        Returns: *object*
+
+    get the initial state of field, which is the state of field after construction of parcel or after calling captureState().
 
 *isDirty()*        Returns: *boolean*
 
+    return true if the current state is different with initial state.
+
 *revertState()*        Returns: *Field*
+
+    set the field state back to initial state.
 
 *closestParcel()*        Returns: *Parcel*
 
+    return the closest parent parcel of the field, including itself.
+
 *getParcel()*        Returns: *Parcel*
+
+    get parcel instance of this jQuery object. This is the recommanded way of referencing an existing parcel.
 
 *sync()*        Returns: *array* of added fields
 
+    build field(s) on the newly created DOM element in parent parcel.
+
 *removeMe()*        Returns: *Field*
+
+    remove DOM element(s) from tree and remove field(s) in parent parcel as well. It's a short cut of calling @$("#id").remove()@ then @parcel.sync()@.
 
 *parcelIgnored()*        Returns: *boolean*
 
+    return true if the DOM element is ignored by parcel by specified 'parcelignored' property in DOM or under any DOM element which has 'parcelignored' property specified.
+    
+    Change on parcel ignored DOM element will not fire stateChange event.
+
 *fieldDom()*        Returns: *array* of DOM elements
+
+    return a set of DOM elements managed by this field.
 
 <h3><a name="api_field_event">Field Events</a></h3>
 
-*bindState(context, converter)*        Returns: *Field*
+*bindState(context, [converter])*        Returns: *Field*
 
-*change(handler)*        Returns: *Field*
+    State change of this field will update the state of context with the state of this field or converted state by converter callback if provided.
+    
+    *converter* - optional, converting callback, accepts the state of the caller field and return converted value.
 
 *stateChange(handler)*        Returns: *Field*
 
+    Any state change of this field or any field it contains will trigger handler.
+    
+    *handler* - accept event as parameter, refer to jQuery event parameter for details, 'field' is a property added to that event, representing the field this event is registered to.
+    
+      function(event){
+        
+        event.field; // the field this event registered to, aka the caller of the original stateChange()
+      
+        this; // the target DOM element
+        
+      }
+
 *showHide(target, showUpState/showUpCallback, [resetTarget], [callback])*        Returns: *Field*
 
+    State change of this field or any field it contains will try to show/hide target.
+    
+    *showUpState/showUpCallback* - will show if match showUpState or the return value of showUpCallback
+    
+      function(state){ // state of this field
+      
+        return true; // will show target
+      
+        return false: // will hide target
+      
+      }
+    
+    *resetTarget* - optional, true to reset state of target soon after it becomes hidden, also after the animation is completed if has.
+    
+    *callback* - optional, called after the target is showed or hided, also after the animation is completed if has.
+      
 <h2><a name="api_input">Form Inputs</a></h2>
 
 textbox

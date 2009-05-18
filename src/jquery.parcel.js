@@ -5,11 +5,11 @@
 
 /* 
   Field is the core concept in jquery.parcel.
-  A field is an extended jQuery object, conceptually can be:
-    - Parcel, containing fields with different name
-    - Array Parcel, containing sub fields with same name
-    - normal jQuery object, representing any input in DOM
-    - Virtual field, which is an arbitrary jQuery object under a parcel and covers many other fields.
+  A field is a jQuery object(extended), and conceptually can be:
+    - a parcel, containing fields with different name.
+    - an array parcel, containing sub fields with same name.
+    - a normal jQuery object, representing single input or input group in DOM.
+    - a virtual field, which is any jQuery object(div, fieldset) containing other fields.
 */ 
  
 ;(function($){
