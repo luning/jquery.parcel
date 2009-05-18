@@ -254,12 +254,14 @@ Screw.Unit(function() {
 
     });
 
-    describe("visible", function() {
+    describe("editable", function() {
 
-      it("should throw exception when set state of a hidden jQuery object if 'option.visible' is true", function() {
+      it("should throw if set new state of a hidden field when 'option.editable' is true", function() {
         $("#person select[name=title]").hide();
+        
+        var person = $("#person").parcel();
         try{
-          $("#person select[name=title]").state("Mr", { visible: true });
+          person.title.state("Mr", { editable: true });
           expect(true).to(be_false);
         } catch(ex) {
           expect(ex.toString()).to(match, "ParcelError");
@@ -267,16 +269,26 @@ Screw.Unit(function() {
         }
       });
 
-      it("should throw exception when set state of hidden field if 'option.visible' is true", function() {
+      it("should throw if set new state of a disabled field when 'option.editable' is true", function() {
+        $("#person select[name=title]").attr("disabled", true);
+        
         var person = $("#person").parcel();
-        person.title.hide();
         try{
-          person.state({ title: "Mr" }, { visible: true });
+          person.title.state("Mr", { editable: true });
           expect(true).to(be_false);
         } catch(ex) {
           expect(ex.toString()).to(match, "ParcelError");
           expect(ex.toString()).to(match, "Mr");
         }
+      });
+      
+      it("should not throw even when set new state of a hidden or disabled field if 'option.editable' is not specified", function() {
+        $("#person input[name=name]").hide();
+        $("#person select[name=title]").attr("disabled", true);
+        
+        var person = $("#person").parcel();
+        person.name.state("smith", { });
+        person.title.state("Mr", { });
       });
 
     });

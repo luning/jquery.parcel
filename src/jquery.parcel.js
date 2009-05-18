@@ -412,8 +412,8 @@
             if (matched.isContainer){
               matched.set.call(this, s, option);
             } else if (!$.stateEqual(s, this.state())){
-              if (option.visible && this.is(":hidden")){
-                throw "ParcelError: the field is hidden and can not be assigned with state [" + s + "] under config";
+              if (option.editable && (this.is(":hidden") || this.attr("disabled"))){
+                throw "ParcelError: the field is hidden or disabled, can not be assigned with state [" + s + "] under config";
               }
               matched.set.call(this, s);
             }
