@@ -483,8 +483,10 @@ The flexibility of virtual field makes the event wiring up much more expressive 
 *showHide(target, showUpState/showUpCallback, [resetTarget], [callback])*        Returns: *Field*
 
 State change of this field or any field it contains will try to show/hide target.
-    
+
+
 *showUpState/showUpCallback* - will show if match showUpState or the return value of showUpCallback
+
 
 <pre>    
   function(state){ // state of this field
@@ -493,10 +495,13 @@ State change of this field or any field it contains will try to show/hide target
   }
 </pre>
 
+
 *resetTarget* - optional, true to reset state of target soon after it becomes hidden, also after the animation is completed if has.
-    
+
+
 *callback* - optional, called after the target is showed or hided, also after the animation is completed if has.
-      
+
+
 <h2><a name="api_input">Form Inputs</a></h2>
 
 textbox
