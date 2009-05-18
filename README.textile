@@ -312,7 +312,7 @@ The flexibility of virtual field makes the event wiring up much more expressive 
 
 <h3><a name="api_parcel_build">Build Parcel</a></h3>
 
-h4. parcel([behaviour], [state])        Returns: Parcel/array
+<h4>parcel([behaviour], [state])        Returns: Parcel/array</h4>
 
 For each element in jQuery, create a parcel and return the set of created parcels, return single parcel if only one element in jQuery object.
 
