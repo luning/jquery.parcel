@@ -1036,53 +1036,6 @@
   // in IE, === will return false SOMETIME even when comparing the same DOM, use == instead.
   $.support.trippleEqualOnDom = !$.browser.msie;
 
-  // extend jQuery ajax with the capability of remembering the count of active ajax requests
-  $.activeAjaxRequestCount = 0;
-
-  $().ajaxSend(function(){
-    $.activeAjaxRequestCount++;
-    // register lazily to make sure it's the last handler of ajaxError event and get executed after all production handlers
-    if (!$._ajaxErrorHandlerAdded){
-      $().ajaxError(function(){
-        $.activeAjaxRequestCount--;
-      });
-      $._ajaxErrorHandlerAdded = true;
-    }
-  })
-  .ajaxSuccess(function(){
-    $.activeAjaxRequestCount--;
-  });
-
-  // wait for the conditionFn being satisfied, then execute executeFn
-  $.WaitThread = function(conditionFn, executeFn, interval){
-    this.conditionFn = conditionFn;
-    this.executeFn = executeFn;
-    this.id = -1;
-
-    this.doOnce = function(){
-      if (this.conditionFn()){
-        try {
-          this.executeFn();
-        } catch (e){
-        }
-        this.stop();
-        return true;
-      }
-    };
-
-    this.start = function(){
-      if (this.id === -1 && !this.doOnce()){
-        this.id = window.setInterval(this.doOnce.bind(this), interval || 100);
-      }
-    };
-
-    this.stop = function(){
-      window.clearInterval(this.id);
-      // make wait thread re-startable
-      this.id = -1;
-    };
-  };
-
 })(jQuery);
 
 if(!Function.prototype.bind){
