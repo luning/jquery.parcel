@@ -5,6 +5,7 @@ TODO
 [ ]?? set state will remove item from array parcel if needed
 [ ] support setting state with ajax call(introduce WaitThread and countOfActiveAjaxRequest)
 [ ] turn off animation while setting state
+[ ] change option.visible to option.editable
 [ ] use smoke mocks rather than roll our own
 [ ] consider renaming initialState() => initial or pristine?, resetState() => reset or revert, captureState() => save. 4 actions: get the last saved state, reset to blank, revert to the last saved state, save state.
 [ ] support textarea, multi-select and select-one

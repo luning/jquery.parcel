@@ -75,6 +75,7 @@ Screw.Unit(function() {
   
   before(function() {
     $("#fixture").html(fixtureHtml);
+    $.config = {};
   });
 
   describe("State", function() {
@@ -199,108 +200,150 @@ Screw.Unit(function() {
 
   describe("Set State with Option", function() {
 
-    it("should throw the invalid part of state for inexistent field(s) if 'option.exist' is true", function() {
-      var person = $("#person").parcel();
-      try{
-        person.state({ name: "smith", notexist: "" }, { exist: true });
-        expect(true).to(be_false);
-      } catch(ex) {
-        expect(ex).to(equal_state, { notexist: "" });
-      }
-    });
-    
-    it("should throw the invalid part of state for inexistent item(s) in array field if 'option.exist' is true", function() {
-      var person = $("#person").parcel();
-      try{
-        person.state({ name: "smith", emails: ["1@my.com", "2@my.com", "notexist1@my.com", "notexist2@my.com"] }, { exist: true });
-        expect(true).to(be_false);
-      } catch(ex){
-        expect(ex).to(equal_state, ["notexist1@my.com", "notexist2@my.com"]);
-      }
-    });
+    describe("exist", function() {
 
-    it("should throw if failed to add new sub field when needed for array field if 'option.exist' is true", function() {
-      var person = $("#person").parcel();
-      person.emails.applyBehaviour(function(){
-        this.addItem = function(){
-          // do nothing and will not add item as needed
-        };
+      it("should throw if set state without corresponding UI element when 'option.exist' is true", function() {
+        var person = $("#person").parcel();
+        try{
+          person.state({ name: "smith", notexist: "" }, { exist: true });
+          expect(true).to(be_false);
+        } catch(ex) {
+          expect(ex.toString()).to(match, "ParcelError");
+          expect(ex.toString()).to(match, "notexist");
+        }
+      });
+      
+      it("should throw if set state without corresponding UI element for array field when 'option.exist' is true", function() {
+        var person = $("#person").parcel();
+        try{
+          person.state({ name: "smith", emails: ["1@my.com", "2@my.com", "notexist1@my.com", "notexist2@my.com"] }, { exist: true });
+          expect(true).to(be_false);
+        } catch(ex){
+          expect(ex.toString()).to(match, "ParcelError");
+          expect(ex.toString()).to(match, "notexist1@my.com");
+        }
       });
 
-      try{
-        person.emails.state(["first@my.org", "second@my.org", "new@my.org"], { exist: true });
-        expect(true).to(be_false);
-      } catch(ex){
-        expect(ex).to(equal_state, ["new@my.org"]);
-      }
-    });
-    
-    it("should throw only the invalid part of state for the first unsuccess sub parcel", function() {
-      var person = $("#person").parcel();
-      try{
-        person.state({dob: {day:"01", notexist: "whatever"}, anothernotexist: "anotherwhatever"}, { exist: true });
-        expect(true).to(be_false);
-      } catch(ex){
-        expect(ex).to(equal_state, { notexist: "whatever" });
-      }
-    });
+      it("should throw if failed to add new sub field when needed for array field if 'option.exist' is true", function() {
+        var person = $("#person").parcel();
+        person.emails.applyBehaviour(function(){
+          this.addItem = function(){
+            // do nothing and will not add item as needed
+          };
+        });
 
-    it("should throw shallow copied state of inexistent field(s)", function() {
-      var person = $("#person").parcel();
-      var s = { notexist: {aField: 1} };
-      try{
-        person.state(s, { exist: true });
-      } catch(ex) {
-        ex.notexist.aField = 2;
-        expect(s.notexist.aField).to(equal, 2);
-      }
-    });
-    
-    it("should throw shallow copied state of inexistent item(s) in array field", function() {
-      var person = $("#person").parcel();
-      var s = { emails: ["1@my.com", "2@my.com", {aField: 1}] };
-      try{
-        person.state(s, { exist: true });
-      } catch(ex){
-        ex[0].aField = 2;
-        expect(s.emails[2].aField).to(equal, 2);
-      }
-    });
-
-    it("should throw exception when set state of a hidden jQuery object if 'option.visible' is true", function() {
-      $("#person select[name=title]").hide();
-      try{
-        $("#person select[name=title]").state("Mr", { visible: true });
-        expect(true).to(be_false);
-      } catch(ex) {
-        expect(ex.toString()).to(match, "ParcelError");
-        expect(ex.toString()).to(match, "Mr");
-      }
-    });
-
-    it("should throw exception when set state of hidden field if 'option.visible' is true", function() {
-      var person = $("#person").parcel();
-      person.title.hide();
-      try{
-        person.state({ title: "Mr" }, { visible: true });
-        expect(true).to(be_false);
-      } catch(ex) {
-        expect(ex.toString()).to(match, "ParcelError");
-        expect(ex.toString()).to(match, "Mr");
-      }
-    });
-
-    it("should trigger beforeSetState event on parcel if 'option.beforeEvent' is true", function() {
-      var person = $("#person").parcel();
-      var fired = false;
-      person.beforeSetState(function(){
-        fired = true;
+        try{
+          person.emails.state(["first@my.org", "second@my.org", "new@my.org"], { exist: true });
+          expect(true).to(be_false);
+        } catch(ex){
+          expect(ex.toString()).to(match, "ParcelError");
+          expect(ex.toString()).to(match, "new@my.org");
+        }
+      });
+      
+      it("should throw when encounter the first unsuccess sub parcel", function() {
+        var person = $("#person").parcel();
+        try{
+          person.state({dob: {day:"01", notexist: "whatever"}, anothernotexist: "anotherwhatever"}, { exist: true });
+          expect(true).to(be_false);
+        } catch(ex){
+          expect(ex.toString()).to(match, "ParcelError");
+          expect(ex.toString()).to(match, "notexist");
+        }
       });
 
-      person.state({ name: "smith" }, {beforeEvent: true});
-      expect(fired).to(be_true);
     });
 
+    describe("visible", function() {
+
+      it("should throw exception when set state of a hidden jQuery object if 'option.visible' is true", function() {
+        $("#person select[name=title]").hide();
+        try{
+          $("#person select[name=title]").state("Mr", { visible: true });
+          expect(true).to(be_false);
+        } catch(ex) {
+          expect(ex.toString()).to(match, "ParcelError");
+          expect(ex.toString()).to(match, "Mr");
+        }
+      });
+
+      it("should throw exception when set state of hidden field if 'option.visible' is true", function() {
+        var person = $("#person").parcel();
+        person.title.hide();
+        try{
+          person.state({ title: "Mr" }, { visible: true });
+          expect(true).to(be_false);
+        } catch(ex) {
+          expect(ex.toString()).to(match, "ParcelError");
+          expect(ex.toString()).to(match, "Mr");
+        }
+      });
+
+    });
+    
+    describe("beforeEvent", function() {
+
+      it("should trigger beforeSetState event on parcel if 'option.beforeEvent' is true", function() {
+        var person = $("#person").parcel();
+        var fired = false;
+        person.beforeSetState(function(){
+          fired = true;
+        });
+
+        person.state({ name: "smith" }, {beforeEvent: true});
+        expect(fired).to(be_true);
+      });
+
+    });
+
+    describe("sync", function() {
+
+      it("should turn off animation and async of ajax while setting state if 'option.sync' is true", function() {
+        var person = $("#person").parcel();
+
+        $.ajaxSetup({async: true});
+        $.fx.off = false;
+
+        var entered;
+        $.config.elementStrategy = {set: function(){
+          entered = true;
+          expect($.ajaxSettings.async).to(be_false);
+          expect($.fx.off).to(be_true);
+        }};
+
+        person.state({ name: "smith" }, {sync: true});
+        expect(entered).to(be_true);
+      });
+
+      it("should revert to previous animation and async of ajax settings after setting state given 'option.sync' is true", function() {
+        var person = $("#person").parcel();
+
+        $.ajaxSetup({async: false});
+        $.fx.off = true;
+        
+        person.state({ name: "smith" }, {sync: true});
+        
+        expect($.ajaxSettings.async).to(be_false);
+        expect($.fx.off).to(be_true);
+      });
+
+    });
+
+    describe("check", function() {
+
+      it("should throw if failed to update the state of field when 'option.check' is true", function() {
+        var person = $("#person").parcel();
+        
+        try{
+          person.state({ title: "invalid" }, {check: true});
+          expect(true).to(be_false);
+        } catch(ex){
+          expect(ex.toString()).to(match, "ParcelError");
+          expect(ex.toString()).to(match, "invalid");
+        }
+      });
+
+    });
   });
 });
 </script>
