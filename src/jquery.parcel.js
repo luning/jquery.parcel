@@ -402,8 +402,10 @@
         return ret === undefined ? matched.get.call(this) : ret;
       } else {
         option = option || {};
+        // remember old settings, will set them back after setting state
         var oldSetting = { async: $.ajaxSettings.async, off: $.fx.off };
         if (option.sync){
+          // turn off async of ajax and animation
           $.ajaxSetup({ async: false });
           $.fx.off = true;
         }
@@ -423,6 +425,7 @@
           }
         } finally {
           if (option.sync){
+            // revert settings after setting state
             $.ajaxSetup({ async: oldSetting.async });
             $.fx.off = oldSetting.off;
           }

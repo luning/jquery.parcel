@@ -317,6 +317,7 @@ Screw.Unit(function() {
         $.fx.off = false;
 
         var entered;
+        // intercept setting state call
         $.config.elementStrategy = {set: function(){
           entered = true;
           expect($.ajaxSettings.async).to(be_false);
@@ -332,11 +333,31 @@ Screw.Unit(function() {
 
         $.ajaxSetup({async: false});
         $.fx.off = true;
-        
+
         person.state({ name: "smith" }, {sync: true});
-        
+
         expect($.ajaxSettings.async).to(be_false);
         expect($.fx.off).to(be_true);
+      });
+
+      it("should revert settings even if exception throwed during setting state", function() {
+        var person = $("#person").parcel();
+
+        $.ajaxSetup({async: true});
+        $.fx.off = false;
+
+        // intercept setting state call and throw exception
+        $.config.elementStrategy = {set: function(){
+          throw "fail on purpose";
+        }};
+
+        try{
+          person.state({ name: "smith" }, {sync: true});
+          expect(true).to(be_false);
+        } catch(ex){
+          expect($.ajaxSettings.async).to(be_true);
+          expect($.fx.off).to(be_false);
+        }
       });
 
     });
@@ -345,7 +366,7 @@ Screw.Unit(function() {
 
       it("should throw if failed to update the state of field when 'option.check' is true", function() {
         var person = $("#person").parcel();
-        
+
         try{
           person.state({ title: "invalid" }, {check: true});
           expect(true).to(be_false);
