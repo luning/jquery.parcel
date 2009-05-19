@@ -42,6 +42,11 @@ A field is a jQuery object(extended), and conceptually can be:
 
     getParcel: function() {
       return this.attr("parcelInstance");
+    },
+
+    forgetParcel: function() {
+      delete this[0].parcelInstance;
+      return;
     }
   });
 
@@ -185,9 +190,6 @@ A field is a jQuery object(extended), and conceptually can be:
       if (parcel) {
         return parcel.initialState(this);
       }
-      return $.map(this.childParcels(), function(p) {
-        return p.initialState();
-      });
     },
 
     // return true if the state of this field will be updated/changed if set with the state passed in
@@ -243,21 +245,18 @@ A field is a jQuery object(extended), and conceptually can be:
     if (parcel) {
       return parcel.getState(this);
     }
-    var state = $.map(this.childParcels(), function(p) { return p.state(); });
-    return state.length === 0 ? this.val() : state;
+    // implicitly creating parcel on the fly
+    var ret = this.parcel().state();
+    this.forgetParcel();
+    return ret;
   },
   set: function(s, option) {
     var parcel = this.closestParcel();
     if (parcel) {
       parcel.setState(s, option, this);
-    } else if ($.isArray(s)) {
-      $.each(this.childParcels(), function(i, p) {
-        if (i < s.length) {
-          p.state(s[i], option);
-        }
-      });
     } else {
-      this.val(s);
+      // implicitly creating parcel on the fly
+      this.parcel().state(s, option).forgetParcel();
     }
   },
   getDefault: function() {
@@ -265,18 +264,18 @@ A field is a jQuery object(extended), and conceptually can be:
     if (parcel) {
       return parcel.getDefaultState(this);
     }
-    return $.map(this.childParcels(), function(p) { return p.defaultState(); });
+    // implicitly creating parcel on the fly
+    var ret = this.parcel().defaultState();
+    this.forgetParcel();
+    return ret;
   },
   setDefault: function(s) {
     var parcel = this.closestParcel();
     if (parcel) {
       parcel.setDefaultState(s, this);
-    } else if ($.isArray(s)) {
-      $.each(this.childParcels(), function(i, p) {
-        if (i < s.length) {
-          p.defaultState(s[i]);
-        }
-      });
+    } else {
+      // implicitly creating parcel on the fly
+      this.parcel().defaultState(s).forgetParcel();
     }
   }
  },

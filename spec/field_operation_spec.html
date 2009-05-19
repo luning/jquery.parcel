@@ -138,24 +138,13 @@ Screw.Unit(function() {
       expect(person.contactInfo.defaultState()).to(equal_state, state);
     });
     
-    it("of a Virtual field without parent parcel should be got with array of top level parcel's default state under it", function() {
-      var person = $("#person").parcel();
-      var car = $("#car").parcel();
-      
-      var s = $("#container").defaultState();
-      
-      expect(s.length).to(equal, 2);
-      expect(s[0]).to(contain_state, { name: "", title: "please select" });
-      expect(s[1]).to(contain_state, { make: "" });
+    it("of a Virtual field without parent parcel should be got with the default state of a parcel implicitly created on the fly", function() {
+      expect($("#container").defaultState()).to(contain_state, { name: "", title: "please select", make: "" });
     });
     
-    it("of a Virtual field without parent parcel should be set with array of default states of top level parcels under it", function() {
-      var person = $("#person").parcel();
-      var car = $("#car").parcel();
-      
-      var s = [{ name: "smith" }, { make: "GE" }];
+    it("of a Virtual field without parent parcel should be set with default state of a parcel implicitly created on the fly", function() {
+      var s = { name: "smith", make: "GE" };
       $("#container").defaultState(s);
-      
       expect($("#container").defaultState()).to(contain_state, s);
     });
   });
@@ -196,11 +185,8 @@ Screw.Unit(function() {
       expect(person.contactInfo.state()).to(equal_state, state);
     });
     
-    it("should work for a Virtual field without parent parcel", function() {
-      var person = $("#person").parcel();
-      var car = $("#car").parcel();
-      
-      var s = [{name: "smith", title: "Mr"}, {make: "GE"}];
+    it("should work for a Virtual field without parent parcel, parcel will be created implicitly on the fly", function() {
+      var s = {name: "smith", title: "Mr", make: "GE"};
       $("#container").defaultState(s).resetState();
       expect($("#container").state()).to(contain_state, s);
     });
@@ -227,16 +213,6 @@ Screw.Unit(function() {
     it("should work for a Virtual field", function() {
       var person = $("#person").parcel();
       expect(person.contactInfo.initialState()).to(equal_state, { emails: ["first@my.com", "second@my.com"], contacts: [{number: "", type: ""}]});
-    });
-    
-    it("should work for a Virtual field without parent parcel by returning an array of initial states of top level parcels under it", function() {
-      var person = $("#person").parcel();
-      var car = $("#car").parcel();
-      
-      var s = $("#container").initialState();
-      expect(s.length).to(equal, 2);
-      expect(s[0]).to(contain_state, { name: "luning", title: "please select" });
-      expect(s[1]).to(contain_state, { make: ""});
     });
     
     it("should return a deep copy of initial state for a Parcel", function() {
@@ -290,15 +266,6 @@ Screw.Unit(function() {
 
       person.emails.items[0].state("1@my.com");
       expect(person.contactInfo.isDirty()).to(be_true);
-    });
-    
-    it("of a Virtual field without parent parcel should know any change of the top level parcels under it", function() {
-      var person = $("#person").parcel();
-      var car = $("#car").parcel();
-      expect($("#container").isDirty()).to(be_false);
-
-      $("#container").state([{}, {make: "toyota"}]);
-      expect($("#container").isDirty()).to(be_true);
     });
     
   });
@@ -362,17 +329,6 @@ Screw.Unit(function() {
       
       expect(person.name.state()).to(equal, "smith");
       expect(person.title.state()).to(equal, "Mr");
-    });
-    
-    it("on a Virtual field without parent parcel should revert all top level parcels under it", function() {
-      var person = $("#person").parcel();
-      var car = $("#car").parcel();
-      
-      $("#container")
-        .state([{ name: "smith", title: "Mr" }, { make: "toyota" }])
-        .revertState();
-      
-      expect($("#container").state()).to(contain_state, [{ name: "luning", title: "please select" }, { make: "" }]);
     });
 
   });
