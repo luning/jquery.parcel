@@ -60,6 +60,7 @@
         <input type="text" name="unused1"></input>
       </div>
     </div>
+    <input type="button" name="action"></input>
   </div>
   <input id="randomInput" type="text"></input>
 </div>
@@ -230,6 +231,15 @@ Screw.Unit(function() {
       expect(person.ignored2).to(be_undefined);
       expect(person.unused).to(be_undefined);
       expect(person.unused1).to(be_undefined);
+    });
+    
+    it("should ignore input of type button", function() {
+      var person = $("#person").parcel();
+      expect(person.action).to(be_undefined);
+    });
+    
+    it("should ignore input of type submit", function() {
+      // TODO: should ignore input of type submit
     });
   });
   
