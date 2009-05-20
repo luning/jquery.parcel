@@ -46,7 +46,7 @@
       </div>
       <div virtualfield name="contactInfo">
         <div name="emails" parcel="[email]" >
-          <input type="text" value="first@my.com" name="email"></input>
+          <div name="firstEmailDiv"><input type="text" value="first@my.com" name="email"></input></div>
           <input type="text" value="second@my.com" name="email"></input>
         </div>
         <div name="contacts" parcel="[contact]">
@@ -137,20 +137,33 @@ Screw.Unit(function() {
       expect(person.emails.state()).to(equal_state, s);
     });
     
+    it("should not set with non-array", function() {
+      var person = $("#person").parcel();
+
+      try{
+        person.emails.state({});
+        expect(true).to(be_false);
+      } catch(ex){
+        expect(ex.toString()).to(match, "ParcelError");
+        expect(ex.toString()).to(match, "array");
+      }
+    });
+    
     it("set state should ignore items in state which have no corresponding sub fields", function() {
       var person = $("#person").parcel();
       person.emails.state(["first@my.org", "second@my.org", "notexist1@my.org", "notexist2@my.org"]);
       expect(person.emails.state()).to(equal_state, ["first@my.org", "second@my.org"]);
     });
 
-    it("set state should add new sub field when needed if addItem method is provided by array field", function() {
+    it("set state should add new sub field when needed if 'addItem' event is properly handled", function() {
       var person = $("#person").parcel();
       person.emails.applyBehaviour(function(){
-        this.addItem = function(){
+        this.bind("addItem", function(){
+          // in production, should click some button, here is simulating the button action
           var elem = $("<input type='text' name='email'></input>");
           this.append(elem);
           elem.sync();
-        };
+        }.bind(this));
       });
 
       expect(person.emails.items.length).to(equal, 2);
@@ -158,21 +171,103 @@ Screw.Unit(function() {
       person.emails.state(s);
       expect(person.emails.state()).to(equal_state, s);
     });
-    
-    it("set state should add new sub field when needed if addItem method is provided by array field", function() {
+
+    it("set state on an onfly virtual field should add new sub field when needed if 'addItem' event is properly handled", function() {
+      $("#person div[name=emails]").bind("addItem", function(){
+        $("#person div[name=emails]").append("<input type='text' name='email'></input>");
+      });
+
+      expect($("#person div[name=emails] input[name=email]").length).to(equal, 2);
+      var s = {emails: ["first@my.org", "second@my.org", "new@my.org"]};
+      $("#container").state(s);
+      expect($("#container").state().emails).to(equal_state, s.emails);
+    });
+
+    it("set state should remove sub field when needed if 'removeItem' event is properly handled", function() {
       var person = $("#person").parcel();
       person.emails.applyBehaviour(function(){
-        this.addItem = function(){
-          var elem = $("<input type='text' name='email'></input>");
-          this.append(elem);
-          elem.sync();
-        };
+        this.bind("removeItem", function(e){
+          // in production, should click some button, here is simulating the button action
+          $(e.target).removeMe();
+        });
       });
 
       expect(person.emails.items.length).to(equal, 2);
-      var s = ["first@my.org", "second@my.org", "new@my.org"];
+      var s = ["first@my.org"];
       person.emails.state(s);
       expect(person.emails.state()).to(equal_state, s);
+    });
+
+    it("should throw if set state failed to add sub field when needed  given option.check is true", function() {
+      var person = $("#person").parcel();
+      try{
+        person.emails.state(["one@my.org", "two@my.org", "new@my.org"], {check:true});
+        expect(true).to(be_false);
+      } catch(ex){
+        expect(ex.toString()).to(match, "ParcelError");
+      }
+    });
+
+    it("should throw if set state failed to add sub field when needed  given option.exist is true", function() {
+      var person = $("#person").parcel();
+      try{
+        person.emails.state(["one@my.org", "two@my.org", "new@my.org"], {exist:true});
+        expect(true).to(be_false);
+      } catch(ex){
+        expect(ex.toString()).to(match, "ParcelError");
+      }
+    });
+
+    it("should throw if set state failed to remove sub field when needed given option.check is true", function() {
+      var person = $("#person").parcel();
+      try{
+        person.emails.state(["one@my.org"], {check:true});
+        expect(true).to(be_false);
+      } catch(ex){
+        expect(ex.toString()).to(match, "ParcelError");
+      }
+    });
+
+    it("set state on an onfly virtual field should remove sub field when needed if 'removeItem' event is properly handled", function() {
+      $("#person div[name=emails]").bind("removeItem", function(e){
+        $(e.target).remove();
+      });
+
+      expect($("#person div[name=emails] input[name=email]").length).to(equal, 2);
+      var s = {emails: ["first@my.org"]};
+      $("#container").state(s);
+      expect($("#container").state().emails).to(equal_state, s.emails);
+    });
+
+    it("should get state of a virtual field under this array field and contains sub field(s)", function() {
+      var person = $("#person").parcel();
+      expect($("#person div[name=firstEmailDiv]").state()).to(equal_state, ["first@my.com"]);
+    });
+
+    it("set state of a virtual field under array field with less items will not remove sub field(s) ", function() {
+      var person = $("#person").parcel();
+      var fired;
+      person.emails.bind("removeItem", function(){
+        fired = true;
+      });
+      
+      var div = $("#person div[name=firstEmailDiv]");
+      div.state([]);
+      expect(fired).to(be_false);
+      expect(div.state()).to(equal_state, ["first@my.com"]);
+    });
+    
+    it("set state of a virtual field under array field with more items will not add sub field(s) ", function() {
+      var person = $("#person").parcel();
+      var fired;
+      person.emails.bind("addItem", function(){
+        fired = true;
+      });
+      
+      var div = $("#person div[name=firstEmailDiv]");
+      div.state(["dog@my.com", "cat@my.com"]);
+      expect(fired).to(be_false);
+      expect(div.state()).to(equal_state, ["dog@my.com"]);
     });
 
   });

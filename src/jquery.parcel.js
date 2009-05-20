@@ -523,7 +523,10 @@ A field is a jQuery object(extended), and conceptually can be:
     this._init();
     this._applyExtension();
     this.applyBehaviour(this._behaviour);
-    this.state(this._initialState);
+    // avoid setting state with empty array as initial, this will clear all fields
+    if(!$.stateEmpty(this._initialState)){
+      this.state(this._initialState);
+    }
     this.captureState();
   };
 
@@ -693,8 +696,72 @@ A field is a jQuery object(extended), and conceptually can be:
       return this._stateGetActionOnFields("state", context);
     },
 
+    // setting state for inexistent field is not allowed if option.exist is true
     setState: function(s, option, context) {
-      return this._stateSetActionOnFields(s, option, "state", context);
+      option = option || {};
+      // set on this array parcel, will add/remove field if needed
+      if (this._nameConstraint && this._contextIsThis(context)) {
+        assertIsArray(s);
+        $.each(s, function(i, itemState) {
+          if (i < this.fields.length) {
+            this.fields[i].state(itemState, option);
+          } else {
+            // try add an item to array field
+            this.trigger("addItem");
+            // TODO: if(this.onfly)
+            this.sync(this);
+            // do set action on the newly added item
+            if (this.fields[i]) {
+              this.fields[i].state(itemState, option);
+            }
+            // throw if ensure existent is specified in option and failed to do this setting eventually
+            else if (option.check || option.exist) {
+              throw "ParcelError: no UI element found while setting state for the [" + (i + 1) + "th] " + this._nameConstraint + " with " + $.print(s[i]);
+            }
+          }
+        } .bind(this));
+        // try to remove fields
+        $.each(this.fields.slice(s.length), function(i, field){
+          field.trigger("removeItem");
+          //TODO: if(this.onfly)
+          this.sync();
+          if (option.check && $.inArray(field, this.fields) !== -1) {
+            throw "ParcelError: failed to remove the [" + (s.length + i + 1) + "th] " + this._nameConstraint + " while setting state with " + $.print(s);
+          }
+        }.bind(this));
+      }
+      // set on part of this array parcel
+      else if(this._nameConstraint){
+        assertIsArray(s);
+        var fields = this._fieldsIn(context);
+        $.each(s, function(i, itemState) {
+          if (i < fields.length) {
+            fields[i].state(itemState, option);
+          } else if (option.exist) {
+            throw "ParcelError: no UI element found while setting state for the [" + (i + 1) + "th] " + this._nameConstraint + " with " + $.print(s[i]);
+          }
+        } .bind(this));
+      }
+      // set on this non-array parcel
+      else {
+        if (option.exist) {
+          s = $.cloneState(s, true);
+        }
+        $.each(this._fieldsIn(context), function(i, field) {
+          if (s.hasOwnProperty(field.fname)) {
+            field.state(s[field.fname], option);
+            if (option.exist) {
+              delete s[field.fname];
+            }
+          }
+        });
+        if (option.exist && !$.stateEmpty(s)) {
+          for (var key in s) {
+            throw "ParcelError: no UI element found while setting state for [" + key + "] with " + $.print(s[key]);
+          }
+        }
+      }
+      return this;
     },
 
     initialState: function(context) {
@@ -734,7 +801,25 @@ A field is a jQuery object(extended), and conceptually can be:
     },
 
     setDefaultState: function(s, context) {
-      return this._stateSetActionOnFields(s, {}, "defaultState", context);
+      var fields = this._fieldsIn(context);
+      // set on this array parcel
+      if (this._nameConstraint) {
+        assertIsArray(s);
+        $.each(s, function(i, itemState) {
+          if (i < fields.length) {
+            fields[i].defaultState(itemState);
+          }
+        });
+      }
+      // set on this non-array parcel
+      else {
+        $.each(fields, function(i, field) {
+          if (s.hasOwnProperty(field.fname)) {
+            field.defaultState(s[field.fname]);
+          }
+        });
+      }
+      return this;
     },
 
     // check if this parcel contains any DOM in element
@@ -791,59 +876,18 @@ A field is a jQuery object(extended), and conceptually can be:
       }
     },
 
-    // call field method for every matched sub-state
-    // setting state/defaultState for inexistent field is not allowed if option.exist is true
-    _stateSetActionOnFields: function(state, option, fieldMethod, context) {
-      option = option || {};
-      var fields = this._fieldsIn(context);
-      if (this._nameConstraint) {
-        $.each(state, function(i, curState) {
-          if (i < fields.length) {
-            fields[i][fieldMethod](curState, option);
-          } else {
-            // try add an item to array field
-            if (this.addItem) {
-              this.addItem();
-            }
-            // do set action on the newly added item
-            if (fields[i]) {
-              fields[i][fieldMethod](curState, option);
-            }
-            // throw if ensure existent is specified in option and failed to do this setting eventually
-            else if (option.exist) {
-              throw "ParcelError: no UI element found while setting state for the [" + (i + 1) + "th] " + this._nameConstraint + " with " + $.print(state[i]);
-            }
-          }
-        } .bind(this));
-      } else {
-        if (option.exist) {
-          state = $.cloneState(state, true);
-        }
-        $.each(fields, function(i, field) {
-          if (state.hasOwnProperty(field.fname)) {
-            field[fieldMethod](state[field.fname], option);
-            if (option.exist) {
-              delete state[field.fname];
-            }
-          }
-        });
-        if (option.exist && !$.stateEmpty(state)) {
-          for (var key in state) {
-            throw "ParcelError: no UI element found while setting state for [" + key + "] with " + $.print(state[key]);
-          }
-        }
-      }
-      return this;
-    },
-
     _field: function(fname) {
       return this.fields[this.fieldIndex(fname)];
     },
 
+    _contextIsThis: function(context){
+      return !context || $.sameDOM(context[0], this[0]);
+    },
+    
     // find fields in context
     _fieldsIn: function(context) {
-      if (!context || $.sameDOM(context.get(0), this.get(0))) {
-        return this.fields;
+      if (this._contextIsThis(context)) {
+        return this.fields.slice(0);
       } else {
         var contextDom = context.get(0);
         return $(this.fields).filter(function() {
@@ -987,9 +1031,15 @@ A field is a jQuery object(extended), and conceptually can be:
     return compare(whole, subset, $.stateContain);
   };
 
-  // return true if no direct property defined in object
-  $.stateEmpty = function(o) {
-    for (var p in o) {
+  // return true for empty array, object without own property, empty string
+  $.stateEmpty = function(s) {
+    if($.isArray(s)){
+      return s.length === 0;
+    }
+    if(s === ""){
+      return true;
+    }
+    for (var p in s) {
       return false;
     }
     return true;
@@ -1048,6 +1098,12 @@ A field is a jQuery object(extended), and conceptually can be:
     $.print = function(o){
       return o.toString();
     };
+  }
+
+  function assertIsArray(a){
+    if(!$.isArray(a)){
+      throw "ParcelError: array is expected, but was [" + $.print(a) + "]";
+    }
   }
   
   // change event in IE doesn't bubble.

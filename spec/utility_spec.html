@@ -210,6 +210,26 @@ Screw.Unit(function() {
       expect(clone.n.m).to(equal, 2);
     });
   });
+
+  describe("State Empty", function() {
+
+    it("should be true if object has no own property", function() {
+      expect($.stateEmpty({})).to(be_true);
+    }); 
+
+    it("should be true if array is empty", function() {
+      var a = [];
+      a.someproperty = "whatever";
+      expect($.stateEmpty(a)).to(be_true);
+    }); 
+
+    it("should be true if it is empty string", function() {
+      var a = "";
+      a.someproperty = "whatever";
+      expect($.stateEmpty(a)).to(be_true);
+    }); 
+
+  });
 });
 </script>
 </body>

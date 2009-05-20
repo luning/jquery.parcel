@@ -3,6 +3,10 @@ TODO
 [ ] update documentation according to recent changes
 [ ] build parcel with multiple behaviours
 [ ]?? set state will remove item from array parcel if needed
+[ ] support non-input as a field(readonly)
+[ ] optimize implementation of removeMe()
+[ ] rename _clean to _clear
+[ ] consider making option.check default to be true while setting state
 [ ] use smoke mocks rather than roll our own
 [ ] consider renaming initialState() => initial or pristine?, resetState() => reset or revert, captureState() => save. 4 actions: get the last saved state, reset to blank, revert to the last saved state, save state.
 [ ] support textarea, multi-select and select-one
