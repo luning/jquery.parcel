@@ -198,10 +198,10 @@ Screw.Unit(function() {
       expect(person.emails.state()).to(equal_state, s);
     });
 
-    it("should throw if set state failed to add sub field when needed  given option.check is true", function() {
+    it("should throw if set state failed to add sub field when needed  given option.verify is true", function() {
       var person = $("#person").parcel();
       try{
-        person.emails.state(["one@my.org", "two@my.org", "new@my.org"], {check:true});
+        person.emails.state(["one@my.org", "two@my.org", "new@my.org"], {verify:true});
         expect(true).to(be_false);
       } catch(ex){
         expect(ex.toString()).to(match, "ParcelError");
@@ -218,10 +218,10 @@ Screw.Unit(function() {
       }
     });
 
-    it("should throw if set state failed to remove sub field when needed given option.check is true", function() {
+    it("should throw if set state failed to remove sub field when needed given option.verify is true", function() {
       var person = $("#person").parcel();
       try{
-        person.emails.state(["one@my.org"], {check:true});
+        person.emails.state(["one@my.org"], {verify:true});
         expect(true).to(be_false);
       } catch(ex){
         expect(ex.toString()).to(match, "ParcelError");
@@ -436,13 +436,13 @@ Screw.Unit(function() {
 
     });
 
-    describe("check", function() {
+    describe("verify", function() {
 
-      it("should throw if failed to update the state of field when 'option.check' is true", function() {
+      it("should throw if failed to update the state of field when 'option.verify' is true", function() {
         var person = $("#person").parcel();
 
         try{
-          person.state({ title: "invalid" }, {check: true});
+          person.state({ title: "invalid" }, {verify: true});
           expect(true).to(be_false);
         } catch(ex){
           expect(ex.toString()).to(match, "ParcelError");
@@ -450,14 +450,14 @@ Screw.Unit(function() {
         }
       });
 
-      it("should check soon after setting each final input or input group instead of a container DOM element", function() {
-        // TODO: should check soon after setting each final input or input group instead of a container DOM element
+      it("should verify soon after setting each final input or input group instead of a container DOM element", function() {
+        // TODO: should verify soon after setting each final input or input group instead of a container DOM element
       });
 
     });
   });
 
-  describe("State of Virtual field without parent parcel(parcel will be created implicitly on the fly)", function() {
+  describe("Onfly Mode Operation(get/set state of virtual field without parent parcel)", function() {
 
     it("should get state of a container DOM element", function() {
       expect($("#container").state()).to(contain_state, { name: "luning", title: "please select", dob: { day: "please select", month: "please select", year: "please select"}});
@@ -472,6 +472,27 @@ Screw.Unit(function() {
       var s = { name: "smith", title: "Mr", dob: { day: "01", month: "Jan", year: "1990"}};
       $("#container").state(s);
       expect($("#container").state()).to(contain_state, s);
+    });
+
+    it("should leave no footprint(no event registration, no new property on DOM element) after operation", function() {
+      $("#container").state();
+      // verify that parcelinstance property is not added
+      expect($("#container").getParcel()).to(be_undefined);
+      expect($("#container [parcelinstance]").length).to(equal, 0);
+
+      // verify that the 'sync' event is not registered on container.
+      // normal sync handler will stop propagation, so event captured in parent container indicates that no sync handler is registered.
+      var fired;
+      $("#fixture").bind("sync", function(){
+        fired = true;
+      })
+      $("#container input[name=name]").sync();
+      expect(fired).to(be_true);
+      
+      // verify no event is registered on any field DOM element
+      $("#container :input").each(function(){
+        expect($(this).data("events")).to(be_undefined);
+      });
     });
 
   });

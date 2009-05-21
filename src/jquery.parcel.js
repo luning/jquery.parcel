@@ -29,8 +29,11 @@ A field is a jQuery object(extended), and conceptually can be:
 
       $.extend(this, $.parcel.prototype);
       $.parcel.apply(this, arguments);
-      // this.attr(key, value) will convert value to string, so set attribute directly as below
-      this[0].parcelInstance = this;
+      // test if in onfly mode, no side effect is introduced into existing DOM elements in onfly mode
+      if (arguments[0] !== true) {
+        // this.attr(key, value) will convert value to string, so set attribute directly as below
+        this[0].parcelinstance = this;
+      }
       return this;
     },
 
@@ -41,12 +44,7 @@ A field is a jQuery object(extended), and conceptually can be:
     },
 
     getParcel: function() {
-      return this.attr("parcelInstance");
-    },
-
-    forgetParcel: function() {
-      delete this[0].parcelInstance;
-      return;
+      return this.attr("parcelinstance");
     }
   });
 
@@ -114,8 +112,8 @@ A field is a jQuery object(extended), and conceptually can be:
       });
     },
 
-    parcelIgnored: function(){
-      return this.is("[parcelignored],[parcelignored=],[parcelignored] *,[parcelignored=] *");
+    parcelIgnored: function() {
+      return this.is("[parcelignored],[parcelignored] *");
     },
 
     /*
@@ -165,13 +163,13 @@ A field is a jQuery object(extended), and conceptually can be:
 
     // find closest parent parcel including itself
     closestParcel: function() {
-      return this.closest("[parcelInstance]").getParcel();
+      return this.closest("[parcelinstance]").getParcel();
     },
 
     // find all top level parcel objects under this jQuery object
     // return empty set if this jQuery object is a parcel of under any parcel
     childParcels: function() {
-      return $.map(this.find("[parcelInstance]:not([parcelInstance] *)"), function(dom) {
+      return $.map(this.find("[parcelinstance]:not([parcelinstance] *)"), function(dom) {
         return $(dom).getParcel();
       });
     },
@@ -238,161 +236,158 @@ A field is a jQuery object(extended), and conceptually can be:
   var elementStrategies = [
   // for div and fieldset
   {
-  isContainer: true,
-  match: function() { return $.hasTag(this, "div", "fieldset"); },
-  get: function() {
-    var parcel = this.closestParcel();
-    if (parcel) {
-      return parcel.getState(this);
-    }
-    // implicitly creating parcel on the fly
-    var ret = this.parcel().state();
-    this.forgetParcel();
-    return ret;
-  },
-  set: function(s, option) {
-    var parcel = this.closestParcel();
-    if (parcel) {
-      parcel.setState(s, option, this);
-    } else {
+    isContainer: true,
+    match: function() { return $.hasTag(this, "div", "fieldset"); },
+    get: function() {
+      var parcel = this.closestParcel();
+      if (parcel) {
+        return parcel.getState(this);
+      }
       // implicitly creating parcel on the fly
-      this.parcel().state(s, option).forgetParcel();
-    }
-  },
-  getDefault: function() {
-    var parcel = this.closestParcel();
-    if (parcel) {
-      return parcel.getDefaultState(this);
-    }
-    // implicitly creating parcel on the fly
-    var ret = this.parcel().defaultState();
-    this.forgetParcel();
-    return ret;
-  },
-  setDefault: function(s) {
-    var parcel = this.closestParcel();
-    if (parcel) {
-      parcel.setDefaultState(s, this);
-    } else {
+      return this.parcel(true).state();
+    },
+    set: function(s, option) {
+      var parcel = this.closestParcel();
+      if (parcel) {
+        parcel.setState(s, option, this);
+      } else {
+        // implicitly creating parcel on the fly
+        this.parcel(true).state(s, option);
+      }
+    },
+    getDefault: function() {
+      var parcel = this.closestParcel();
+      if (parcel) {
+        return parcel.getDefaultState(this);
+      }
       // implicitly creating parcel on the fly
-      this.parcel().defaultState(s).forgetParcel();
+      return this.parcel(true).defaultState();
+    },
+    setDefault: function(s) {
+      var parcel = this.closestParcel();
+      if (parcel) {
+        parcel.setDefaultState(s, this);
+      } else {
+        // implicitly creating parcel on the fly
+        this.parcel(true).defaultState(s);
+      }
     }
-  }
- },
+  },
   // for text input
   {
-  match: function() { return $.hasType(this, "text"); },
-  get: function() { return this.val(); },
-  set: function(s) {
-    this.focus()
-            .val(s)
-            .triggerNative("change")
-            .blur();
+    match: function() { return $.hasType(this, "text"); },
+    get: function() { return this.val(); },
+    set: function(s) {
+     this.focus()
+      .click()
+      .val(s)
+      .triggerNative("keydown")
+      .click()
+      .triggerNative("change")
+      .blur();
+    },
+    getDefault: defaultStrategy.getDefault,
+    setDefault: defaultStrategy.setDefault
   },
-  getDefault: defaultStrategy.getDefault,
-  setDefault: defaultStrategy.setDefault
- },
   // for hidden input
   {
-  match: function() { return $.hasType(this, "hidden"); },
-  get: function() { return this.val(); },
-  set: function(s) { this.val(s); },
-  getDefault: defaultStrategy.getDefault,
-  setDefault: defaultStrategy.setDefault
- },
+    match: function() { return $.hasType(this, "hidden"); },
+    get: function() { return this.val(); },
+    set: function(s) { this.val(s); },
+    getDefault: defaultStrategy.getDefault,
+    setDefault: defaultStrategy.setDefault
+  },
   // for select
   {
-  match: function() { return $.hasTag(this, "select"); },
-  get: function() { return this.val(); },
-  set: function(s) {
-    this.focus()
-            .val(s)
-            .triggerNative("change")
-            .blur();
+    match: function() { return $.hasTag(this, "select"); },
+    get: function() { return this.val(); },
+    set: function(s) {
+      this.focus()
+        .val(s)
+        .triggerNative("change")
+        .blur();
+    },
+    getDefault: function() {
+      if (this.attr("default") !== undefined) {
+        return this.attr("default");
+      }
+      var theDefault = this.find("option").filter(function() { return this.defaultSelected; });
+      return theDefault.length === 0 ? null : theDefault.val();
+    },
+    setDefault: defaultStrategy.setDefault
   },
-  getDefault: function() {
-    if (this.attr("default") !== undefined) {
-      return this.attr("default");
-    }
-    var theDefault = this.find("option").filter(function() { return this.defaultSelected; });
-    return theDefault.length === 0 ? null : theDefault.val();
-  },
-  setDefault: defaultStrategy.setDefault
- },
   // for radio
   {
-  match: function() { return $.hasType(this, "radio"); },
-  get: function() {
-    var checkedRadio = this.filter(":checked");
-    return (checkedRadio.length > 0) ? checkedRadio.val() : null;
-  },
-  set: function(s) {
-    if (s === null) {
-      this.filter("[checked]")
-            .removeAttr("checked")
-            .triggerNative("change");
-    } else {
-      this.filter("[value=" + s + "]")
-            .click()
-            .triggerNative("change");
-    }
-  },
-  getDefault: function() {
-    var theDefault = this.filter(function() {
-      return $(this).attr("default") !== undefined;
-    });
-    if (theDefault.length === 0) {
-      theDefault = this.filter(function() {
-        return this.defaultChecked;
+    match: function() { return $.hasType(this, "radio"); },
+    get: function() {
+      var checkedRadio = this.filter(":checked");
+      return (checkedRadio.length > 0) ? checkedRadio.val() : null;
+    },
+    set: function(s) {
+      if (s === null) {
+        this.filter("[checked]")
+          .removeAttr("checked")
+          .triggerNative("change");
+      } else {
+        this.filter("[value=" + s + "]")
+          .click()
+          .triggerNative("change");
+      }
+    },
+    getDefault: function() {
+      var theDefault = this.filter(function() {
+        return $(this).attr("default") !== undefined;
       });
+      if (theDefault.length === 0) {
+        theDefault = this.filter(function() {
+          return this.defaultChecked;
+        });
+      }
+      return theDefault.length === 0 ? null : theDefault.val();
+    },
+    setDefault: function(s) {
+      this.removeAttr("default").filter("[value=" + s + "]").attr("default", true);
     }
-    return theDefault.length === 0 ? null : theDefault.val();
   },
-  setDefault: function(s) {
-    this.removeAttr("default").filter("[value=" + s + "]").attr("default", true);
-  }
- },
   // for checkbox
   {
-  match: function() { return $.hasType(this, "checkbox"); },
-  get: function() {
-    return $.map(this.filter(":checked"), function(dom) { return dom.value; });
-  },
-  set: function(s) {
-    if (!$.isArray(s)) {
-      throw "ParcelError: set checkbox with invalid state [" + s + "]";
-    }
-    this.each(function(i, dom) {
-      if ($.xor($.inArray(dom.value, s) !== -1, dom.checked)) {
-        $(dom)
-             .click()
-             .triggerNative("change");
+    match: function() { return $.hasType(this, "checkbox"); },
+    get: function() {
+      return $.map(this.filter(":checked"), function(dom) { return dom.value; });
+    },
+    set: function(s) {
+      if (!$.isArray(s)) {
+        throw "ParcelError: set checkbox with invalid state [" + s + "]";
       }
-    });
-  },
-  getDefault: function() {
-    var theDefault = $.grep(this, function(dom) {
-      return $(dom).attr("default") !== undefined;
-    });
-    if (theDefault.length === 0) {
-      theDefault = $.grep(this, function(dom) {
-        return dom.defaultChecked;
+      this.each(function(i, dom) {
+        if ($.xor($.inArray(dom.value, s) !== -1, dom.checked)) {
+          $(dom).click().triggerNative("change");
+        }
       });
+    },
+    getDefault: function() {
+      var theDefault = $.grep(this, function(dom) {
+        return $(dom).attr("default") !== undefined;
+      });
+      if (theDefault.length === 0) {
+        theDefault = $.grep(this, function(dom) {
+          return dom.defaultChecked;
+        });
+      }
+      return $.map(theDefault, function(dom) {
+        return dom.value;
+      });
+    },
+    setDefault: function(s) {
+      if (!$.isArray(s)) {
+        throw "ParcelError: set checkbox with invalid default state [" + s + "]";
+      }
+      this.removeAttr("default");
+      $.each(s, function(i, v) {
+        this.filter("[value=" + v + "]").attr("default", true);
+      } .bind(this));
     }
-    return $.map(theDefault, function(dom) {
-      return dom.value;
-    });
   },
-  setDefault: function(s) {
-    if (!$.isArray(s)) {
-      throw "ParcelError: set checkbox with invalid default state [" + s + "]";
-    }
-    this.removeAttr("default");
-    $.each(s, function(i, v) {
-      this.filter("[value=" + v + "]").attr("default", true);
-    } .bind(this));
-  }
- },
   // for all other input types
   defaultStrategy];
 
@@ -427,7 +422,7 @@ A field is a jQuery object(extended), and conceptually can be:
               matched.set.call(this, s);
             }
           }
-          if (option.check && !matched.isContainer && !$.stateContain(this.state(), s)) {
+          if (option.verify && !matched.isContainer && !$.stateContain(this.state(), s)) {
             throw "ParcelError: failed to set state with [" + $.print(s) + "], the current state is [" + $.print(this.state()) + "]";
           }
         } finally {
@@ -509,10 +504,13 @@ A field is a jQuery object(extended), and conceptually can be:
 
   // constructor for Parcel or Array Parcel
   $.parcel = function() {
-    var behaviour = arguments[0], state = arguments[1];
+    // no side effect is introduced into existing DOM elements in onfly mode
+    this.onfly = arguments[0] === true;
+    var nextIndex = typeof arguments[0] === 'boolean' ? 1 : 0;
+    var behaviour = arguments[nextIndex++], state = arguments[nextIndex];
     if (typeof behaviour !== "function") {
+      state = behaviour;
       behaviour = undefined;
-      state = arguments[0];
     }
 
     this._nameConstraint = this._parseNameConstraint();
@@ -524,7 +522,7 @@ A field is a jQuery object(extended), and conceptually can be:
     this._applyExtension();
     this.applyBehaviour(this._behaviour);
     // avoid setting state with empty array as initial, this will clear all fields
-    if(!$.stateEmpty(this._initialState)){
+    if (!$.stateEmpty(this._initialState)) {
       this.state(this._initialState);
     }
     this.captureState();
@@ -535,9 +533,10 @@ A field is a jQuery object(extended), and conceptually can be:
 
   $.extend($.parcelFn, fieldMixin, {
     // TODO : consider short selector for potential better performance by sacrificing some flexibility
-    FIELD_SELECTOR: ":input:not(:button,[parcelignored],[parcelignored=],[parcelignored] *,[parcelignored=] *)"
-     + ",[parcel]:not(:button,[parcelignored],[parcelignored=],[parcelignored] *,[parcelignored=] *)"
-     + ",[parcel=]:not(:button,[parcelignored],[parcelignored=],[parcelignored] *,[parcelignored=] *)",
+    FIELD_SELECTOR: ":input:not(:button,[parcelignored],[parcelignored] *)"
+     + ",[parcel]:not([parcelignored],[parcelignored] *)"
+     + ",[parcel=]:not([parcelignored],[parcelignored] *)"
+     + ",[parcelfield]:not([parcelignored],[parcelignored] *)",
 
     // sync with DOM changes
     sync: function(dom) {
@@ -605,8 +604,7 @@ A field is a jQuery object(extended), and conceptually can be:
     // all fields are stored in this.fields array, and convenient field accessors on this are assigned if applicable(not conflict with existing property)
     // inferOrder is only for efficency, will add new field to the end of this.fields by default, if not specified. can always be true.
     _addField: function(elem, fname, inferOrder) {
-      var field = this._constructField(elem);
-      field.fname = fname;
+      var field = this._constructField(elem, fname);
 
       if (!this._nameConstraint) {
         if (this.hasField(fname)) {
@@ -708,30 +706,32 @@ A field is a jQuery object(extended), and conceptually can be:
           } else {
             // try add an item to array field
             this.trigger("addItem");
-            // TODO: if(this.onfly)
-            this.sync(this);
+            if (this.onfly) {
+              this.sync(this);
+            }
             // do set action on the newly added item
             if (this.fields[i]) {
               this.fields[i].state(itemState, option);
             }
             // throw if ensure existent is specified in option and failed to do this setting eventually
-            else if (option.check || option.exist) {
+            else if (option.verify || option.exist) {
               throw "ParcelError: no UI element found while setting state for the [" + (i + 1) + "th] " + this._nameConstraint + " with " + $.print(s[i]);
             }
           }
         } .bind(this));
         // try to remove fields
-        $.each(this.fields.slice(s.length), function(i, field){
+        $.each(this.fields.slice(s.length), function(i, field) {
           field.trigger("removeItem");
-          //TODO: if(this.onfly)
-          this.sync();
-          if (option.check && $.inArray(field, this.fields) !== -1) {
+          if (this.onfly) {
+            this.sync();
+          }
+          if (option.verify && $.inArray(field, this.fields) !== -1) {
             throw "ParcelError: failed to remove the [" + (s.length + i + 1) + "th] " + this._nameConstraint + " while setting state with " + $.print(s);
           }
-        }.bind(this));
+        } .bind(this));
       }
       // set on part of this array parcel
-      else if(this._nameConstraint){
+      else if (this._nameConstraint) {
         assertIsArray(s);
         var fields = this._fieldsIn(context);
         $.each(s, function(i, itemState) {
@@ -831,13 +831,15 @@ A field is a jQuery object(extended), and conceptually can be:
     },
 
     _init: function() {
-      this.bind("sync", function(event, addedFields) {
-        event.stopPropagation();
-        var added = this.sync(event.target);
-        $.each(added, function() {
-          addedFields.push(this);
-        });
-      } .bind(this));
+      if (!this.onfly) {
+        this.bind("sync", function(event, addedFields) {
+          event.stopPropagation();
+          var added = this.sync(event.target);
+          $.each(added, function() {
+            addedFields.push(this);
+          });
+        } .bind(this));
+      }
 
       this._buildFields(this);
       this._buildVirtualFields(this);
@@ -880,10 +882,10 @@ A field is a jQuery object(extended), and conceptually can be:
       return this.fields[this.fieldIndex(fname)];
     },
 
-    _contextIsThis: function(context){
+    _contextIsThis: function(context) {
       return !context || $.sameDOM(context[0], this[0]);
     },
-    
+
     // find fields in context
     _fieldsIn: function(context) {
       if (this._contextIsThis(context)) {
@@ -898,16 +900,24 @@ A field is a jQuery object(extended), and conceptually can be:
     },
 
     // construct field for jQuery element
-    _constructField: function(elem) {
+    _constructField: function(elem, fname) {
+      var field;
       if (elem.attr("parcel") !== undefined) {
-        return elem.parcel();
-      } else if ($.hasType(elem, "radio")) {
-        return this.find(":radio[name=" + elem.attr("name") + "]")._preparingAsField();
-      } else if ($.hasType(elem, "checkbox")) {
-        return this.find(":checkbox[name=" + elem.attr("name") + "]")._preparingAsField();
+        field = elem.parcel(this.onfly);
       } else {
-        return elem._preparingAsField();
+        if ($.hasType(elem, "radio")) {
+          field = this.find(":radio[name=" + elem.attr("name") + "]");
+        } else if ($.hasType(elem, "checkbox")) {
+          field = this.find(":checkbox[name=" + elem.attr("name") + "]");
+        } else {
+          field = elem;
+        }
+        if (!this.onfly) {
+          field._preparingAsField();
+        }
       }
+      field.fname = fname;
+      return field;
     },
 
     // infer index of given field based on the occurance sequence in DOM
@@ -1033,10 +1043,10 @@ A field is a jQuery object(extended), and conceptually can be:
 
   // return true for empty array, object without own property, empty string
   $.stateEmpty = function(s) {
-    if($.isArray(s)){
+    if ($.isArray(s)) {
       return s.length === 0;
     }
-    if(s === ""){
+    if (s === "") {
       return true;
     }
     for (var p in s) {
@@ -1094,18 +1104,18 @@ A field is a jQuery object(extended), and conceptually can be:
   };
 
   // jquery.print.js is optional
-  if(!$.print){
-    $.print = function(o){
+  if (!$.print) {
+    $.print = function(o) {
       return o.toString();
     };
   }
 
-  function assertIsArray(a){
-    if(!$.isArray(a)){
+  function assertIsArray(a) {
+    if (!$.isArray(a)) {
       throw "ParcelError: array is expected, but was [" + $.print(a) + "]";
     }
   }
-  
+
   // change event in IE doesn't bubble.
   $.support.bubbleOnChange = !$.browser.msie;
   // in IE, === will return false SOMETIME even when comparing the same DOM, use == instead.

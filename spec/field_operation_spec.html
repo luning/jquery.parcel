@@ -56,8 +56,8 @@
           </div>
         </div>
       </div>
-      <input type="text" parcelignored name="ignoredInput"></input>
-      <div parcelignored name="ignoredDiv">
+      <input type="text" parcelignored="true" name="ignoredInput"></input>
+      <div parcelignored="true" name="ignoredDiv">
         <input type="text" name="inIgnoredDiv"></input>
       </div>
     </div>
@@ -425,11 +425,11 @@ Screw.Unit(function() {
 
   describe("Parcel Ignored", function() {
 
-    it("should be ignored if has 'parcelignored' property in DOM", function() {
+    it("should be ignored if 'parcelignored' property is setted in DOM", function() {
       expect($("#person input[name=ignoredInput]").parcelIgnored()).to(be_true);
     });
 
-    it("should be ignored if has 'parcelignored' property in DOM", function() {
+    it("should be ignored if it is under a DOM element which has 'parcelignored' property setted", function() {
       expect($("#person input[name=inIgnoredDiv]").parcelIgnored()).to(be_true);
     });
 

@@ -50,6 +50,22 @@ Screw.Unit(function() {
       name.defaultState("smith");
       expect(name.defaultState()).to(equal_state, "smith");
     });
+    
+    it("should fire proper events while setting state", function() {
+      var name = $("#fixture input[name=name]");
+      var events = "focus click keydown change blur";
+      var firedEvents = "";
+      $.each(events.split(' '), function(i, type){
+        name.bind(type, function(){
+          firedEvents += type + " ";
+        });
+      });
+      
+      name.state("smith");
+      $.each(events.split(' '), function(i, type){
+        expect(firedEvents).to(match, type);
+      });
+    });
 
   });
 
