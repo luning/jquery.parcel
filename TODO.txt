@@ -10,7 +10,19 @@ TODO
 [ ] use smoke mocks rather than roll our own
 [ ] consider renaming initialState() => initial or pristine?, resetState() => reset or revert, captureState() => save. 4 actions: get the last saved state, reset to blank, revert to the last saved state, save state.
 [ ] support textarea, multi-select and select-one
-[ ] make show/hide speed configurable
+[ ] make show/hide speed and effect configurable
+[ ] support rails style forms and hierarchies (ie name="person[address][street]")
 
 potential problems:
 [ ] remove a DOM with many fields will fire change event multiple times unexpectedly, once on each field's closest alive original parent.
+
+
+
+[ ] custom DOM attributes are ultimately undesirable (see http://www.danwebb.net/2007/10/7/custom-attributes-and-class-names)
+  - should replace with something more 'semantic' like:
+
+$('#parcel').parce({
+  field1: ignore,
+  field2: rename('f2'),
+  field3: virtual
+});
