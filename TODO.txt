@@ -17,9 +17,11 @@ potential problems:
 [ ] remove a DOM with many fields will fire change event multiple times unexpectedly, once on each field's closest alive original parent.
 
 
-
-[ ] custom DOM attributes are ultimately undesirable (see http://www.danwebb.net/2007/10/7/custom-attributes-and-class-names)
-  - should replace with something more 'semantic' like:
+[ ] custom DOM attributes are potentially undesirable
+  - need to consider which path to take
+  - see http://www.danwebb.net/2007/10/7/custom-attributes-and-class-names
+  - also http://unspace.ca/discover/attributes/
+  - could replace with something more 'semantic' like:
 
 $('#parcel').parce({
   field1: ignore,
