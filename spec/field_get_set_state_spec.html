@@ -44,6 +44,8 @@
         <input type="text" name="no"></input>
         <input type="text" name="street"></input>
       </div>
+      <input type="checkbox" value="Reading" name="hobby">
+      <input type="checkbox" value="Climbing" name="hobby">
       <div virtualfield name="contactInfo">
         <div name="emails" parcel="[email]" >
           <div name="firstEmailDiv"><input type="text" value="first@my.com" name="email"></input></div>
@@ -363,6 +365,49 @@ Screw.Unit(function() {
         var person = $("#person").parcel();
         person.name.state("smith", { });
         person.title.state("Mr", { });
+      });
+      
+      it("should check editability on individual item of radio group when 'option.editable' is true", function() {
+        $("#person :radio[name=gender][value=Male]").hide();
+        
+        var person = $("#person").parcel();
+        person.gender.state("Female", { editable: true });
+        expect(person.gender.state()).to(equal_state, "Female");
+        
+        try{
+          person.gender.state("Male", { editable: true });
+          expect(true).to(be_false);
+        } catch(ex){
+          expect(ex.toString()).to(match, "ParcelError");
+          expect(ex.toString()).to(match, "hidden");
+        }
+      });
+      
+      it("should throw if trying to uncheck all radios in group given 'option.editable' is true", function() {
+        var person = $("#person").parcel();
+        try{
+          person.gender.state(null, { editable: true });
+          expect(true).to(be_false);
+        } catch(ex){
+          expect(ex.toString()).to(match, "ParcelError");
+          expect(ex.toString()).to(match, "uncheck all");
+        }
+      });
+      
+      it("should check editability on individual item of checkbox group when 'option.editable' is true", function() {
+        $("#person :checkbox[name=hobby][value=Reading]").hide();
+        
+        var person = $("#person").parcel();
+        person.hobby.state(["Climbing"], { editable: true });
+        expect(person.hobby.state()).to(equal_state, ["Climbing"]);
+        
+        try{
+          person.hobby.state(["Reading"], { editable: true });
+          expect(true).to(be_false);
+        } catch(ex){
+          expect(ex.toString()).to(match, "ParcelError");
+          expect(ex.toString()).to(match, "hidden");
+        }
       });
 
     });

@@ -1,9 +1,9 @@
-﻿/*
+﻿﻿/*
 * jQuery.parcel JavaScript Library v0.1
 * http://www.github.com/luning/jquery.parcel
 */
 
-/* 
+/*
 Field is the core concept in jquery.parcel.
 A field is a jQuery object(extended), and conceptually can be:
 - a parcel, containing fields with different name.
@@ -277,7 +277,7 @@ A field is a jQuery object(extended), and conceptually can be:
   {
     match: function() { return $.hasType(this, "text"); },
     get: function() { return this.val(); },
-    set: function(s) {
+    set: function(s, option) {
      this.focus()
       .click()
       .val(s)
@@ -293,7 +293,7 @@ A field is a jQuery object(extended), and conceptually can be:
   {
     match: function() { return $.hasType(this, "hidden"); },
     get: function() { return this.val(); },
-    set: function(s) { this.val(s); },
+    set: function(s, option) { this.val(s); },
     getDefault: defaultStrategy.getDefault,
     setDefault: defaultStrategy.setDefault
   },
@@ -301,7 +301,7 @@ A field is a jQuery object(extended), and conceptually can be:
   {
     match: function() { return $.hasTag(this, "select"); },
     get: function() { return this.val(); },
-    set: function(s) {
+    set: function(s, option) {
       this.focus()
         .val(s)
         .triggerNative("change")
@@ -323,15 +323,20 @@ A field is a jQuery object(extended), and conceptually can be:
       var checkedRadio = this.filter(":checked");
       return (checkedRadio.length > 0) ? checkedRadio.val() : null;
     },
-    set: function(s) {
+    set: function(s, option) {
       if (s === null) {
+        if(option.editable){
+          throw "ParcelError: can not uncheck all radios in group under config";
+        }
         this.filter("[checked]")
           .removeAttr("checked")
           .triggerNative("change");
       } else {
-        this.filter("[value=" + s + "]")
-          .click()
-          .triggerNative("change");
+        var r = this.filter("[value=" + s + "]");
+        if(option.editable && !r.editable()){
+          throw "ParcelError: the radio is hidden or disabled, can not check it";
+        }
+        r.click().triggerNative("change");
       }
     },
     getDefault: function() {
@@ -355,13 +360,17 @@ A field is a jQuery object(extended), and conceptually can be:
     get: function() {
       return $.map(this.filter(":checked"), function(dom) { return dom.value; });
     },
-    set: function(s) {
+    set: function(s, option) {
       if (!$.isArray(s)) {
         throw "ParcelError: set checkbox with invalid state [" + s + "]";
       }
       this.each(function(i, dom) {
         if ($.xor($.inArray(dom.value, s) !== -1, dom.checked)) {
-          $(dom).click().triggerNative("change");
+          var elem = $(dom);
+          if (option.editable && !elem.editable()) {
+            throw "ParcelError: the checkbox [" + dom.value + "] is hidden or disabled, can not [" + (dom.checked ? "uncheck":"check") + "] it under config";
+          }
+          elem.click().triggerNative("change");
         }
       });
     },
@@ -416,10 +425,10 @@ A field is a jQuery object(extended), and conceptually can be:
             if (matched.isContainer) {
               matched.set.call(this, s, option);
             } else if (!$.stateEqual(s, this.state())) {
-              if (option.editable && (this.is(":hidden") || this.attr("disabled"))) {
+              if (option.editable && this.length === 1 && !this.editable()) {
                 throw "ParcelError: the field is hidden or disabled, can not be assigned with state " + $.print(s) + " under config";
               }
-              matched.set.call(this, s);
+              matched.set.call(this, s, option);
             }
           }
           if (option.verify && !matched.isContainer && !$.stateContain(this.state(), s)) {
@@ -451,6 +460,10 @@ A field is a jQuery object(extended), and conceptually can be:
         }
         return this;
       }
+    },
+
+    editable: function(){
+      return !this.is(":hidden") && !this.attr("disabled");
     },
 
     // trigger event with browser native behaviour, e.g. change does not bubble up in IE, but firefox does.
@@ -515,15 +528,14 @@ A field is a jQuery object(extended), and conceptually can be:
 
     this._nameConstraint = this._parseNameConstraint();
     this._behaviour = behaviour || this._parseBehaviour() || function() { };
-    this._initialState = state || (this._nameConstraint ? [] : {});
+    this._initialState = undefined;
     this.items = this.fields = [];
 
     this._init();
     this._applyExtension();
     this.applyBehaviour(this._behaviour);
-    // avoid setting state with empty array as initial, this will clear all fields
-    if (!$.stateEmpty(this._initialState)) {
-      this.state(this._initialState);
+    if (state !== undefined) {
+      this.state(state);
     }
     this.captureState();
   };
@@ -755,7 +767,7 @@ A field is a jQuery object(extended), and conceptually can be:
             }
           }
         });
-        if (option.exist && !$.stateEmpty(s)) {
+        if (option.exist && !$.objectEmpty(s)) {
           for (var key in s) {
             throw "ParcelError: no UI element found while setting state for [" + key + "] with " + $.print(s[key]);
           }
@@ -1007,19 +1019,6 @@ A field is a jQuery object(extended), and conceptually can be:
     }
   };
 
-  var compare = function(one, another, recursiveCallback) {
-    for (var p in another) {
-      if (another[p] instanceof Object) {
-        if (!recursiveCallback(one[p], another[p])) {
-          return false;
-        }
-      } else if (one[p] !== another[p]) {
-        return false;
-      }
-    }
-    return true;
-  };
-
   // do state equality check recursively
   // CAUTION: only for state object, not supposed to work with circular referenced object.
   $.stateEqual = function(one, another) {
@@ -1032,23 +1031,44 @@ A field is a jQuery object(extended), and conceptually can be:
     if (subset === undefined) {
       return true;
     }
-    if (!whole && subset) {
-      return $.stateEmpty(subset) ? true : false;
+    if (whole === undefined && typeof (subset) === "object" && subset !== null && !$.isArray(subset)) {
+      return $.objectEmpty(subset) ? true : false;
     }
-    if (typeof (whole) !== "object" || typeof (subset) !== "object") {
+    if (whole === null || subset === null || typeof (whole) !== "object" || typeof (subset) !== "object") {
       return whole === subset;
     }
-    return compare(whole, subset, $.stateContain);
+    if($.isArray(subset)){
+      if(!$.isArray(whole)){
+        return false;
+      }
+      for(var i = 0; i < subset.length; i++){
+        if (typeof(subset[i]) === "object") {
+          if (!$.stateContain(whole[i], subset[i])) {
+            return false;
+          }
+        } else if (whole[i] !== subset[i]) {
+          return false;
+        }
+      }
+    } else {
+      if($.isArray(whole)){
+        return false;
+      }
+      for (var p in subset) {
+        if (typeof(subset[p]) === "object") {
+          if (!$.stateContain(whole[p], subset[p])) {
+            return false;
+          }
+        } else if (whole[p] !== subset[p]) {
+          return false;
+        }
+      }
+    }
+    return true;
   };
 
-  // return true for empty array, object without own property, empty string
-  $.stateEmpty = function(s) {
-    if ($.isArray(s)) {
-      return s.length === 0;
-    }
-    if (s === "") {
-      return true;
-    }
+  // return true for object without own property
+  $.objectEmpty = function(s) {
     for (var p in s) {
       return false;
     }
@@ -1059,7 +1079,7 @@ A field is a jQuery object(extended), and conceptually can be:
   $.cloneState = function(s, shallow) {
     if (!s || typeof (s) === "string" || typeof (s) === "number") {
       return s;
-    } else if (s instanceof Array) {
+    } else if ($.isArray(s)) {
       return $.extend(!shallow, [], s);
     } else {
       return $.extend(!shallow, {}, s);

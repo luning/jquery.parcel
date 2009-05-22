@@ -45,9 +45,9 @@ Screw.Unit(function() {
       expect($.stateEqual({  }, { dob: null })).to(be_false);
     });   
     
-    it("should ignore property if it's an empty array", function() {
-      expect($.stateEqual({ emails: [] }, { })).to(be_true);
-      expect($.stateEqual({  }, { emails: [] })).to(be_true);
+    it("should not ignore property if it's an empty array", function() {
+      expect($.stateEqual({ checkbox: [] }, { })).to(be_false);
+      expect($.stateEqual({  }, { checkbox: [] })).to(be_false);
     });   
 
     it("should ignore property if it's an empty object", function() {
@@ -116,7 +116,10 @@ Screw.Unit(function() {
     it("should ignore property if it is undefined, an empty object or an empty array", function() {
       expect($.stateContain({ }, { name: undefined })).to(be_true);
       expect($.stateContain({ }, { contact: {} })).to(be_true);
-      expect($.stateContain({ }, { emails: [] })).to(be_true);
+    });
+    
+    it("should not ignore property if it is an empty array", function() {
+      expect($.stateContain({ }, { emails: [] })).to(be_false);
     });
     
     it("should not ignore property if it is null", function() {
@@ -148,6 +151,14 @@ Screw.Unit(function() {
     it("primative type should not contain null", function() {
       expect($.stateContain(0, null)).to(be_false);
       expect($.stateContain("", null)).to(be_false);
+    }); 
+    
+    it("primative type should not contain object", function() {
+      expect($.stateContain(0, {})).to(be_false);
+    }); 
+    
+    it("primative type should not contain array", function() {
+      expect($.stateContain(0, [])).to(be_false);
     }); 
 
     it("null or undefined should not contain primative type", function() {
@@ -211,22 +222,15 @@ Screw.Unit(function() {
     });
   });
 
-  describe("State Empty", function() {
+  describe("Object Empty", function() {
 
     it("should be true if object has no own property", function() {
-      expect($.stateEmpty({})).to(be_true);
+      expect($.objectEmpty({})).to(be_true);
     }); 
 
-    it("should be true if array is empty", function() {
-      var a = [];
-      a.someproperty = "whatever";
-      expect($.stateEmpty(a)).to(be_true);
-    }); 
-
-    it("should be true if it is empty string", function() {
-      var a = "";
-      a.someproperty = "whatever";
-      expect($.stateEmpty(a)).to(be_true);
+    it("should be false if object has any own property", function() {
+      expect($.objectEmpty({n:0})).to(be_false);
+      expect($.objectEmpty({n:""})).to(be_false);
     }); 
 
   });
