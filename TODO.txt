@@ -2,7 +2,7 @@ TODO
 
 [ ] update documentation according to recent changes
 [ ] build parcel with multiple behaviours
-[ ]?? set state will remove item from array parcel if needed
+[ ]?? suppress exception on calls against empty jQuery object. $("XXXX").state() will throw by now.
 [ ] support non-input as a field(readonly)
 [ ] optimize implementation of removeMe()
 [ ] rename _clean to _clear
