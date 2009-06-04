@@ -8,6 +8,7 @@ TODO
 [ ] support textarea, multi-select and select-one
 [ ] make show/hide speed and effect configurable
 [ ] support rails style forms and hierarchies (ie name="person[address][street]")
+[ ] convert to primative value through valueOf() before type checking and equality checking of Number, Boolean and String
 
 potential problems:
 [ ] setting initial state is different with normal setting state, like spinner popups and some other logics are not expected while setting initial state.
