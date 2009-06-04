@@ -341,6 +341,16 @@ Screw.Unit(function() {
       expect(person.helloMessage).to(equal, "hello");
     });
 
+    it("should be able to specify arguments of behaviour function when applying behaviour", function() {
+      function SayHello(msg){
+        this.helloMessage = msg;
+      };
+
+      var person = $("#person").parcel().applyBehaviour(SayHello, ["hello"]);
+
+      expect(person.helloMessage).to(equal, "hello");
+    });
+
     it("should not affect (initial) state for behaviour applied after construction", function() {
       function Person(){
         this.name.state("smith");
