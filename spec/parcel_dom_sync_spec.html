@@ -16,7 +16,7 @@
       <option>Mr</option>
       <option>Mrs</option>
     </select>
-    <div>
+    <div name="genderContainer">
       <input type="radio" value="Male" checked="checked" name="gender">Male</input>
       <input type="radio" value="Female" name="gender">Female</input>
     </div>
@@ -325,12 +325,37 @@ Screw.Unit(function() {
       expect(count).to(equal, 1);
     });
     
-    it("should fire change event on parent DOM after removing array field", function() {
-      // TODO, _parentsSnap is not stored on container yet.
+    it("should fire change event on closest alive parent DOM element after removing fields", function() {
+      var person = $("#person").parcel();
+      var count = 0;
+      var error;
+      person.change(function(e){
+        error = errorOfExpect(function() { expect(e.target).to(be_same_dom_element_as, person[0]); });
+        count++;
+      })
+      
+      person.dob.remove();
+      person.sync();
+      expect(person.dob).to(be_undefined);
+      expect(error).to(be_undefined);
+      expect(count).to(equal, 1);
     });
     
-    it("should fire change event on parent DOM after removing a parcel as field", function() {
-      // TODO, _parentsSnap is not stored on parcel dom yet.
+    it("should fire change event on EACH closest alive parent DOM element after removing fields with different closest alive parent DOM elements", function() {
+      var person = $("#person").parcel();
+      
+      var matchedDOMs = [];
+      person.change(function(e){
+        matchedDOMs.push(e.target);
+      })
+      
+      person.find("[name=genderContainer]").remove();
+      person.find("[name=email]:first").remove();
+      person.sync();
+
+      expect(matchedDOMs.length).to(equal, 2);
+      expect($.inDOMArray(person[0], matchedDOMs) !== -1).to(be_true);
+      expect($.inDOMArray(person.emails[0], matchedDOMs) !== -1).to(be_true);
     });
   });
 });

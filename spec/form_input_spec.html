@@ -10,6 +10,7 @@
 
 <div id="fixture">
   <input type="text" value="luning" name="name"></input>
+  <input type="hidden" value="hiddenValue" name="hiddenField"></input>
   <select name="title">
     <option selected="selected">please select</option>
     <option>Mr</option>
@@ -67,6 +68,12 @@ Screw.Unit(function() {
       });
     });
 
+    it("should accept null as empty state", function() {
+      var name = $("#fixture input[name=name]");
+      name.state(null);
+      expect(name.state()).to(equal_state, "");
+    });
+
   });
 
   describe("Select", function() {
@@ -105,6 +112,20 @@ Screw.Unit(function() {
       title.defaultState("Mr");
       title.defaultState("Mrs");
       expect(title.defaultState()).to(equal_state, "Mrs");
+    });
+
+    it("should accept null as the first option while setting state", function() {
+      var title = $("#fixture select[name=title]");
+      title.state("Mr");
+      title.state(null);
+      expect(title.state()).to(equal_state, "please select");
+    });
+
+    it("should accept empty string as the first option while setting state", function() {
+      var title = $("#fixture select[name=title]");
+      title.state("Mr");
+      title.state("");
+      expect(title.state()).to(equal_state, "please select");
     });
 
   });
@@ -253,7 +274,13 @@ Screw.Unit(function() {
   });
   
   describe("Hidden", function() {
-    // TODO: tests for hidden input strategy
+
+    it("should accept null as empty state", function() {
+      var hidden = $("#fixture input[name=hiddenField]");
+      hidden.state(null);
+      expect(hidden.state()).to(equal_state, "");
+    });
+
   });
 });
 </script>

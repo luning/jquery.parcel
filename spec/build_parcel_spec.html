@@ -11,6 +11,7 @@
 <div id="fixture">
   <div id="person">
     <input type="text" value="luning" name="name"></input>
+    <input type="hidden" name="hiddenField"></input>
     <select name="title">
       <option selected="selected">please select</option>
       <option>Mr</option>
@@ -61,6 +62,7 @@
       </div>
     </div>
     <input type="button" name="action"></input>
+    <input type="submit" name="submitButton"></input>
   </div>
   <input id="randomInput" type="text"></input>
 </div>
@@ -210,7 +212,8 @@ Screw.Unit(function() {
     });
 
     it("should capture hidden dom element", function() {
-      // TODO :
+      var person = $("#person").parcel();
+      expect(person.hiddenField).to_not(be_undefined);
     });
     
     it("should return existing parcel if try to build more than once", function() {
@@ -239,7 +242,8 @@ Screw.Unit(function() {
     });
     
     it("should ignore input of type submit", function() {
-      // TODO: should ignore input of type submit
+      var person = $("#person").parcel();
+      expect(person.submitButton).to(be_undefined);
     });
   });
   
@@ -289,7 +293,9 @@ Screw.Unit(function() {
   describe("Build with Behaviour", function() {
 
     it("should mixin method defined in behaviour", function() {
-      function Person(){};
+      function Person(){
+        this.initialNameAndGender = this.getNameAndGender();
+      };
       Person.prototype = {
         getNameAndGender: function(){
           return this.name.state() + "," + this.gender.state();
@@ -297,8 +303,9 @@ Screw.Unit(function() {
       };
 
       var person = $("#person").parcel(Person);
+      expect(person.initialNameAndGender).to(equal, "luning,Male");
+      
       person.state({name:"smith", gender:"Female"});
-
       expect(person.getNameAndGender()).to(equal, "smith,Female");
     });
 
@@ -378,6 +385,17 @@ Screw.Unit(function() {
       var person = $("#person").parcel(Person, state);
       
       expect(person.name.state()).to(equal_state, "smith");
+    });
+
+    it("should set initial state with option.initial being true", function() {
+      var fired;
+      $("#person").bind("addItemInitial", function(){
+        fired = true;
+      });
+      
+      $("#person").parcel({ emails: [ "1@my.org", "2@my.org", "3@my.org" ] });
+      
+      expect(fired).to(be_true);
     });
 
   });

@@ -174,6 +174,17 @@ Screw.Unit(function() {
       expect(person.emails.state()).to(equal_state, s);
     });
 
+    it("set state should add new sub field when needed if 'addItemInitial' event is properly handled given 'option.initial' is true", function() {
+      $("#person div[name=emails]").bind("addItemInitial", function(){
+        $("#person div[name=emails]").append("<input type='text' name='email'></input>");
+      });
+
+      expect($("#person div[name=emails] input[name=email]").length).to(equal, 2);
+      var s = {emails: ["first@my.org", "second@my.org", "new@my.org"]};
+      $("#container").state(s, { initial: true });
+      expect($("#container").state().emails).to(equal_state, s.emails);
+    });
+
     it("set state on an onfly virtual field should add new sub field when needed if 'addItem' event is properly handled", function() {
       $("#person div[name=emails]").bind("addItem", function(){
         $("#person div[name=emails]").append("<input type='text' name='email'></input>");
@@ -500,6 +511,22 @@ Screw.Unit(function() {
       });
 
     });
+
+    describe("initial", function() {
+
+      it("should fire 'addItemInitial' event when setting state requires adding new item to array field if 'option.initial' is true", function() {
+        var person = $("#person").parcel();
+        var fired;
+        person.bind("addItemInitial", function(){
+          fired = true;
+        });
+
+        person.state({ emails: [ "1@my.org", "2@my.org", "3@my.org" ] }, { initial: true });
+        expect(fired).to(be_true);
+      });
+
+    });
+
   });
 
   describe("Onfly Mode Operation(get/set state of virtual field without parent parcel)", function() {

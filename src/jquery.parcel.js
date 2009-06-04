@@ -118,16 +118,17 @@ A field is a jQuery object(extended), and conceptually can be:
 
     /*
     change of this field will show/hide target, which is a jQuery selector or a field
-    showHide(target, showUpState, resetTarget[optional], callback[optional])
+    showHide(target, showUp, resetTarget[optional], callback[optional])
+    showUp can be a state object or a function return boolean which accepts a state as parameter.
     callback is executed whenever the animation completes, 'this' in callback body is the dom element of target.
       
-    in IE, checkbox/radio become checked after click event handler on it is executed, then handler in parent gets executed.
-    so, showHide on checkbox/radio will not reflect current state in handler, call showHide on parent as a workaround.
+    in IE, checkbox/radio become checked after the click event handler on it is executed, then the click handler in parent DOM gets executed.
+    so, click handler directly on checkbox/radio will not reflect the new state, this causes a problem if call showHide on checkbox/radio, call showHide on parent DOM as a workaround.
     radio.showHide(target, "Yes") => parent.showHide(target, {radio: "Yes"})
     */
-    showHide: function(target, showUpState) {
-      var showUp = $.isFunction(showUpState) ? showUpState : function(state) {
-        return $.stateContain(state, showUpState);
+    showHide: function(target, showUp) {
+      var showUpFn = $.isFunction(showUp) ? showUp : function(state) {
+        return $.stateContain(state, showUp);
       };
 
       var resetTarget = arguments[2], callback = arguments[3];
@@ -138,9 +139,11 @@ A field is a jQuery object(extended), and conceptually can be:
 
       target = $(target);
       var handler = function(e) {
-        if (showUp(e.field.state())) {
+        var show = showUpFn(e.field.state());
+        // check display style to see if container *should* be visible rather than whether it is actually visible
+        if (show && !target.displayed()){
           target.slideDown("fast", callback);
-        } else {
+        } else if(!show && target.displayed()){
           if (resetTarget) {
             var old = callback;
             callback = function() {
@@ -162,8 +165,9 @@ A field is a jQuery object(extended), and conceptually can be:
     },
 
     // find closest parent parcel including itself
-    closestParcel: function() {
-      return this.closest("[parcelinstance]").getParcel();
+    closestParcel: function(excludeThis) {
+      var start = excludeThis ? this.parent() : this;
+      return start.closest("[parcelinstance]").getParcel();
     },
 
     // find all top level parcel objects under this jQuery object
@@ -207,29 +211,27 @@ A field is a jQuery object(extended), and conceptually can be:
 
     // remove DOM(s) and corresponding field(s)
     removeMe: function() {
-      var parcel = this.closestParcel();
+      var parcel = this.closestParcel(true);
       this.remove();
       if (parcel) {
         parcel.sync();
       }
-    },
-
-    // fire change event after removal
-    _removed: function() {
-      var originalParents = this.get(0)._parentsSnap;
-      if (originalParents) {
-        var closestAliveParent = $.first(originalParents, function(i, p) { return !$(p).dead(); });
-        $(closestAliveParent).change();
-      }
-      return this;
     }
   };
 
   var defaultStrategy = {
     match: function() { return true; },
     get: function() { return this.text(); },
-    set: function(s, option) { this.text(s); },
-    getDefault: function() { return this.attr("default") !== undefined ? this.attr("default") : ""; },
+    set: function(s, option) {
+      if (s !== undefined) {
+        this.text(s);
+      }
+    },
+    getDefault: function() {
+      return this.attr("default") !== undefined ?
+        this.attr("default")
+        : (this.is(":input") ? "" : undefined);
+    },
     setDefault: function(s) { this.attr("default", s); }
   };
 
@@ -280,7 +282,7 @@ A field is a jQuery object(extended), and conceptually can be:
     set: function(s, option) {
      this.focus()
       .click()
-      .val(s)
+      .val(s === null ? "" : s)
       .triggerNative("keydown")
       .click()
       .triggerNative("change")
@@ -293,7 +295,7 @@ A field is a jQuery object(extended), and conceptually can be:
   {
     match: function() { return $.hasType(this, "hidden"); },
     get: function() { return this.val(); },
-    set: function(s, option) { this.val(s); },
+    set: function(s, option) { this.val(s === null ? "" : s); },
     getDefault: defaultStrategy.getDefault,
     setDefault: defaultStrategy.setDefault
   },
@@ -302,8 +304,10 @@ A field is a jQuery object(extended), and conceptually can be:
     match: function() { return $.hasTag(this, "select"); },
     get: function() { return this.val(); },
     set: function(s, option) {
+      var first = this[0].options[0];
       this.focus()
-        .val(s)
+        // TODO : clarify the setting logic below
+        .val((s === null || s === "") ? (first.value === "" ? first.text : first.value) : s)
         .triggerNative("change")
         .blur();
     },
@@ -512,6 +516,17 @@ A field is a jQuery object(extended), and conceptually can be:
         this._parentsSnap = $(this).parents().get();
       });
       return this;
+    },
+
+    // events can be a single event or multiple ones seperated with space
+    fireChangeEventOn: function(events) {
+      this.bind(events, function() {
+        this.change();
+      }.bind(this));
+    },
+
+    displayed: function() {
+      return this.css("display") !== "none";
     }
   });
 
@@ -535,7 +550,7 @@ A field is a jQuery object(extended), and conceptually can be:
     this._applyExtension();
     this.applyBehaviour(this._behaviour);
     if (state !== undefined) {
-      this.state(state);
+      this.state(state, { initial: true });
     }
     this.captureState();
   };
@@ -545,7 +560,7 @@ A field is a jQuery object(extended), and conceptually can be:
 
   $.extend($.parcelFn, fieldMixin, {
     // TODO : consider short selector for potential better performance by sacrificing some flexibility
-    FIELD_SELECTOR: ":input:not(:button,[parcelignored],[parcelignored] *)"
+    FIELD_SELECTOR: ":input:not(:button,:submit,[parcelignored],[parcelignored] *)"
      + ",[parcel]:not([parcelignored],[parcelignored] *)"
      + ",[parcel=]:not([parcelignored],[parcelignored] *)"
      + ",[parcelfield]:not([parcelignored],[parcelignored] *)",
@@ -553,7 +568,20 @@ A field is a jQuery object(extended), and conceptually can be:
     // sync with DOM changes
     sync: function(dom) {
       if (dom === undefined) { // DOM removed
-        this._clean();
+        var parentSnaps = [];
+        this._clean(parentSnaps);
+
+        var closestAliveParents = [];
+        $.each(parentSnaps, function(i, snap) {
+          var alive = $.first(snap, function(i, p) { return !$(p).dead(); });
+          if ($.inDOMArray(alive, closestAliveParents) === -1) {
+            closestAliveParents.push(alive);
+          }
+        });
+
+        $.each(closestAliveParents, function(i, alive) {
+          $(alive).change();
+        });
       } else { // DOM added
         var elem = $(dom);
         var addedFields = this._buildFields(elem, true);
@@ -578,10 +606,10 @@ A field is a jQuery object(extended), and conceptually can be:
       return -1;
     },
 
-    applyBehaviour: function(behaviour) {
-      behaviour.apply(this);
+    applyBehaviour: function(behaviour, args) {
       // TODO : mixin behaviour this way lose the efficiency of prototype. properties defined on this may be overwriten ON PURPOSE.
       $.extend(this, behaviour.prototype);
+      behaviour.apply(this, args || []);
       return this;
     },
 
@@ -717,7 +745,7 @@ A field is a jQuery object(extended), and conceptually can be:
             this.fields[i].state(itemState, option);
           } else {
             // try add an item to array field
-            this.trigger("addItem");
+            this.trigger(option.initial ? "addItemInitial" : "addItem");
             if (this.onfly) {
               this.sync(this);
             }
@@ -969,11 +997,11 @@ A field is a jQuery object(extended), and conceptually can be:
     },
 
     // remove fields if the corresponding DOM element(s) is(are) no longer in DOM tree.
-    _clean: function() {
+    _clean: function(parentSnapsOfDeadFields) {
       var deadFields = [];
       $.each(this.fields, function(n, field) {
         if (field._clean) {
-          field._clean();
+          field._clean(parentSnapsOfDeadFields);
         }
         if (field.dead()) {
           deadFields.push(field);
@@ -986,7 +1014,11 @@ A field is a jQuery object(extended), and conceptually can be:
             if (this[deadField.fname] === deadField) {
               delete this[deadField.fname];
             }
-            deadField._removed();
+            var snap = deadField.get(0)._parentsSnap;
+            // only input field has _parentsSnap
+            if (snap) {
+              parentSnapsOfDeadFields.push(snap);
+            }
             break;
           }
         }

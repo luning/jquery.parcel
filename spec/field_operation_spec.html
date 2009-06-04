@@ -11,6 +11,7 @@
 <div id="fixture">
   <div id="container">
     <div id="person">
+      <label parcelfield="true" name="nameLabel">Name:</label>
       <input type="text" value="luning" name="name"></input>
       <select name="title">
         <option selected="selected">please select</option>
@@ -147,6 +148,11 @@ Screw.Unit(function() {
       $("#container").defaultState(s);
       expect($("#container").defaultState()).to(contain_state, s);
     });
+
+    it("of a non-user-interactable field should be undefined", function() {
+      var person = $("#person").parcel();
+      expect(person.nameLabel.defaultState()).to(be_undefined);
+    });
   });
   
   describe("Reset State", function() {
@@ -189,6 +195,12 @@ Screw.Unit(function() {
       var s = {name: "smith", title: "Mr", make: "GE"};
       $("#container").defaultState(s).resetState();
       expect($("#container").state()).to(contain_state, s);
+    });
+
+    it("should do nothing with non-user-interactable fields", function() {
+      var person = $("#person").parcel();
+      person.resetState();
+      expect(person.nameLabel.state()).to(equal_state, "Name:");
     });
 
   });
@@ -350,27 +362,50 @@ Screw.Unit(function() {
       expect(count).to(equal, 1);
     });
 
-    it("of a Parcel should remove itself as a field and fire change event on parent DOM", function() {
-      // TODO
-      // var count = 0;
-      // var error;
-      // person.change(function(e){
-        // error = errorOfExpect(function() { expect(e.target).to(equal, person.container[0]); });
-        // count++;
-      // })
+    it("of a Parcel should remove itself as a field and fire change event once on parent DOM", function() {
+      var person = $("#person").parcel();
+      var count = 0;
+      var error;
+      person.change(function(e){
+        error = errorOfExpect(function() { expect(e.target).to(be_same_dom_element_as, person[0]); });
+        count++;
+      })
       
-      // person.locality.removeMe();
-      // expect(person.locality).to(be_undefined);
-      // expect(error).to(be_undefined);
-      // expect(count).to(equal, 1);
+      person.locality.removeMe();
+      expect(person.locality).to(be_undefined);
+      expect(error).to(be_undefined);
+      expect(count).to(equal, 1);
     });
 
-    it("of an Array field should remove itself and fire change event on parent DOM", function() {
-      // TODO
+    it("of an Array field containing multiple sub-fields should remove itself and fire change event only once on parent DOM", function() {
+      var person = $("#person").parcel();
+      var count = 0;
+      var error;
+      person.contactInfo.change(function(e){
+        error = errorOfExpect(function() { expect(e.target).to(be_same_dom_element_as, person.contactInfo[0]); });
+        count++;
+      })
+      
+      person.emails.removeMe();
+      expect(person.emails).to(be_undefined);
+      expect(error).to(be_undefined);
+      expect(count).to(equal, 1);
     });
     
-    it("of a Virtual field should remove related DOM and fire change event on parent DOM", function() {
-      // TODO
+    it("of a Virtual field should remove field(s) under it and fire change event only once on parent DOM", function() {
+      var person = $("#person").parcel();
+      var count = 0;
+      var error;
+      person.change(function(e){
+        error = errorOfExpect(function() { expect(e.target).to(be_same_dom_element_as, person[0]); });
+        count++;
+      })
+      
+      person.contactInfo.removeMe();
+      // TODO : sync should remove convenient accessor of virtual field as well
+      // expect(person.contactInfo).to(be_undefined);
+      expect(error).to(be_undefined);
+      expect(count).to(equal, 1);
     });
     
   });
@@ -379,22 +414,27 @@ Screw.Unit(function() {
 
     it("of a jQuery object should be the closest parent parcel", function() {
       var person = $("#person").parcel();
-      expect($("#person :radio:first").closestParcel()).to(equal, person);
+      expect($("#person :radio:first").closestParcel()).to(be_same, person);
     });
 
     it("of a Parcel should be itself", function() {
       var person = $("#person").parcel();
-      expect(person.locality.closestParcel()).to(equal, person.locality);
+      expect(person.locality.closestParcel()).to(be_same, person.locality);
     });
 
     it("of an Array field should be itself", function() {
       var person = $("#person").parcel();
-      expect(person.emails.closestParcel()).to(equal, person.emails);
+      expect(person.emails.closestParcel()).to(be_same, person.emails);
     });
     
     it("of a field in an array field should be the parent array field", function() {
       var person = $("#person").parcel();
-      expect(person.emails.items[0].closestParcel()).to(equal, person.emails);
+      expect(person.emails.items[0].closestParcel()).to(be_same, person.emails);
+    });
+    
+    it("should exclude the caller itself if specified", function() {
+      var person = $("#person").parcel();
+      expect(person.locality.closestParcel(true)).to(be_same, person);
     });
   });
   
@@ -461,6 +501,55 @@ Screw.Unit(function() {
     it("should ignore property of passed in state if no corresponding field", function() {
       var person = $("#person").parcel();
       expect(person.willUpdateWith({ notexist: "whatever" })).to(be_false);
+    });
+
+  });
+  
+  describe("Fire Change Event On", function() {
+  
+    it("should fire change event on other event", function() {
+      var name = $("#person [name=name]");
+      name.fireChangeEventOn("blur");
+      
+      var fired;
+      name.change(function(){
+        fired = true;
+      });
+      
+      name.blur();
+      expect(fired).to(be_true);
+    });
+  
+    it("should fire change event on multiple other events", function() {
+      var name = $("#person [name=name]");
+      name.fireChangeEventOn("blur keyup");
+      
+      var fired;
+      name.change(function(){
+        fired = true;
+      });
+      
+      name.blur();
+      expect(fired).to(be_true);
+      
+      fired = false;
+      name.keyup();
+      expect(fired).to(be_true);
+    });
+
+  });
+  
+  describe("Displayed", function() {
+  
+    it("should be true if displayed style is not none", function() {
+      var name = $("#person [name=name]");
+      expect(name.displayed()).to(be_true);
+    });
+  
+    it("should be false if displayed style is none", function() {
+      var name = $("#person [name=name]");
+      name.css("display", "none");
+      expect(name.displayed()).to(be_false);
     });
 
   });

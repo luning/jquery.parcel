@@ -3,27 +3,22 @@ TODO
 [ ] update documentation according to recent changes
 [ ] build parcel with multiple behaviours
 [ ]?? suppress exception on calls against empty jQuery object. $("XXXX").state() will throw by now.
-[ ] support non-input as a field(readonly)
 [ ] optimize implementation of removeMe()
-[ ] rename _clean to _clear
 [ ] consider making option.check default to be true while setting state
-[ ] use smoke mocks rather than roll our own
-[ ] consider renaming initialState() => initial or pristine?, resetState() => reset or revert, captureState() => save. 4 actions: get the last saved state, reset to blank, revert to the last saved state, save state.
 [ ] support textarea, multi-select and select-one
 [ ] make show/hide speed and effect configurable
 [ ] support rails style forms and hierarchies (ie name="person[address][street]")
 
 potential problems:
-[ ] remove a DOM with many fields will fire change event multiple times unexpectedly, once on each field's closest alive original parent.
-
-
+[ ] setting initial state is different with normal setting state, like spinner popups and some other logics are not expected while setting initial state.
+[ ] accepting null as a state value representing empty textbox and top option in select may cause inconsistency, state to set(null) is different with the actual state being setted(""). This will break setting state if option.verify = true.
 [ ] custom DOM attributes are potentially undesirable
   - need to consider which path to take
   - see http://www.danwebb.net/2007/10/7/custom-attributes-and-class-names
   - also http://unspace.ca/discover/attributes/
   - could replace with something more 'semantic' like:
 
-$('#parcel').parce({
+$('#parcel').parcel({
   field1: ignore,
   field2: rename('f2'),
   field3: virtual

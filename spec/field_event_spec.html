@@ -416,7 +416,7 @@ Screw.Unit(function() {
       person.marital.filter("[value=Yes]").click();
       expect(person.spouseInfo).to(be_visible);
     });
-    
+
     it("should fire callback with proper parameters after the completion of show/hide animation", function() {
       // this is not easy to be unit tested due to its async nature, below shows the usage indeed.
       var person = $("#person").parcel();
@@ -443,6 +443,36 @@ Screw.Unit(function() {
       person.marital.state("No");
       expect(fired).to(be_true);
       expect(error).to(be_undefined);
+    });
+
+    it("should show only if target is not displayed(display = none)", function() {
+      var person = $("#person").parcel();
+      var fired = false;
+      person.showHide(person.spouseInfo, { marital: "Yes" }, function(){
+        fired = true;
+      });
+      // make spouseInfo displayed
+      person.spouseInfo.show();
+
+      fired = false;
+      person.marital.state("Yes");
+      expect(fired).to(be_false);
+    });
+
+    it("should hide only if target is displayed(display != none)", function() {
+      var person = $("#person").parcel();
+      var fired = false;
+      person.showHide(person.spouseInfo, { marital: "Yes" }, function(){
+        fired = true;
+      });
+      person.marital.state("Yes");
+
+      // make spouseInfo non-displayed
+      person.spouseInfo.hide();
+
+      fired = false;
+      person.marital.state("No");
+      expect(fired).to(be_false);
     });
   });
 
