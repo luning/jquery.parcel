@@ -1,5 +1,6 @@
 TODO
 
+[ ] while setting state, don't accept null as "" for text and readonly field, "" as first option for select, null as [] for checkbox, all these will break state comparasion during setting state!!!
 [ ] update documentation according to recent changes
 [ ] build parcel with multiple behaviours
 [ ]?? suppress exception on calls against empty jQuery object. $("XXXX").state() will throw by now.
