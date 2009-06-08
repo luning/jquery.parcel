@@ -436,6 +436,13 @@ Screw.Unit(function() {
       var person = $("#person").parcel();
       expect(person.locality.closestParcel(true)).to(be_same, person);
     });
+
+    it("should recognize itself as closest parcel during the construction of parcel", function() {
+      var person = $("#person").parcel(function(){
+        expect(this.closestParcel()).to(be_same, this);
+      });
+    });
+
   });
   
   describe("Child Parcels", function() {
@@ -554,6 +561,37 @@ Screw.Unit(function() {
 
   });
   
+  describe("Editable", function() {
+
+    it("should be true if enabled and visible", function() {
+      var name = $("#person [name=name]");
+      expect(name.editable()).to(be_true);
+    });
+
+    it("should be false if disabled", function() {
+      var name = $("#person [name=name]");
+      name.attr("disabled", "disabled");
+      expect(name.editable()).to(be_false);
+    });
+
+    it("should be false if hidden", function() {
+      var name = $("#person [name=name]");
+      name.css("display", "none");
+      expect(name.editable()).to(be_false);
+    });
+
+    it("should be false if parent DOM element is hidden", function() {
+      var name = $("#person [name=name]");
+      $("#person").css("display", "none");
+      expect(name.editable()).to(be_false);
+    });
+
+    it("should be false for empty jQuery object", function() {
+      expect($("notexist").editable()).to(be_false);
+    });
+
+  });
+
 });
 </script>
 </body>

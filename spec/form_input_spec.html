@@ -33,6 +33,14 @@ Screw.Unit(function() {
   });
 
   describe("Textbox", function() {
+
+    it("should have no effect when set invalid state", function() {
+      var name = $("#fixture input[name=name]");
+      expect(name.state(null).state()).to(equal_state, "luning");
+      expect(name.state({}).state()).to(equal_state, "luning");
+      expect(name.state([]).state()).to(equal_state, "luning");
+      expect(name.state(0).state()).to(equal_state, "luning");
+    });
     
     it("default state should be empty string", function() {
       var name = $("#fixture input[name=name]");
@@ -68,15 +76,26 @@ Screw.Unit(function() {
       });
     });
 
-    it("should accept null as empty state", function() {
+    it("should have no effect when set invalid default state", function() {
       var name = $("#fixture input[name=name]");
-      name.state(null);
-      expect(name.state()).to(equal_state, "");
+      name.defaultState("LUNING");
+      expect(name.defaultState(null).defaultState()).to(equal_state, "LUNING");
+      expect(name.defaultState({}).defaultState()).to(equal_state, "LUNING");
+      expect(name.defaultState([]).defaultState()).to(equal_state, "LUNING");
+      expect(name.defaultState(0).defaultState()).to(equal_state, "LUNING");
     });
 
   });
 
   describe("Select", function() {
+
+    it("should have no effect when set invalid state", function() {
+      var title = $("#fixture select[name=title]");
+      title.state("Mr");
+      expect(title.state({}).state()).to(equal_state, "Mr");
+      expect(title.state([]).state()).to(equal_state, "Mr");
+      expect(title.state(0).state()).to(equal_state, "Mr");
+    });
 
     it("default state should be decided by the defaultSelected option", function() {
       var title = $("#fixture select[name=title]");
@@ -114,24 +133,41 @@ Screw.Unit(function() {
       expect(title.defaultState()).to(equal_state, "Mrs");
     });
 
-    it("should accept null as the first option while setting state", function() {
+    it("should accept null as select no option while setting state", function() {
       var title = $("#fixture select[name=title]");
-      title.state("Mr");
-      title.state(null);
-      expect(title.state()).to(equal_state, "please select");
+      expect(title.state(null).state()).to(equal, null);
     });
 
-    it("should accept empty string as the first option while setting state", function() {
+    it("should accept null as select no option while setting default state", function() {
+      // TODO
+    });
+
+    it("should have no effect when set invalid default state", function() {
       var title = $("#fixture select[name=title]");
-      title.state("Mr");
-      title.state("");
-      expect(title.state()).to(equal_state, "please select");
+      title.defaultState("Mr");
+      expect(title.defaultState({}).defaultState()).to(equal_state, "Mr");
+      expect(title.defaultState([]).defaultState()).to(equal_state, "Mr");
+      expect(title.defaultState(0).defaultState()).to(equal_state, "Mr");
     });
 
   });
   
   describe("Radio", function() {
-    
+
+    it("should un-check all if set state to null", function() {
+      var gender = $("#fixture :radio[name=gender]");
+      expect(gender.state(null).state()).to(equal, null);
+      expect(gender.filter(":checked").length).to(equal, 0);
+    });
+
+    it("should have no effect when set invalid state", function() {
+      var gender = $("#fixture :radio[name=gender]");
+      gender.state("Female");
+      expect(gender.state({}).state()).to(equal_state, "Female");
+      expect(gender.state([]).state()).to(equal_state, "Female");
+      expect(gender.state(0).state()).to(equal_state, "Female");
+    });
+
     it("default state should be decided by defaultChecked radio", function() {
       var gender = $("#fixture :radio[name=gender]");
       gender.state("Female");
@@ -210,15 +246,14 @@ Screw.Unit(function() {
       expect(clicked).to(equal_state, ["Reading", "Climbing"]);      
       expect(changed).to(equal_state, clicked);
     });
-    
-    it("should not set state with non-array", function() {
+
+    it("should have no effect when set invalid state", function() {
       var hobby = $("#fixture :checkbox[name=hobby]");
-      try{
-        hobby.state("Reading");
-        expect(true).to(be_false);
-      } catch(ex) {
-        expect(ex.toString()).to(match, "ParcelError");
-      }
+      hobby.state(["Climbing"]);
+      expect(hobby.state(null).state()).to(equal_state, ["Climbing"]);
+      expect(hobby.state({}).state()).to(equal_state, ["Climbing"]);
+      expect(hobby.state(0).state()).to(equal_state, ["Climbing"]);
+      expect(hobby.state("").state()).to(equal_state, ["Climbing"]);
     });
     
     it("default state should be decided by defaultChecked property", function() {
@@ -253,16 +288,6 @@ Screw.Unit(function() {
       hobby.defaultState(["Reading", "Climbing"]);
       expect(hobby.defaultState()).to(equal_state, ["Reading", "Climbing"]);
     });
-    
-    it("should not set default state with non-array", function() {
-      var hobby = $("#fixture :checkbox[name=hobby]");
-      try {
-        hobby.defaultState("Reading");
-        expect(true).to(be_false);
-      } catch(ex) {
-        expect(ex.toString()).to(match, "ParcelError");
-      }
-    });
 
     it("set default state should clear old setting", function() {
       var hobby = $("#fixture :checkbox[name=hobby]");
@@ -271,14 +296,31 @@ Screw.Unit(function() {
       expect(hobby.defaultState()).to(equal_state, ["Climbing"]);
     });
 
+    it("should have no effect when set invalid default state", function() {
+      var hobby = $("#fixture :checkbox[name=hobby]");
+      hobby.defaultState(["Climbing"]);
+      expect(hobby.defaultState(null).defaultState()).to(equal_state, ["Climbing"]);
+      expect(hobby.defaultState({}).defaultState()).to(equal_state, ["Climbing"]);
+      expect(hobby.defaultState(0).defaultState()).to(equal_state, ["Climbing"]);
+      expect(hobby.defaultState("").defaultState()).to(equal_state, ["Climbing"]);
+    });
+
+    it("should accept empty array as default state of un-check all", function() {
+      var hobby = $("#fixture :checkbox[name=hobby]");
+      expect(hobby.defaultState([]).defaultState()).to(equal_state, []);
+    });
+
   });
   
   describe("Hidden", function() {
 
-    it("should accept null as empty state", function() {
+    it("should have no effect when set invalid state", function() {
       var hidden = $("#fixture input[name=hiddenField]");
-      hidden.state(null);
-      expect(hidden.state()).to(equal_state, "");
+      hidden.state("value");
+      expect(hidden.state(null).state()).to(equal_state, "value");
+      expect(hidden.state({}).state()).to(equal_state, "value");
+      expect(hidden.state([]).state()).to(equal_state, "value");
+      expect(hidden.state(0).state()).to(equal_state, "value");
     });
 
   });

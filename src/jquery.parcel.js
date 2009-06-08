@@ -1,4 +1,4 @@
-﻿﻿/*
+﻿/*
 * jQuery.parcel JavaScript Library v0.1
 * http://www.github.com/luning/jquery.parcel
 */
@@ -27,13 +27,14 @@ A field is a jQuery object(extended), and conceptually can be:
         return existParcel;
       }
 
-      $.extend(this, $.parcel.prototype);
-      $.parcel.apply(this, arguments);
       // test if in onfly mode, no side effect is introduced into existing DOM elements in onfly mode
       if (arguments[0] !== true) {
         // this.attr(key, value) will convert value to string, so set attribute directly as below
         this[0].parcelinstance = this;
       }
+
+      $.extend(this, $.parcel.prototype);
+      $.parcel.apply(this, arguments);
       return this;
     },
 
@@ -149,7 +150,7 @@ A field is a jQuery object(extended), and conceptually can be:
             callback = function() {
               target.resetState();
               if (old) { old.apply(this, arguments); }
-            }
+            };
           }
           target.slideUp("fast", callback);
         }
@@ -232,7 +233,12 @@ A field is a jQuery object(extended), and conceptually can be:
         this.attr("default")
         : (this.is(":input") ? "" : undefined);
     },
-    setDefault: function(s) { this.attr("default", s); }
+    setDefault: function(s) {
+      if(s === null || typeof s !== "string"){
+        return;
+      }
+      this.attr("default", s);
+    }
   };
 
   var elementStrategies = [
@@ -280,13 +286,16 @@ A field is a jQuery object(extended), and conceptually can be:
     match: function() { return $.hasType(this, "text"); },
     get: function() { return this.val(); },
     set: function(s, option) {
-     this.focus()
-      .click()
-      .val(s === null ? "" : s)
-      .triggerNative("keydown")
-      .click()
-      .triggerNative("change")
-      .blur();
+      if(s === null || typeof s.valueOf() !== "string"){
+        return;
+      }
+      this.focus()
+        .click()
+        .val(s)
+        .triggerNative("keydown")
+        .click()
+        .triggerNative("change")
+        .blur();
     },
     getDefault: defaultStrategy.getDefault,
     setDefault: defaultStrategy.setDefault
@@ -295,19 +304,26 @@ A field is a jQuery object(extended), and conceptually can be:
   {
     match: function() { return $.hasType(this, "hidden"); },
     get: function() { return this.val(); },
-    set: function(s, option) { this.val(s === null ? "" : s); },
+    set: function(s, option) {
+      if(s === null || typeof s.valueOf() !== "string"){
+        return;
+      }
+      this.val(s);
+    },
     getDefault: defaultStrategy.getDefault,
     setDefault: defaultStrategy.setDefault
   },
   // for select
+  // state null => select no option
   {
     match: function() { return $.hasTag(this, "select"); },
     get: function() { return this.val(); },
     set: function(s, option) {
-      var first = this[0].options[0];
+      if(s !== null && typeof s !== "string"){
+        return;
+      }
       this.focus()
-        // TODO : clarify the setting logic below
-        .val((s === null || s === "") ? (first.value === "" ? first.text : first.value) : s)
+        .val(s)
         .triggerNative("change")
         .blur();
     },
@@ -318,9 +334,16 @@ A field is a jQuery object(extended), and conceptually can be:
       var theDefault = this.find("option").filter(function() { return this.defaultSelected; });
       return theDefault.length === 0 ? null : theDefault.val();
     },
-    setDefault: defaultStrategy.setDefault
+    setDefault: function(s) {
+      // TODO : null(select no option) is not properly stored as default state
+      if(s !== null && typeof s !== "string"){
+        return;
+      }
+      this.attr("default", s);
+    }
   },
   // for radio
+  // state null => uncheck all
   {
     match: function() { return $.hasType(this, "radio"); },
     get: function() {
@@ -345,9 +368,10 @@ A field is a jQuery object(extended), and conceptually can be:
     },
     getDefault: function() {
       var theDefault = this.filter(function() {
-        return $(this).attr("default") !== undefined;
+        var d = $(this).attr("default");
+        return d !== undefined && d.toString().toLowerCase() !== "false";
       });
-      if (theDefault.length === 0) {
+      if (theDefault.length === 0 && this.filter("[default]").length === 0) {
         theDefault = this.filter(function() {
           return this.defaultChecked;
         });
@@ -355,7 +379,11 @@ A field is a jQuery object(extended), and conceptually can be:
       return theDefault.length === 0 ? null : theDefault.val();
     },
     setDefault: function(s) {
-      this.removeAttr("default").filter("[value=" + s + "]").attr("default", true);
+      if (s === undefined) { return; }
+      this.attr("default", false);
+      if (s !== null) {
+        this.filter("[value=" + s + "]").attr("default", true);
+      }
     }
   },
   // for checkbox
@@ -366,7 +394,7 @@ A field is a jQuery object(extended), and conceptually can be:
     },
     set: function(s, option) {
       if (!$.isArray(s)) {
-        throw "ParcelError: set checkbox with invalid state [" + s + "]";
+        return;
       }
       this.each(function(i, dom) {
         if ($.xor($.inArray(dom.value, s) !== -1, dom.checked)) {
@@ -379,10 +407,11 @@ A field is a jQuery object(extended), and conceptually can be:
       });
     },
     getDefault: function() {
-      var theDefault = $.grep(this, function(dom) {
-        return $(dom).attr("default") !== undefined;
+      var theDefault = this.filter(function() {
+        var d = $(this).attr("default");
+        return d !== undefined && d.toString().toLowerCase() !== "false";
       });
-      if (theDefault.length === 0) {
+      if (theDefault.length === 0 && this.filter("[default]").length === 0) {
         theDefault = $.grep(this, function(dom) {
           return dom.defaultChecked;
         });
@@ -393,9 +422,9 @@ A field is a jQuery object(extended), and conceptually can be:
     },
     setDefault: function(s) {
       if (!$.isArray(s)) {
-        throw "ParcelError: set checkbox with invalid default state [" + s + "]";
+        return;
       }
-      this.removeAttr("default");
+      this.attr("default", false);
       $.each(s, function(i, v) {
         this.filter("[value=" + v + "]").attr("default", true);
       } .bind(this));
@@ -467,7 +496,7 @@ A field is a jQuery object(extended), and conceptually can be:
     },
 
     editable: function(){
-      return !this.is(":hidden") && !this.attr("disabled");
+      return this.length > 0 && !this.is(":hidden") && !this.attr("disabled");
     },
 
     // trigger event with browser native behaviour, e.g. change does not bubble up in IE, but firefox does.
