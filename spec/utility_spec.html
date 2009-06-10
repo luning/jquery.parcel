@@ -9,9 +9,22 @@
 </head>
 
 <body>
-  
+
+<div id="fixture">
+  <input type="text"></input>
+  <input type="hidden"></input>
+  <select></select>
+  <input type="radio"></input>
+  <input type="checkbox"></input>
+</div>
+
 <script type="text/javascript">
 Screw.Unit(function() {
+  var fixtureHtml = $("#fixture").html();
+
+  before(function() {
+    $("#fixture").html(fixtureHtml);
+  });
 
   describe("State Equal", function() {
     it("should have same property and value", function() {
@@ -232,6 +245,54 @@ Screw.Unit(function() {
       expect($.objectEmpty({n:0})).to(be_false);
       expect($.objectEmpty({n:""})).to(be_false);
     }); 
+
+  });
+
+  describe("Has Tag", function() {
+
+    it("should know if an jQuery object has specific tag name", function() {
+      expect($.hasTag($("select"), "select")).to(be_true);
+      expect($.hasTag($("select"), "input")).to(be_false);
+    });
+
+    it("should know if an jQuery object has any of the specific tag names", function() {
+      expect($.hasTag($("select"), "input", "select")).to(be_true);
+      expect($.hasTag($("select"), "input", "div")).to(be_false);
+    });
+
+    it("should be false for empty jQuery object", function() {
+      expect($.hasTag($("notexist"), "input")).to(be_false);
+    });
+
+    it("should be false for jQuery object representing document", function() {
+      expect($.hasTag($(), "input")).to(be_false);
+    });
+
+  });
+
+  describe("Has Type", function() {
+
+    it("should know if an input jQuery object is of specific type", function() {
+      expect($.hasType($(":radio"), "radio")).to(be_true);
+      expect($.hasType($(":radio"), "checkbox")).to(be_false);
+    });
+
+    it("should know if an input jQuery object is of any specific types", function() {
+      expect($.hasType($(":radio"), "checkbox", "radio")).to(be_true);
+      expect($.hasType($(":radio"), "checkbox", "hidden")).to(be_false);
+    });
+
+    it("should be false for non-input jQuery object", function() {
+      expect($.hasType($("select"), "select")).to(be_false);
+    });
+
+    it("should be false for empty jQuery object", function() {
+      expect($.hasType($("notexist"), "radio")).to(be_false);
+    });
+
+    it("should be false for jQuery object representing document", function() {
+      expect($.hasType($(), "radio")).to(be_false);
+    });
 
   });
 });

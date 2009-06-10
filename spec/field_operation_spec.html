@@ -559,6 +559,14 @@ Screw.Unit(function() {
       expect(name.displayed()).to(be_false);
     });
 
+    it("should be false for empty jQuery object", function() {
+      expect($("notexist").displayed()).to(be_false);
+    });
+
+    it("should be true for jQuery object representing document", function() {
+      expect($().displayed()).to(be_true);
+    });
+
   });
   
   describe("Editable", function() {

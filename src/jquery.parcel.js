@@ -139,20 +139,21 @@ A field is a jQuery object(extended), and conceptually can be:
       }
 
       target = $(target);
+
+      var callbackWithReset = function() {
+        target.resetState();
+        if (callback) {
+          callback.apply(this, arguments);
+        }
+      };
+
       var handler = function(e) {
         var show = showUpFn(e.field.state());
         // check display style to see if container *should* be visible rather than whether it is actually visible
-        if (show && !target.displayed()){
+        if (show && !target.displayed()) {
           target.slideDown("fast", callback);
         } else if(!show && target.displayed()){
-          if (resetTarget) {
-            var old = callback;
-            callback = function() {
-              target.resetState();
-              if (old) { old.apply(this, arguments); }
-            };
-          }
-          target.slideUp("fast", callback);
+          target.slideUp("fast", resetTarget ? callbackWithReset : callback);
         }
       };
 
@@ -363,7 +364,8 @@ A field is a jQuery object(extended), and conceptually can be:
         if(option.editable && !r.editable()){
           throw "ParcelError: the radio is hidden or disabled, can not check it";
         }
-        r.click().triggerNative("change");
+        // click handler will not reflect current state like real user interaction in some cases if omitting attr("checked", true)
+        r.attr("checked", true).click().triggerNative("change");
       }
     },
     getDefault: function() {
@@ -555,7 +557,7 @@ A field is a jQuery object(extended), and conceptually can be:
     },
 
     displayed: function() {
-      return this.css("display") !== "none";
+      return this.length > 0 && (this[0] === window.document || this.css("display") !== "none");
     }
   });
 
@@ -1176,12 +1178,12 @@ A field is a jQuery object(extended), and conceptually can be:
   };
 
   $.hasTag = function(elem) {
-    return $.inArray(elem[0].tagName.toLowerCase(), Array.prototype.slice.call(arguments, 1)) !== -1;
+    return (elem.length === 0 || !elem[0].tagName) ? false : $.inArray(elem[0].tagName.toLowerCase(), Array.prototype.slice.call(arguments, 1)) !== -1;
   };
 
   $.hasType = function(elem) {
-    return elem[0].tagName.toLowerCase() === "input" &&
-          $.inArray(elem[0].type, Array.prototype.slice.call(arguments, 1)) !== -1;
+    return (elem.length === 0 || !elem[0].tagName) ? false : (elem[0].tagName.toLowerCase() === "input" &&
+          $.inArray(elem[0].type, Array.prototype.slice.call(arguments, 1)) !== -1);
   };
 
   // jquery.print.js is optional

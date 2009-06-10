@@ -153,6 +153,19 @@ Screw.Unit(function() {
   });
   
   describe("Radio", function() {
+    it("should fire proper events while setting state", function() {
+      var gender = $("#fixture :radio[name=gender]");
+      var footprint = "";
+      gender.bind("click change", function(e){
+        footprint += e.type + "(" + e.target.value + ")";
+      });
+
+      gender.state("Male");
+      expect(footprint).to(equal, "");
+
+      gender.state("Female");
+      expect(footprint).to(equal, "click(Female)change(Female)");
+    });
 
     it("should un-check all if set state to null", function() {
       var gender = $("#fixture :radio[name=gender]");
@@ -203,7 +216,6 @@ Screw.Unit(function() {
       gender.defaultState("Female");
       expect(gender.defaultState()).to(equal_state, "Female");
     });
-
   });
 
   describe("Checkbox", function() {
