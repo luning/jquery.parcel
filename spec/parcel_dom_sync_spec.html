@@ -138,6 +138,23 @@ Screw.Unit(function() {
       expect(anotherEmail).to(be_same, person.emails.items[1]);
     });
 
+    it("should throw when adding field to array if the name does not match the name constraint of the array field", function() {
+      var person = $("#person").parcel();
+      expect(person.emails.items.length).to(equal, 1);
+
+      var notemail = $("<input type='text' name='notemail'></input>");
+      $("#person div[name=emails]").append(notemail);
+
+      try{
+        notemail.sync()[0];
+        expect(true).to(be_false);
+      } catch(ex){
+        expect(ex.toString()).to(match, "ParcelError");
+      }
+
+      expect(person.emails.items.length).to(equal, 1);
+    });
+
     it("should add field to array once even if call sync twice", function() {
       var person = $("#person").parcel();
       expect(person.emails.items.length).to(equal, 1);

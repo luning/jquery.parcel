@@ -664,8 +664,12 @@ A field is a jQuery object(extended), and conceptually can be:
         }
         var elem = $(dom);
         var fname = this._name(elem);
-        if (!fname || (this._nameConstraint && this._nameConstraint !== fname)) {
-          return; // ignore this element
+        if (!fname) {
+          // ignore this element
+          return;
+        }
+        if (this._nameConstraint && fname !== this._nameConstraint) {
+          throw "ParcelError: field [" + fname + "] does not match name constraint [" + this._nameConstraint + "].";
         }
         addedFields.push(this._addField(elem, fname, inferOrder));
       } .bind(this));

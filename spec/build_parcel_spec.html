@@ -139,6 +139,17 @@ Screw.Unit(function() {
       expect(person.state()).to(contain_state, s);
     });
 
+    it("should throw if there is any named field not matching the name constraint", function() {
+      $("#person div[name=emails]").append("<input type='text' name='notemail'></input>");
+
+      try {
+        $("#person").parcel();
+        expect(true).to(be_false);
+      } catch(ex){
+        expect(ex.toString()).to(match, "ParcelError");
+      }
+    });
+
   });
 
   describe("Build with another Parcel as Field", function() {
