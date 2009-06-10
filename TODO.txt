@@ -1,6 +1,5 @@
 TODO
 
-[ ] building parcel with name constraint should not ignore field not matching name constraint but throw, otherwise event will be messed up
 [ ] update documentation according to recent changes
 [ ] build parcel with multiple behaviours
 [ ]?? suppress exception on calls against empty jQuery object. $("XXXX").state() will throw by now.
