@@ -375,6 +375,33 @@ Screw.Unit(function() {
       expect($.inDOMArray(person.emails[0], matchedDOMs) !== -1).to(be_true);
     });
   });
+
+  describe("Add and Remove DOM elements at once", function() {
+    it("should do two way sync and return added fields", function(){
+      var person = $("#person").parcel();
+
+      person.title.after($("<input type='text' name='education'></input>"));
+      person.title.after($("<input type='text' name='hair'></input>"));
+
+      person.name.remove();
+      person.nationality.remove();
+
+      var added = person.sync(true);
+
+      expect(person.hasField("education")).to(be_true);
+      expect(person.hasField("hair")).to(be_true);
+
+      expect(added.length).to(equal, 2);
+      expect(added[0]).to(be_same, person.hair);
+      expect(added[1]).to(be_same, person.education);
+
+      expect(person.hasField("name")).to(be_false);
+      expect(person.hasField("nationality")).to(be_false);
+
+      expect(person.name).to(be_undefined);
+      expect(person.nationality).to(be_undefined);
+    });
+  });
 });
 </script>
 </body>

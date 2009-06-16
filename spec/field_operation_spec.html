@@ -76,6 +76,7 @@ Screw.Unit(function() {
   
   before(function() {
     $("#fixture").html(fixtureHtml);
+    $.config = {};
   });
 
   describe("Default State", function() {
@@ -201,6 +202,22 @@ Screw.Unit(function() {
       var person = $("#person").parcel();
       person.resetState();
       expect(person.nameLabel.state()).to(equal_state, "Name:");
+    });
+
+    it("shoule accept option which will be used when setting state", function() {
+      var person = $("#person").parcel();
+
+      var option = {verify: true};
+      var checked;
+      //borrow elementStrategy to hook setting and check the passed in option
+      $.config.elementStrategy = {set: function(s, o){
+        checked = true;
+        expect(o).to(be_same, option);
+      }};
+
+      person.name.resetState(option);
+
+      expect(checked).to(be_true);
     });
 
   });
@@ -341,6 +358,22 @@ Screw.Unit(function() {
       
       expect(person.name.state()).to(equal, "smith");
       expect(person.title.state()).to(equal, "Mr");
+    });
+
+    it("shoule accept option which will be used when setting state", function() {
+      var person = $("#person").parcel();
+
+      var option = {verify: true};
+      var checked;
+      // borrow elementStrategy to hook setting and check the passed in option
+      $.config.elementStrategy = {set: function(s, o){
+        checked = true;
+        expect(o).to(be_same, option);
+      }};
+
+      person.name.revertState(option);
+
+      expect(checked).to(be_true);
     });
 
   });

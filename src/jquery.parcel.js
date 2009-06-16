@@ -1,4 +1,4 @@
-﻿/*
+/*
 * jQuery.parcel JavaScript Library v0.1
 * http://www.github.com/luning/jquery.parcel
 */
@@ -161,8 +161,8 @@ A field is a jQuery object(extended), and conceptually can be:
       return this;
     },
 
-    resetState: function() {
-      this.state(this.defaultState());
+    resetState: function(option) {
+      this.state(this.defaultState(), option);
       return this;
     },
 
@@ -184,8 +184,8 @@ A field is a jQuery object(extended), and conceptually can be:
       return !$.stateEqual(this.initialState(), this.state());
     },
 
-    revertState: function() {
-      this.state(this.initialState());
+    revertState: function(option) {
+      this.state(this.initialState(), option);
       return this;
     },
 
@@ -597,8 +597,10 @@ A field is a jQuery object(extended), and conceptually can be:
      + ",[parcelfield]:not([parcelignored],[parcelignored] *)",
 
     // sync with DOM changes
-    sync: function(dom) {
-      if (dom === undefined) { // DOM removed
+    sync: function(context) {
+      if (context === true) { // DOM removed and added
+        return this.sync().sync(this);
+      } else if (context === undefined) { // DOM removed
         var parentSnaps = [];
         this._clean(parentSnaps);
 
@@ -613,10 +615,11 @@ A field is a jQuery object(extended), and conceptually can be:
         $.each(closestAliveParents, function(i, alive) {
           $(alive).change();
         });
+        return this;
       } else { // DOM added
-        var elem = $(dom);
-        var addedFields = this._buildFields(elem, true);
-        elem.change();
+        context = $(context);
+        var addedFields = this._buildFields(context, true);
+        context.change();
         return addedFields;
       }
     },
@@ -780,7 +783,7 @@ A field is a jQuery object(extended), and conceptually can be:
             this.fields[i].state(itemState, option);
           } else {
             // try add an item to array field
-            this.trigger(option.initial ? "addItemInitial" : "addItem");
+              this.trigger(option.initial ? "addItemInitial" : "addItem", itemState);
             if (this.onfly) {
               this.sync(this);
             }
