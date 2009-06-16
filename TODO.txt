@@ -1,7 +1,9 @@
 TODO
 
 [ ] update documentation according to recent changes
-[ ] build parcel with multiple behaviours
+[ ] performance improvement
+[ ] accept object as behaviour
+[ ] consider switching the terms reset and revert, since HTTP FORM reset is similar as the current parcel revert. that means reset to initial/default, revert/?? to blank.
 [ ]?? suppress exception on calls against empty jQuery object. $("XXXX").state() will throw by now.
 [ ] optimize implementation of removeMe()
 [ ] consider making option.check default to be true while setting state
