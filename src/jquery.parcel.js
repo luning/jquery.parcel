@@ -298,7 +298,9 @@ A field is a jQuery object(extended), and conceptually can be:
         .triggerNative("change")
         .blur();
     },
-    getDefault: defaultStrategy.getDefault,
+    getDefault: function() {
+      return this.attr("default") !== undefined ? this.attr("default") : this.attr("defaultValue");
+    },
     setDefault: defaultStrategy.setDefault
   },
   // for hidden input

@@ -83,7 +83,7 @@ Screw.Unit(function() {
 
     it("of Parcel should be got", function() {
       var person = $("#person").parcel();
-      expect(person.defaultState()).to(contain_state, {name: "", title: "please select", gender: "Male", dob: {day: "please select", month: "please select", year: "please select"}});
+      expect(person.defaultState()).to(contain_state, {name: "luning", title: "please select", gender: "Male", dob: {day: "please select", month: "please select", year: "please select"}});
     });
     
     it("of Parcel should be set", function() {
@@ -95,7 +95,7 @@ Screw.Unit(function() {
     
     it("of a normal field should be got", function() {
       var person = $("#person").parcel();
-      expect(person.name.defaultState()).to(equal_state, "");
+      expect(person.name.defaultState()).to(equal_state, "luning");
     });  
     
     it("of a normal field should be set", function() {
@@ -118,7 +118,7 @@ Screw.Unit(function() {
     
     it("of an Array field should be got", function() {
       var person = $("#person").parcel();
-      expect(person.emails.defaultState()).to(equal_state, ["", ""]);
+      expect(person.emails.defaultState()).to(equal_state, ["first@my.com", "second@my.com"]);
     });  
     
     it("of an Array field should be set", function() {
@@ -130,7 +130,7 @@ Screw.Unit(function() {
     
     it("of a Virtual field should be got", function() {
       var person = $("#person").parcel();
-      expect(person.contactInfo.defaultState()).to(equal_state, { emails: ["", ""], contacts: [{number: "", type: ""}] });
+      expect(person.contactInfo.defaultState()).to(equal_state, { emails: ["first@my.com", "second@my.com"], contacts: [{number: "", type: ""}] });
     });
 
     it("of a Virtual field should be set", function() {
@@ -141,7 +141,7 @@ Screw.Unit(function() {
     });
     
     it("of a Virtual field without parent parcel should be got with the default state of a parcel implicitly created on the fly", function() {
-      expect($("#container").defaultState()).to(contain_state, { name: "", title: "please select", make: "" });
+      expect($("#container").defaultState()).to(contain_state, { name: "luning", title: "please select", make: "" });
     });
     
     it("of a Virtual field without parent parcel should be set with default state of a parcel implicitly created on the fly", function() {

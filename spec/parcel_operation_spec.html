@@ -78,12 +78,12 @@ Screw.Unit(function() {
 
     it("should get default state of parcel if context is a jQuery object containing this parcel", function() {
       var person = $("#person").parcel();
-      expect(person.getDefaultState($("#person"))).to(contain_state, {name: "", title: "please select", gender: "Male", dob: {day: "please select", month: "please select", year: "please select"}});
+      expect(person.getDefaultState($("#person"))).to(contain_state, {name: "luning", title: "please select", gender: "Male", dob: {day: "please select", month: "please select", year: "please select"}});
     });
     
     it("should get default state for context of a virtual field", function() {
       var person = $("#person").parcel();
-      expect(person.getDefaultState($("div[name=contactInfo]"))).to(equal_state, { emails: [""], contacts: [{number: "", type: ""}] });
+      expect(person.getDefaultState($("div[name=contactInfo]"))).to(equal_state, { emails: ["luning.tw@gmail.com"], contacts: [{number: "", type: ""}] });
     });
 
   });

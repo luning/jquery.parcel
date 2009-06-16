@@ -42,12 +42,14 @@ Screw.Unit(function() {
       expect(name.state(0).state()).to(equal_state, "luning");
     });
     
-    it("default state should be empty string", function() {
+    it("default state should come from defaultValue property of DOM element by default", function() {
       var name = $("#fixture input[name=name]");
-      expect(name.defaultState()).to(equal_state, "");
+      name.state("smith");
+      name.attr("defaultValue", "DEFAULT");
+      expect(name.defaultState()).to(equal_state, "DEFAULT");
     });
     
-    it("default state should be specified by 'default' property in DOM", function() {
+    it("default state should be specified by 'default' property in DOM if has", function() {
       var elem = $("<input type='text' default='smith'></input>");
       $("#fixture").append(elem);
       
