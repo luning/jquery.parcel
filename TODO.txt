@@ -1,7 +1,7 @@
 TODO
 
 [ ] update documentation according to recent changes
-[ ] performance improvement
+[ ] performance improvement(replace heavy selector, avoid redefine method with fix body, replace frequently called simple selector)
 [ ] accept object as behaviour
 [ ] consider switching the terms reset and revert, since HTTP FORM reset is similar as the current parcel revert. that means reset to initial/default, revert/?? to blank.
 [ ]?? suppress exception on calls against empty jQuery object. $("XXXX").state() will throw by now.
