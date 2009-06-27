@@ -42,7 +42,7 @@
     <input id="id_city" type="text" fieldname="city"></input>
     <input type="checkbox" value="Reading" name="hobby">
     <input type="checkbox" value="Climbing" name="hobby">
-    <div virtualfield name="contactInfo">
+    <div name="contactInfo">
       <div name="emails" parcel="[email]" >
         <input type="text" value="luning.tw@gmail.com" name="email"></input>
       </div>
@@ -259,49 +259,6 @@ Screw.Unit(function() {
 
   });
   
-  describe("Build with Virtual Field", function() {
-
-    it("should only create convenient accessor for virtual field of div if has 'virtualfield' property", function() {
-      var person = $("#person").parcel();
-	  
-      expect(person.contactInfo).to_not(be_undefined);
-      expect(person.contactInfo.jquery).to_not(be_undefined);
-      expect(person.hasField("contactInfo")).to(be_false);
-    });
-
-    it("should not build virtual field if name conflicts with existing property of parcel", function() {
-      $("div[name=contactInfo]").attr("name", "state");
-    
-      try{
-        $("#person").parcel();
-        expect(true).to(be_false);
-      } catch (ex) {
-        expect(ex.toString()).to(match, "ParcelError");
-      }
-    });  
-    
-    it("should use name specified by 'fieldname' property in dom", function() {
-      $("div[name=contactInfo]").attr("fieldname", "extInfo");
-    
-      var person = $("#person").parcel();
-      
-      expect(person.contactInfo).to(be_undefined);
-      expect(person.extInfo.jquery).to_not(be_undefined);
-    });
-    
-    it("should not build virtual field if can not determine a name for it", function() {
-      $("div[name=contactInfo]").removeAttr("name");
-    
-      try{
-        var person = $("#person").parcel();
-        expect(true).to(be_false);
-      } catch (ex) {
-        expect(ex.toString()).to(match, "ParcelError");
-      }
-    });
-
-  });
-
   describe("Build with Behaviour", function() {
 
     it("should mixin method defined in behaviour", function() {

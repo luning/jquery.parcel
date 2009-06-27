@@ -14,7 +14,7 @@
       <input type="text" value="luning" name="name"></input>
       <input type="radio" value="No" checked="checked" name="marital">No</input>
       <input type="radio" value="Yes" name="marital">Yes</input>
-      <div virtualfield name="spouseInfo">
+      <div name="spouseInfo">
         <input type="text" name="spouseName"></input>
       </div>
       <input type="checkbox" value="Reading" name="hobby">
@@ -101,7 +101,7 @@ Screw.Unit(function() {
     it("should update target if source Virtual field state changes", function() {
       var person = $("#person").parcel();
       var span = $("#personDetails #span");
-      person.spouseInfo.bindState(span, function(s){
+      person.find("div[name=spouseInfo]").bindState(span, function(s){
         return s.spouseName;
       });
       
@@ -167,7 +167,7 @@ Screw.Unit(function() {
     it("should fire on a Virtual field change", function() {
       var person = $("#person").parcel();
       var eventFired = false;
-      person.spouseInfo.change(function(){
+      person.find("div[name=spouseInfo]").change(function(){
         eventFired = true;
       });
       
@@ -227,7 +227,7 @@ Screw.Unit(function() {
       var person = $("#person").parcel();
       var eventFired = false;
       var error;
-      person.spouseInfo.stateChange(function(e){
+      person.find("div[name=spouseInfo]").stateChange(function(e){
         eventFired = true;
         error = errorOfExpect(function() { expect(e.field.state()).to(equal_state, { spouseName: "jessie" }); });
       });
@@ -317,63 +317,68 @@ Screw.Unit(function() {
 
     it("should show/hide a jQuery container(virtual field) when condition is satisfied", function() {
       var person = $("#person").parcel();
-      person.marital.showHide(person.spouseInfo, "Yes");
+      var spouseInfo = person.find("div[name=spouseInfo]");
+      person.marital.showHide(spouseInfo, "Yes");
 
       person.marital.state("No");
-      expect(person.spouseInfo).to_not(be_visible);
+      expect(spouseInfo).to_not(be_visible);
       
       person.marital.state("Yes");
-      expect(person.spouseInfo).to(be_visible);
+      expect(spouseInfo).to(be_visible);
     }); 
     
     it("should do show/hide soon after calling showHide", function() {
       var person = $("#person").parcel();
+      var spouseInfo = person.find("div[name=spouseInfo]");
       person.marital.state("No");
-      person.spouseInfo.hide();
+      spouseInfo.hide();
 
       person.marital.state("Yes");
-      person.marital.showHide(person.spouseInfo, "Yes");
-      expect(person.spouseInfo).to(be_visible);
+      person.marital.showHide(spouseInfo, "Yes");
+      expect(spouseInfo).to(be_visible);
     }); 
     
     it("should apply a show up checking callback to showHide", function() {
       var person = $("#person").parcel();
-      person.marital.showHide(person.spouseInfo, function(s){
+      var spouseInfo = person.find("div[name=spouseInfo]");
+      person.marital.showHide(spouseInfo, function(s){
               return s === "Yes";
           });
 
       person.marital.state("No");
-      expect(person.spouseInfo).to_not(be_visible);
+      expect(spouseInfo).to_not(be_visible);
       
       person.marital.state("Yes");
-      expect(person.spouseInfo).to(be_visible);
+      expect(spouseInfo).to(be_visible);
     }); 
 
     it("should be triggered by a Parcel", function() {
       var person = $("#person").parcel();
-      person.showHide(person.spouseInfo, { marital: "Yes" });
+      var spouseInfo = person.find("div[name=spouseInfo]");
+      person.showHide(spouseInfo, { marital: "Yes" });
       
       person.marital.state("No");
-      expect(person.spouseInfo).to_not(be_visible);
+      expect(spouseInfo).to_not(be_visible);
       
       person.marital.state("Yes");
-      expect(person.spouseInfo).to(be_visible);
+      expect(spouseInfo).to(be_visible);
     }); 
 
     it("should be triggered by an Array field", function() {
       var person = $("#person").parcel();
-      person.emails.showHide(person.spouseInfo, ["another@my.com"]);
+      var spouseInfo = person.find("div[name=spouseInfo]");
+      person.emails.showHide(spouseInfo, ["another@my.com"]);
       
       person.emails.items[0].state("other@my.com");
-      expect(person.spouseInfo).to_not(be_visible);
+      expect(spouseInfo).to_not(be_visible);
       
       person.emails.items[0].state("another@my.com");
-      expect(person.spouseInfo).to(be_visible);
+      expect(spouseInfo).to(be_visible);
     });
     
     it("should be triggered by a Virtual field", function() {
       var person = $("#person").parcel();
-      person.spouseInfo.showHide("#personDetails", { spouseName: "jessie" });
+      person.find("div[name=spouseInfo]").showHide("#personDetails", { spouseName: "jessie" });
       
       person.spouseName.state("mary");
       expect($("#personDetails")).to_not(be_visible);
@@ -384,7 +389,7 @@ Screw.Unit(function() {
     
     it("should reset state of target if it becomes hidden", function() {
       var person = $("#person").parcel();
-      person.marital.showHide(person.spouseInfo, "Yes", true);
+      person.marital.showHide(person.find("div[name=spouseInfo]"), "Yes", true);
 
       person.marital.state("Yes");
       person.spouseName.state("jessie");
@@ -410,11 +415,12 @@ Screw.Unit(function() {
         return;
       }
       var person = $("#person").parcel();
-      person.showHide(person.spouseInfo, { marital: "Yes" });
+      var spouseInfo = person.find("div[name=spouseInfo]");
+      person.showHide(spouseInfo, { marital: "Yes" });
 
-      expect(person.spouseInfo).to_not(be_visible);
+      expect(spouseInfo).to_not(be_visible);
       person.marital.filter("[value=Yes]").click();
-      expect(person.spouseInfo).to(be_visible);
+      expect(spouseInfo).to(be_visible);
     });
 
     it("should fire callback with proper parameters after the completion of show/hide animation", function() {
@@ -423,10 +429,11 @@ Screw.Unit(function() {
       var shouldBeVisible = false;
       var fired = false;
       var error;
-      person.showHide(person.spouseInfo, { marital: "Yes" }, function(){
+      var spouseInfo = person.find("div[name=spouseInfo]");
+      person.showHide(spouseInfo, { marital: "Yes" }, function(){
         fired = true;
         var self = this;
-        error = errorOfExpect(function() { expect(self).to(be_same_dom_element_as, person.spouseInfo[0]); })
+        error = errorOfExpect(function() { expect(self).to(be_same_dom_element_as, spouseInfo[0]); })
              || errorOfExpect(function() { shouldBeVisible ? expect(self).to(be_visible) : expect(self).to_not(be_visible); });
       });
 
@@ -448,11 +455,12 @@ Screw.Unit(function() {
     it("should show only if target is not displayed(display = none)", function() {
       var person = $("#person").parcel();
       var fired = false;
-      person.showHide(person.spouseInfo, { marital: "Yes" }, function(){
+      var spouseInfo = person.find("div[name=spouseInfo]");
+      person.showHide(spouseInfo, { marital: "Yes" }, function(){
         fired = true;
       });
       // make spouseInfo displayed
-      person.spouseInfo.show();
+      spouseInfo.show();
 
       fired = false;
       person.marital.state("Yes");
@@ -462,13 +470,14 @@ Screw.Unit(function() {
     it("should hide only if target is displayed(display != none)", function() {
       var person = $("#person").parcel();
       var fired = false;
-      person.showHide(person.spouseInfo, { marital: "Yes" }, function(){
+      var spouseInfo = person.find("div[name=spouseInfo]");
+      person.showHide(spouseInfo, { marital: "Yes" }, function(){
         fired = true;
       });
       person.marital.state("Yes");
 
       // make spouseInfo non-displayed
-      person.spouseInfo.hide();
+      spouseInfo.hide();
 
       fired = false;
       person.marital.state("No");

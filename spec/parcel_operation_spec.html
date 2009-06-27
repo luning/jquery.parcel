@@ -39,7 +39,7 @@
     </div>
     <input id="nationality" type="text" someproperty="nationality"></input>
     <input id="id_city" type="text" fieldname="city"></input>
-    <div virtualfield name="contactInfo">
+    <div name="contactInfo">
       <div name="emails" parcel="[email]" >
         <input type="text" value="luning.tw@gmail.com" name="email"></input>
       </div>
@@ -262,7 +262,7 @@ Screw.Unit(function() {
       var person = $("#person").parcel();
       var state = { emails: ["one@my.com"], contacts: [{number: "99999999", type: "office"}] };
       person.setState(state, $("div[name=contactInfo]"))
-      expect(person.contactInfo.state()).to(equal_state, state);
+      expect(person.find("div[name=contactInfo]").state()).to(equal_state, state);
     });
 
   });

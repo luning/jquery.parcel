@@ -45,7 +45,7 @@
         <input type="text" name="no"></input>
         <input type="text" name="street"></input>
       </div>
-      <div virtualfield name="contactInfo">
+      <div name="contactInfo">
         <div name="emails" parcel="[email]" >
           <input type="text" value="first@my.com" name="email"></input>
           <input type="text" value="second@my.com" name="email"></input>
@@ -130,14 +130,15 @@ Screw.Unit(function() {
     
     it("of a Virtual field should be got", function() {
       var person = $("#person").parcel();
-      expect(person.contactInfo.defaultState()).to(equal_state, { emails: ["first@my.com", "second@my.com"], contacts: [{number: "", type: ""}] });
+      expect(person.find("div[name=contactInfo]").defaultState()).to(equal_state, { emails: ["first@my.com", "second@my.com"], contacts: [{number: "", type: ""}] });
     });
 
     it("of a Virtual field should be set", function() {
       var person = $("#person").parcel();
       var state = { emails: ["1@my.com", "2@my.com"], contacts: [{number: "0123456789", type: "home"}] };
-      person.contactInfo.defaultState(state);
-      expect(person.contactInfo.defaultState()).to(equal_state, state);
+      var contactInfo = person.find("div[name=contactInfo]");
+      contactInfo.defaultState(state);
+      expect(contactInfo.defaultState()).to(equal_state, state);
     });
     
     it("of a Virtual field without parent parcel should be got with the default state of a parcel implicitly created on the fly", function() {
@@ -188,8 +189,9 @@ Screw.Unit(function() {
     it("should work for a Virtual field", function() {
       var person = $("#person").parcel();
       var state = { emails: ["1@my.com", "2@my.com"], contacts: [{number: "0123456789", type: "home"}] };
-      person.contactInfo.defaultState(state).resetState();
-      expect(person.contactInfo.state()).to(equal_state, state);
+      var contactInfo = person.find("div[name=contactInfo]");
+      contactInfo.defaultState(state).resetState();
+      expect(contactInfo.state()).to(equal_state, state);
     });
     
     it("should work for a Virtual field without parent parcel, parcel will be created implicitly on the fly", function() {
@@ -241,7 +243,7 @@ Screw.Unit(function() {
     
     it("should work for a Virtual field", function() {
       var person = $("#person").parcel();
-      expect(person.contactInfo.initialState()).to(equal_state, { emails: ["first@my.com", "second@my.com"], contacts: [{number: "", type: ""}]});
+      expect(person.find("div[name=contactInfo]").initialState()).to(equal_state, { emails: ["first@my.com", "second@my.com"], contacts: [{number: "", type: ""}]});
     });
     
     it("should return a deep copy of initial state for a Parcel", function() {
@@ -291,10 +293,11 @@ Screw.Unit(function() {
     
     it("of a Virtual field should know if any field in it's scope is changed after creation of parent Parcel", function() {
       var person = $("#person").parcel();
-      expect(person.contactInfo.isDirty()).to(be_false);
+      var contactInfo = person.find("div[name=contactInfo]");
+      expect(contactInfo.isDirty()).to(be_false);
 
       person.emails.items[0].state("1@my.com");
-      expect(person.contactInfo.isDirty()).to(be_true);
+      expect(contactInfo.isDirty()).to(be_true);
     });
     
   });
@@ -349,7 +352,7 @@ Screw.Unit(function() {
         contacts: [{number: "1234", type: "home"}]
       });
       
-      person.contactInfo.revertState();
+      person.find("div[name=contactInfo]").revertState();
       
       expect(person.state()).to(contain_state, { 
         emails: ["first@my.com", "second@my.com"], 
@@ -414,8 +417,9 @@ Screw.Unit(function() {
       var person = $("#person").parcel();
       var count = 0;
       var error;
-      person.contactInfo.change(function(e){
-        error = errorOfExpect(function() { expect(e.target).to(be_same_dom_element_as, person.contactInfo[0]); });
+      var contactInfo = person.find("div[name=contactInfo]");
+      contactInfo.change(function(e){
+        error = errorOfExpect(function() { expect(e.target).to(be_same_dom_element_as, contactInfo[0]); });
         count++;
       })
       
@@ -434,9 +438,7 @@ Screw.Unit(function() {
         count++;
       })
       
-      person.contactInfo.removeMe();
-      // TODO : sync should remove convenient accessor of virtual field as well
-      // expect(person.contactInfo).to(be_undefined);
+      person.find("div[name=contactInfo]").removeMe();
       expect(error).to(be_undefined);
       expect(count).to(equal, 1);
     });

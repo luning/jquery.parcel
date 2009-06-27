@@ -46,7 +46,7 @@
       </div>
       <input type="checkbox" value="Reading" name="hobby">
       <input type="checkbox" value="Climbing" name="hobby">
-      <div virtualfield name="contactInfo">
+      <div name="contactInfo">
         <div name="emails" parcel="[email]" >
           <div name="firstEmailDiv"><input type="text" value="first@my.com" name="email"></input></div>
           <input type="text" value="second@my.com" name="email"></input>
@@ -111,13 +111,13 @@ Screw.Unit(function() {
 
     it("of Virtual field should be got", function() {
       var person = $("#person").parcel();
-      expect(person.contactInfo.state()).to(equal_state, { emails: ["first@my.com", "second@my.com"], contacts: [{number: "", type: ""}] });
+      expect(person.find("div[name=contactInfo]").state()).to(equal_state, { emails: ["first@my.com", "second@my.com"], contacts: [{number: "", type: ""}] });
     });
     
     it("of Virtual field should be set", function() {
       var person = $("#person").parcel();
       var s = { emails: ["1@my.com", "2@my.com"], contacts: [{number: "1234", type: "home"}] };
-      person.contactInfo.state(s);
+      person.find("div[name=contactInfo]").state(s);
       
       expect(person.state()).to(contain_state, s);
     });

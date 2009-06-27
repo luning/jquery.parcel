@@ -114,7 +114,7 @@ A field is a jQuery object(extended), and conceptually can be:
     },
 
     parcelIgnored: function() {
-      return this.is("[parcelignored],[parcelignored] *");
+      return $.parcelIgnored(this[0]);
     },
 
     /*
@@ -592,11 +592,7 @@ A field is a jQuery object(extended), and conceptually can be:
   $.parcelFn = $.parcel.prototype;
 
   $.extend($.parcelFn, fieldMixin, {
-    // TODO : consider short selector for potential better performance by sacrificing some flexibility
-    FIELD_SELECTOR: ":input:not(:button,:submit,[parcelignored],[parcelignored] *)"
-     + ",[parcel]:not([parcelignored],[parcelignored] *)"
-     + ",[parcel=]:not([parcelignored],[parcelignored] *)"
-     + ",[parcelfield]:not([parcelignored],[parcelignored] *)",
+    FIELD_SELECTOR: ":input,[parcel],[parcel=],[parcelfield]",
 
     // sync with DOM changes
     sync: function(context) {
@@ -662,7 +658,7 @@ A field is a jQuery object(extended), and conceptually can be:
 
     _buildFields: function(context, inferOrder) {
       var addedFields = [];
-      var all = this._selectInContext(context, this.FIELD_SELECTOR);
+      var all = this._rawFieldsInContext(context);
       all.each(function(i, dom) {
         if (this.contains(dom)) {
           return;
@@ -922,7 +918,6 @@ A field is a jQuery object(extended), and conceptually can be:
       }
 
       this._buildFields(this);
-      this._buildVirtualFields(this);
     },
 
     _parseNameConstraint: function() {
@@ -1015,25 +1010,13 @@ A field is a jQuery object(extended), and conceptually can be:
       return index;
     },
 
-    _buildVirtualFields: function(context) {
-      var all = this._selectInContext(context, "[virtualfield],[virtualfield=]");
-      all.each(function(i, dom) {
-        var virtual = $(dom);
-        var fname = this._name(virtual);
-        if (!fname) {
-          throw "ParcelError: failed to determine the name of virtual field.";
-        }
-        if (fname in this) {
-          throw "ParcelError: virtual field [" + fname + "] has name conflict with existing property of parcel.";
-        }
-        this[fname] = virtual;
-      } .bind(this));
-    },
-
-    _selectInContext: function(context, selector) {
-      return context.filter(selector)
-            .add(context.find(selector))
-            .not(this);
+    _rawFieldsInContext: function(context) {
+      var filterFn = function(){
+        var tag = this.tagName, type = this.type;
+        var isInput = (tag === "INPUT" && type !== "button" && type !== "submit") || tag === "TEXTAREA" || tag === "SELECT";
+        return (isInput || this.getAttribute("parcel") !== null || this.getAttribute("parcelfield") !== null) && !$.parcelIgnored(this);
+      };
+      return context.add(context.find(this.FIELD_SELECTOR)).not(this).filter(filterFn);
     },
 
     // remove fields if the corresponding DOM element(s) is(are) no longer in DOM tree.
@@ -1193,6 +1176,15 @@ A field is a jQuery object(extended), and conceptually can be:
   $.hasType = function(elem) {
     return (elem.length === 0 || !elem[0].tagName) ? false : (elem[0].tagName.toLowerCase() === "input" &&
           $.inArray(elem[0].type, Array.prototype.slice.call(arguments, 1)) !== -1);
+  };
+
+  $.parcelIgnored = function(dom){
+    var ignored = false, cur = dom;
+    while(!ignored && cur.nodeType !== 9){
+      ignored = cur.getAttribute("parcelignored") !== null;
+      cur = cur.parentNode;
+    }
+    return ignored;
   };
 
   // jquery.print.js is optional
