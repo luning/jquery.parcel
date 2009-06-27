@@ -157,82 +157,88 @@ Screw.Unit(function() {
       expect(person.emails.state()).to(equal_state, ["first@my.org", "second@my.org"]);
     });
 
-    it("set state should add new sub field when needed if 'addItem' event is properly handled", function() {
+    it("set state should add new sub field(s) when needed if 'addItems' event is properly handled", function() {
       var person = $("#person").parcel();
       person.emails.applyBehaviour(function(){
-        this.bind("addItem", function(){
+        this.bind("addItems", function(e, states){
           // in production, should click some button, here is simulating the button action
-          var elem = $("<input type='text' name='email'></input>");
-          this.append(elem);
-          elem.sync();
+          $.each(states, function(){
+            this.append($("<input type='text' name='email'></input>"));
+          }.bind(this));
+          var fields = this.sync(this);
+          $.each(fields, function(i, f){
+            f.state(states[i]);
+          });
         }.bind(this));
       });
 
       expect(person.emails.items.length).to(equal, 2);
-      var s = ["first@my.org", "second@my.org", "new@my.org"];
+      var s = ["first@my.org", "second@my.org", "new1@my.org", "new2@my.org"];
       person.emails.state(s);
       expect(person.emails.state()).to(equal_state, s);
     });
 
-    it("state should be passed to 'addItem' event handler as parameter", function() {
-      var person = $("#person").parcel();
-      var statePassedAsExpected;
-      person.emails.applyBehaviour(function(){
-        this.bind("addItem", function(e, state){
-          statePassedAsExpected = state === "new@my.org";
+    it("set state on fly should add new sub field(s) when needed if 'addItems' event is properly handled", function() {
+      var emails = $("#person div[name=emails]");
+      emails.bind("addItems", function(e, states){
+        $.each(states, function(){
+          emails.append("<input type='text' name='email'></input>");
         });
       });
 
-      person.emails.state(["first@my.org", "second@my.org", "new@my.org"]);
-      expect(statePassedAsExpected).to(be_true);
-    });
-
-    it("set state should add new sub field when needed if 'addItemInitial' event is properly handled given 'option.initial' is true", function() {
-      $("#person div[name=emails]").bind("addItemInitial", function(){
-        $("#person div[name=emails]").append("<input type='text' name='email'></input>");
-      });
-
       expect($("#person div[name=emails] input[name=email]").length).to(equal, 2);
-      var s = {emails: ["first@my.org", "second@my.org", "new@my.org"]};
-      $("#container").state(s, { initial: true });
-      expect($("#container").state().emails).to(equal_state, s.emails);
-    });
-
-    it("state should be passed to 'addItemInitial' event handler as parameter", function() {
-      var person = $("#person").parcel();
-      var statePassedAsExpected;
-      person.emails.applyBehaviour(function(){
-        this.bind("addItemInitial", function(e, state){
-          statePassedAsExpected = state === "new@my.org";
-        });
-      });
-
-      person.emails.state(["first@my.org", "second@my.org", "new@my.org"], { initial: true });
-      expect(statePassedAsExpected).to(be_true);
-    });
-
-    it("set state on an onfly virtual field should add new sub field when needed if 'addItem' event is properly handled", function() {
-      $("#person div[name=emails]").bind("addItem", function(){
-        $("#person div[name=emails]").append("<input type='text' name='email'></input>");
-      });
-
-      expect($("#person div[name=emails] input[name=email]").length).to(equal, 2);
-      var s = {emails: ["first@my.org", "second@my.org", "new@my.org"]};
+      var s = {emails: ["first@my.org", "second@my.org", "new1@my.org", "new2@my.org"]};
       $("#container").state(s);
       expect($("#container").state().emails).to(equal_state, s.emails);
     });
 
-    it("set state should remove sub field when needed if 'removeItem' event is properly handled", function() {
+    it("set state should add new sub field(s) when needed if 'addItemsInitial' event is properly handled given 'option.initial' is true", function() {
       var person = $("#person").parcel();
       person.emails.applyBehaviour(function(){
-        this.bind("removeItem", function(e){
-          // in production, should click some button, here is simulating the button action
-          $(e.target).removeMe();
+        this.bind("addItemsInitial", function(e, states){
+          $.each(states, function(){
+            this.append($("<input type='text' name='email'></input>"));
+          }.bind(this));
+          var fields = this.sync(this);
+          $.each(fields, function(i, f){
+            f.state(states[i]);
+          });
+        }.bind(this));
+      });
+
+      var s = ["first@my.org", "second@my.org", "new1@my.org", "new2@my.org"];
+      person.emails.state(s, { initial: true });
+      expect(person.emails.state()).to(equal_state, s);
+    });
+
+    it("set state on fly should add new sub field(s) when needed if 'addItemsInitial' event is properly handled given 'option.initial' is true", function() {
+      var emails = $("#person div[name=emails]");
+      emails.bind("addItemsInitial", function(e, states){
+        $.each(states, function(){
+          emails.append($("<input type='text' name='email'></input>"));
         });
       });
 
+      expect($("#person div[name=emails] input[name=email]").length).to(equal, 2);
+      var s = {emails: ["first@my.org", "second@my.org", "new1@my.org", "new2@my.org"]};
+      $("#container").state(s, { initial: true });
+      expect($("#container").state().emails).to(equal_state, s.emails);
+    });
+
+    it("set state should remove sub field(s) when needed if 'removeItems' event is properly handled", function() {
+      var person = $("#person").parcel();
+      person.emails.applyBehaviour(function(){
+        this.bind("removeItems", function(e, fields){
+          // in production, should click some button, here is simulating the button action
+          $.each(fields, function(i, f){
+            f.remove();
+          });
+          this.sync();
+        }.bind(this));
+      });
+
       expect(person.emails.items.length).to(equal, 2);
-      var s = ["first@my.org"];
+      var s = [];
       person.emails.state(s);
       expect(person.emails.state()).to(equal_state, s);
     });
@@ -267,13 +273,15 @@ Screw.Unit(function() {
       }
     });
 
-    it("set state on an onfly virtual field should remove sub field when needed if 'removeItem' event is properly handled", function() {
-      $("#person div[name=emails]").bind("removeItem", function(e){
-        $(e.target).remove();
+    it("set state on fly should remove sub field(s) when needed if 'removeItems' event is properly handled", function() {
+      $("#person div[name=emails]").bind("removeItems", function(e, fields){
+        $.each(fields, function(i, f){
+          f.remove();
+        });
       });
 
       expect($("#person div[name=emails] input[name=email]").length).to(equal, 2);
-      var s = {emails: ["first@my.org"]};
+      var s = {emails: []};
       $("#container").state(s);
       expect($("#container").state().emails).to(equal_state, s.emails);
     });
@@ -540,10 +548,10 @@ Screw.Unit(function() {
 
     describe("initial", function() {
 
-      it("should fire 'addItemInitial' event when setting state requires adding new item to array field if 'option.initial' is true", function() {
+      it("should fire 'addItemsInitial' event when setting state requires adding new item to array field if 'option.initial' is true", function() {
         var person = $("#person").parcel();
         var fired;
-        person.bind("addItemInitial", function(){
+        person.bind("addItemsInitial", function(){
           fired = true;
         });
 

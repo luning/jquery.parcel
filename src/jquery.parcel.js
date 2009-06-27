@@ -776,35 +776,40 @@ A field is a jQuery object(extended), and conceptually can be:
       // set on this array parcel, will add/remove field if needed
       if (this._nameConstraint && this._contextIsThis(context)) {
         assertIsArray(s);
-        $.each(s, function(i, itemState) {
+        for(var i = 0; i < s.length; i++){
+          var itemState = s[i];
           if (i < this.fields.length) {
             this.fields[i].state(itemState, option);
           } else {
             // try add an item to array field
-              this.trigger(option.initial ? "addItemInitial" : "addItem", itemState);
+            this.trigger(option.initial ? "addItemsInitial" : "addItems", [s.slice(i)]);
+            // do sync and set state for onfly state setting
             if (this.onfly) {
-              this.sync(this);
-            }
-            // do set action on the newly added item
-            if (this.fields[i]) {
-              this.fields[i].state(itemState, option);
+              var newFields = this.sync(this);
+              $.each(newFields, function(index, f){
+                var fState = s[i + index];
+                if(fState !== undefined){
+                  f.state(fState, option);
+                }
+              });
             }
             // throw if ensure existent is specified in option and failed to do this setting eventually
-            else if (option.verify || option.exist) {
-              throw "ParcelError: no UI element found while setting state for the [" + (i + 1) + "th] " + this._nameConstraint + " with " + $.print(s[i]);
+            if ((option.verify || option.exist) && !this.fields[s.length - 1]) {
+              throw "ParcelError: no UI element(s) found while setting state for " + this._nameConstraint + " to " + $.print(s);
             }
+            break;
           }
-        } .bind(this));
+        }
         // try to remove fields
-        $.each(this.fields.slice(s.length), function(i, field) {
-          field.trigger("removeItem");
+        if(this.fields.length > s.length){
+          this.trigger("removeItems", [this.fields.slice(s.length)]);
           if (this.onfly) {
             this.sync();
           }
-          if (option.verify && $.inArray(field, this.fields) !== -1) {
-            throw "ParcelError: failed to remove the [" + (s.length + i + 1) + "th] " + this._nameConstraint + " while setting state with " + $.print(s);
+          if (option.verify && this.fields.length !== s.length) {
+            throw "ParcelError: failed to remove " + this._nameConstraint + " while setting state with " + $.print(s);
           }
-        } .bind(this));
+        }
       }
       // set on part of this array parcel
       else if (this._nameConstraint) {
