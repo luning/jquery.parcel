@@ -561,6 +561,23 @@ Screw.Unit(function() {
 
     });
 
+    describe("silent", function() {
+
+      it("should fire no event if set state with 'option.silent' being true", function() {
+        var person = $("#person").parcel();
+        var fired = false;
+        person.bind("keyup keydown click focus change blur", function(){
+          fired = true;
+        });
+
+        var s = { name: "smith", title: "Mrs", gender: "Female", dob: {day: "02", month: "Feb", year: "1991"}, emails: [ "1@my.org", "2@my.org" ], hobby: ["Reading", "Climbing"] };
+        person.state(s, { silent: true });
+        expect(fired).to(be_false);
+        expect(person.state()).to(contain_state, s);
+      });
+
+    });
+
   });
 
   describe("Onfly Mode Operation(get/set state of virtual field without parent parcel)", function() {

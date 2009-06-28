@@ -290,13 +290,14 @@ A field is a jQuery object(extended), and conceptually can be:
       if(s === null || typeof s.valueOf() !== "string"){
         return;
       }
-      this.focus()
-        .click()
-        .val(s)
-        .triggerNative("keydown")
-        .click()
-        .triggerNative("change")
-        .blur();
+      option = option || {};
+      if(!option.silent){
+        this.focus().click();
+      }
+      this.val(s);
+      if(!option.silent){
+        this.triggerNative("keydown").click().triggerNative("change").blur();
+      }
     },
     getDefault: function() {
       return this.attr("default") !== undefined ? this.attr("default") : this.attr("defaultValue");
@@ -325,10 +326,14 @@ A field is a jQuery object(extended), and conceptually can be:
       if(s !== null && typeof s !== "string"){
         return;
       }
-      this.focus()
-        .val(s)
-        .triggerNative("change")
-        .blur();
+      option = option || {};
+      if(!option.silent){
+        this.focus();
+      }
+      this.val(s);
+      if(!option.silent){
+        this.triggerNative("change").blur();
+      }
     },
     getDefault: function() {
       if (this.attr("default") !== undefined) {
@@ -354,20 +359,25 @@ A field is a jQuery object(extended), and conceptually can be:
       return (checkedRadio.length > 0) ? checkedRadio.val() : null;
     },
     set: function(s, option) {
+      option = option || {};
       if (s === null) {
         if(option.editable){
           throw "ParcelError: can not uncheck all radios in group under config";
         }
-        this.filter("[checked]")
-          .removeAttr("checked")
-          .triggerNative("change");
+        this.filter("[checked]").removeAttr("checked");
+        if(!option.silent){
+          this.triggerNative("change");
+        }
       } else {
         var r = this.filter("[value=" + s + "]");
         if(option.editable && !r.editable()){
           throw "ParcelError: the radio is hidden or disabled, can not check it";
         }
         // click handler will not reflect current state like real user interaction in some cases if omitting attr("checked", true)
-        r.attr("checked", true).click().triggerNative("change");
+        r.attr("checked", true);
+        if(!option.silent){
+          r.click().triggerNative("change");
+        }
       }
     },
     getDefault: function() {
@@ -400,13 +410,18 @@ A field is a jQuery object(extended), and conceptually can be:
       if (!$.isArray(s)) {
         return;
       }
+      option = option || {};
       this.each(function(i, dom) {
         if ($.xor($.inArray(dom.value, s) !== -1, dom.checked)) {
           var elem = $(dom);
           if (option.editable && !elem.editable()) {
             throw "ParcelError: the checkbox [" + dom.value + "] is hidden or disabled, can not [" + (dom.checked ? "uncheck":"check") + "] it under config";
           }
-          elem.click().triggerNative("change");
+          if(!option.silent){
+            elem.click().triggerNative("change");
+          } else {
+            elem.attr("checked", true);
+          }
         }
       });
     },
