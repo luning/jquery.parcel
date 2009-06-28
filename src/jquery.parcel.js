@@ -242,6 +242,12 @@ A field is a jQuery object(extended), and conceptually can be:
     }
   };
 
+  function defaultSelectedCallback(dom) { return dom.defaultSelected; };
+  function defaultCheckedCallback(dom) { return dom.defaultChecked; };
+  function checkedCallback(dom){ return dom.checked; };
+  function checkedCallbackOnThis(){ return this.checked; };
+  function valueCallback(dom) { return dom.value; };
+
   var elementStrategies = [
   // for div and fieldset
   {
@@ -339,7 +345,7 @@ A field is a jQuery object(extended), and conceptually can be:
       if (this.attr("default") !== undefined) {
         return this.attr("default");
       }
-      var theDefaults = $.grep(this[0].options, function(o) { return o.defaultSelected; });
+      var theDefaults = $.grep(this[0].options, defaultSelectedCallback);
       return theDefaults.length === 0 ? null : theDefaults[0].value;
     },
     setDefault: function(s) {
@@ -355,7 +361,7 @@ A field is a jQuery object(extended), and conceptually can be:
   {
     match: function() { return $.hasType(this, "radio"); },
     get: function() {
-      var checkedRadios = $.grep(this, function(r){ return r.checked;});
+      var checkedRadios = $.grep(this, checkedCallback);
       return (checkedRadios.length === 0) ? null : checkedRadios[0].value;
     },
     set: function(s, option) {
@@ -364,7 +370,7 @@ A field is a jQuery object(extended), and conceptually can be:
         if(option.editable){
           throw "ParcelError: can not uncheck all radios in group under config";
         }
-        this.filter(function(){ return this.checked; }).removeAttr("checked");
+        this.filter(checkedCallbackOnThis).removeAttr("checked");
         if(!option.silent){
           this.triggerNative("change");
         }
@@ -388,9 +394,7 @@ A field is a jQuery object(extended), and conceptually can be:
         return d !== null && d.toString().toLowerCase() !== "false";
       });
       if (theDefaults.length === 0 && !hasAnyDefaultAttr) {
-        theDefaults = $.grep(this, function(r) {
-          return r.defaultChecked;
-        });
+        theDefaults = $.grep(this, defaultCheckedCallback);
       }
       return theDefaults.length === 0 ? null : theDefaults[0].value;
     },
@@ -406,7 +410,7 @@ A field is a jQuery object(extended), and conceptually can be:
   {
     match: function() { return $.hasType(this, "checkbox"); },
     get: function() {
-      return $.map($.grep(this, function(c){ return c.checked; }), function(dom) { return dom.value; });
+      return $.map($.grep(this, checkedCallback), valueCallback);
     },
     set: function(s, option) {
       if (!$.isArray(s)) {
@@ -435,11 +439,9 @@ A field is a jQuery object(extended), and conceptually can be:
         return d !== null && d.toString().toLowerCase() !== "false";
       });
       if (theDefaults.length === 0 && !hasAnyDefaultAttr) {
-        theDefaults = $.grep(this, function(c) {
-          return c.defaultChecked;
-        });
+        theDefaults = $.grep(this, defaultCheckedCallback);
       }
-      return $.map(theDefaults, function(c) { return c.value; });
+      return $.map(theDefaults, valueCallback);
     },
     setDefault: function(s) {
       if (!$.isArray(s)) {
