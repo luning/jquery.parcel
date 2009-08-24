@@ -9,19 +9,26 @@
 <body>
 
 <div id="fixture">
-  <input type="text" value="luning" name="name"></input>
-  <input type="hidden" value="hiddenValue" name="hiddenField"></input>
-  <select name="title">
-    <option selected="selected">please select</option>
-    <option>Mr</option>
-    <option>Mrs</option>
-  </select>
-  <div>
-    <input type="radio" value="Male" checked="checked" name="gender">Male</input>
-    <input type="radio" value="Female" name="gender">Female</input>
-  </div>
-  <input type="checkbox" value="Reading" name="hobby"></input>
-  <input type="checkbox" value="Climbing" name="hobby" checked="true"></input>
+  <form>
+    <input type="text" value="luning" name="name"></input>
+    <input type="hidden" value="hiddenValue" name="hiddenField"></input>
+    <select name="title">
+      <option value="please select" selected="selected">please select</option>
+      <option value="Mr">Mr</option>
+      <option value="Mrs">Mrs</option>
+    </select>
+    <select name="titleWithNoExplicitValue">
+      <option selected="selected">please select</option>
+      <option>Mr</option>
+      <option>Mrs</option>
+    </select>
+    <div>
+      <input type="radio" value="Male" checked="checked" name="gender">Male</input>
+      <input type="radio" value="Female" name="gender">Female</input>
+    </div>
+    <input type="checkbox" value="Reading" name="hobby"></input>
+    <input type="checkbox" value="Climbing" name="hobby" checked="true"></input>
+  </form>
 </div>
 
 <script type="text/javascript">
@@ -64,7 +71,7 @@ Screw.Unit(function() {
     
     it("should fire proper events while setting state", function() {
       var name = $("#fixture input[name=name]");
-      var events = "focus click keydown change blur";
+      var events = "focus click keydown change blur keyup";
       var firedEvents = "";
       $.each(events.split(' '), function(i, type){
         name.bind(type, function(){
@@ -102,7 +109,12 @@ Screw.Unit(function() {
     it("default state should be decided by the defaultSelected option", function() {
       var title = $("#fixture select[name=title]");
       title.state("Mr");
-      
+      expect(title.defaultState()).to(equal_state, "please select");
+    });
+
+    it("default state should treat text as value if option value is not specified", function() {
+      var title = $("#fixture select[name=titleWithNoExplicitValue]");
+      title.state("Mr");
       expect(title.defaultState()).to(equal_state, "please select");
     });
 
@@ -158,7 +170,7 @@ Screw.Unit(function() {
     it("should fire proper events while setting state", function() {
       var gender = $("#fixture :radio[name=gender]");
       var footprint = "";
-      gender.bind("click change", function(e){
+      gender.bind("click change blur", function(e){
         footprint += e.type + "(" + e.target.value + ")";
       });
 
@@ -217,6 +229,22 @@ Screw.Unit(function() {
       gender.defaultState("Male");
       gender.defaultState("Female");
       expect(gender.defaultState()).to(equal_state, "Female");
+    });
+
+    it("setting state should not change default state", function() {
+      var gender = $("#fixture :radio[name=gender]");
+      gender.state("Female");
+      expect(gender.defaultState()).to(equal_state, "Male");
+    });
+
+    it("click handler should reflect correct state", function() {
+      var gender = $("#fixture :radio[name=gender]");
+      var footprint = "";
+      gender.click(function(e){
+        footprint += e.target.value + "(" + (e.target.checked ? "checked" : "unchecked") + ")";
+      });
+      gender.state("Female");
+      expect(footprint).to(equal, "Female(checked)");
     });
   });
 
@@ -324,6 +352,21 @@ Screw.Unit(function() {
       expect(hobby.defaultState([]).defaultState()).to(equal_state, []);
     });
 
+    it("setting state should not change default state", function() {
+      var hobby = $("#fixture :checkbox[name=hobby]");
+      hobby.state(["Reading"]);
+      expect(hobby.defaultState()).to(equal_state, ["Climbing"]);
+    });
+
+    it("click handler should reflect correct state", function() {
+      var hobby = $("#fixture :checkbox[name=hobby]");
+      var footprint = "";
+      hobby.click(function(e){
+        footprint += e.target.value + "(" + (e.target.checked ? "checked" : "unchecked") + ")";
+      });
+      hobby.state(["Reading"]);
+      expect(footprint).to(equal, "Reading(checked)Climbing(unchecked)");
+    });
   });
   
   describe("Hidden", function() {

@@ -2,6 +2,9 @@ TODO
 
 [ ] update documentation according to recent changes
 [ ] performance improvement(replace heavy selector, avoid redefine method with fix body, replace frequently called simple selector)
+[ ] move non-core functionalities like showHide into extension.
+[ ] triggerNative for IE does not work well with radio and checkbox(value doesn't change), refer to selenium source code or jquery.simulate
+[ ] remove beforeEvent and afterEvent from options of setting state.
 [ ] accept object as behaviour
 [ ] consider switching the terms reset and revert, since HTTP FORM reset is similar as the current parcel revert. that means reset to initial/default, revert/?? to blank.
 [ ]?? suppress exception on calls against empty jQuery object. $("XXXX").state() will throw by now.

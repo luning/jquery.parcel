@@ -73,10 +73,11 @@
 <script type="text/javascript">
 Screw.Unit(function() {
   var fixtureHtml = $("#fixture").html();
+  var originalParcelConfig = $.parcelConfig;
   
   before(function() {
     $("#fixture").html(fixtureHtml);
-    $.config = {};
+    $.parcelConfig = $.extend(true, {}, originalParcelConfig);
   });
 
   describe("Default State", function() {
@@ -212,10 +213,10 @@ Screw.Unit(function() {
       var option = {verify: true};
       var checked;
       //borrow elementStrategy to hook setting and check the passed in option
-      $.config.elementStrategy = {set: function(s, o){
+      $.parcelConfig.elementStrategy.set = function(s, o){
         checked = true;
         expect(o).to(be_same, option);
-      }};
+      };
 
       person.name.resetState(option);
 
@@ -369,10 +370,10 @@ Screw.Unit(function() {
       var option = {verify: true};
       var checked;
       // borrow elementStrategy to hook setting and check the passed in option
-      $.config.elementStrategy = {set: function(s, o){
+      $.parcelConfig.elementStrategy.set = function(s, o){
         checked = true;
         expect(o).to(be_same, option);
-      }};
+      };
 
       person.name.revertState(option);
 
@@ -577,6 +578,20 @@ Screw.Unit(function() {
       fired = false;
       name.keyup();
       expect(fired).to(be_true);
+    });
+
+    it("should pass parameters passed to other event handler to change event handler", function() {
+      var name = $("#person [name=name]");
+      name.fireChangeEventOn("blur");
+
+      var receivedData;
+      name.change(function(){
+        receivedData = $.makeArray(arguments).slice(1);
+      });
+
+      var data = ["1", "2"];
+      name.trigger("blur", data);
+      expect(receivedData).to(equal_state, data);
     });
 
   });

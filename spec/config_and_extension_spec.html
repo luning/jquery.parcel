@@ -56,17 +56,17 @@
 
 <script type="text/javascript">
 Screw.Unit(function() {
-
   var fixtureHtml = $("#fixture").html();
+  var originalParcelConfig = $.parcelConfig;
 
   before(function() {
     $("#fixture").html(fixtureHtml);
-    $.config = {};
+    $.parcelConfig = $.extend(true, {}, originalParcelConfig);
   });
   
   describe("Apply Generic Behaviours to Parcel Construction", function() {
     it("should apply generic behaviour to all constructed parcels", function() {
-      $.config.behaviours = [
+      $.parcelConfig.behaviours = [
         function(){
           this.renameFields({ Name: "name", Title: "title" });
         }
@@ -81,7 +81,7 @@ Screw.Unit(function() {
     });
 
     it("should not apply invalid generic behaviour", function() {
-      $.config.behaviours = ["invalid behaviour"];
+      $.parcelConfig.behaviours = ["invalid behaviour"];
 
       try{
         var person = $("#person").parcel();
@@ -92,7 +92,7 @@ Screw.Unit(function() {
     });
     
     it("should apply multiple generic behaviours", function() {
-      $.config.behaviours = [
+      $.parcelConfig.behaviours = [
         function(){
           this.renameFields({ Name: "name" });
         },
@@ -110,7 +110,7 @@ Screw.Unit(function() {
     });
     
     it("should apply generic behaviour before applying normal behaviour", function() {
-      $.config.behaviours = [
+      $.parcelConfig.behaviours = [
         function(){
           this.renameFields({ Name: "name" });
         }
@@ -127,9 +127,9 @@ Screw.Unit(function() {
   describe("Customize state() and defaultState() for Input Elements", function() {
   
     it("should overwrite getting state for specified input type", function() {
-      $.config.elementStrategy = {get: function(){
+      $.parcelConfig.elementStrategy.get = function(){
         if(this[0].type === "text"){ return "SMITH"; }
-      }};
+      };
       
       var person = $("#person").parcel();
       expect(person.name.state()).to(equal_state, "SMITH");
@@ -138,12 +138,12 @@ Screw.Unit(function() {
     });
     
     it("should overwrite setting state for specified input type", function() {
-      $.config.elementStrategy = {set: function(s){
+      $.parcelConfig.elementStrategy.set = function(s){
         if(this[0].type === "text"){
           this.val("prefix_" + s);
           return true;
         }
-      }};
+      };
       
       var person = $("#person").parcel();
       person.name.state("smith");
@@ -154,9 +154,9 @@ Screw.Unit(function() {
     });
     
     it("should overwrite getting default state for specified input type", function() {
-      $.config.elementStrategy = {getDefault: function(){
+      $.parcelConfig.elementStrategy.getDefault = function(){
         if(this[0].type === "text"){ return "DEFAULT"; }
-      }};
+      };
       
       var person = $("#person").parcel();
       expect(person.name.defaultState()).to(equal_state, "DEFAULT");
@@ -165,12 +165,12 @@ Screw.Unit(function() {
     });
     
     it("should overwrite setting default state for specified input type", function() {
-      $.config.elementStrategy = {setDefault: function(s){
+      $.parcelConfig.elementStrategy.setDefault = function(s){
         if(this[0].type === "text"){
           this.attr("default", "DEFAULT_" + s);
           return true;
         }
-      }};
+      };
       
       var person = $("#person").parcel();
       person.name.defaultState("smith");
@@ -181,12 +181,12 @@ Screw.Unit(function() {
     });
     
     it("should ignore if ext method return 'undefined'", function() {
-      $.config.elementStrategy = {
+      $.extend($.parcelConfig.elementStrategy, {
         get: function(){},
         set: function(){},
         getDefault: function(){},
         setDefault: function(){}
-      };
+      });
       
       var person = $("#person").parcel();
       

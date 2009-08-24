@@ -68,16 +68,19 @@
         <input type="text" name="make"></input>
       </div>
     </div>
+    <label name="ALabel">label text</label>
+    <input type="hidden" name="hiddenField"/>
   </div>
 </div>
 
 <script type="text/javascript">
 Screw.Unit(function() {
   var fixtureHtml = $("#fixture").html();
+  var originalParcelConfig = $.parcelConfig;
   
   before(function() {
     $("#fixture").html(fixtureHtml);
-    $.config = {};
+    $.parcelConfig = $.extend(true, {}, originalParcelConfig);
   });
 
   describe("State", function() {
@@ -455,6 +458,17 @@ Screw.Unit(function() {
         }
       });
 
+      it("should not check editability on not inputtable element", function() {
+        var aLabel = $("#container label[name=ALabel]");
+        var hidden = $("#container [name=hiddenField]");
+        
+        aLabel.state("new label text", { editable: true });
+        hidden.state("new hidden value", { editable: true });
+        
+        expect(aLabel.state()).to(equal_state, "new label text");
+        expect(hidden.state()).to(equal_state, "new hidden value");
+      });
+
     });
     
     describe("beforeEvent", function() {
@@ -482,11 +496,11 @@ Screw.Unit(function() {
 
         var entered;
         // intercept setting state call
-        $.config.elementStrategy = {set: function(){
+        $.parcelConfig.elementStrategy.set = function(){
           entered = true;
           expect($.ajaxSettings.async).to(be_false);
           expect($.fx.off).to(be_true);
-        }};
+        };
 
         person.state({ name: "smith" }, {sync: true});
         expect(entered).to(be_true);
@@ -511,9 +525,9 @@ Screw.Unit(function() {
         $.fx.off = false;
 
         // intercept setting state call and throw exception
-        $.config.elementStrategy = {set: function(){
+        $.parcelConfig.elementStrategy.set = function(){
           throw "fail on purpose";
-        }};
+        };
 
         try{
           person.state({ name: "smith" }, {sync: true});
@@ -574,6 +588,34 @@ Screw.Unit(function() {
         person.state(s, { silent: true });
         expect(fired).to(be_false);
         expect(person.state()).to(contain_state, s);
+      });
+
+    });
+
+    describe("notify", function() {
+
+      it("should fire state-notify event if set state on hidden type input with 'option.notify' being true", function() {
+        var hiddenField = $("[name=hiddenField]");
+        var fired = false;
+        $("#container").bind("state-notify", function(){
+          fired = true;
+        });
+
+        hiddenField.state("whatever", { notify: true });
+        expect(fired).to(be_true);
+        expect(hiddenField.state()).to(equal_state, "whatever");
+      });
+
+      it("should fire no special event if set state on hidden type input without specifying 'option.notify'", function() {
+        var hiddenField = $("[name=hiddenField]");
+        var fired = false;
+        $("#container").bind("state-notify", function(){
+          fired = true;
+        });
+
+        hiddenField.state("whatever");
+        expect(fired).to(be_false);
+        expect(hiddenField.state()).to(equal_state, "whatever");
       });
 
     });

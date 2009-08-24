@@ -1,15 +1,18 @@
-/*
-* jQuery.parcel JavaScript Library v0.1
-* http://www.github.com/luning/jquery.parcel
+/*!
+ * jQuery.parcel JavaScript Library v0.1
+ * http://www.github.com/luning/jquery.parcel
+ *
+ * Copyright (c) 2009 Lu Ning
+ * Dual licensed under the MIT and GPL licenses.
 */
 
-/*
-Field is the core concept in jquery.parcel.
-A field is a jQuery object(extended), and conceptually can be:
-- a parcel, containing fields with different name.
-- an array parcel, containing sub fields with same name.
-- a normal jQuery object, representing single input or input group in DOM.
-- a virtual field, which is any jQuery object(div, fieldset) containing other fields.
+/*!
+ Field is the core concept in jquery.parcel.
+ A field is a jQuery object(extended), and conceptually can be:
+ - a parcel, containing fields with different name.
+ - an array parcel, containing sub fields with same name.
+ - a normal jQuery object, representing single input or input group in DOM.
+ - a virtual field, which is any jQuery object(div, fieldset, form) containing other fields.
 */
 
 ; (function($) {
@@ -152,7 +155,7 @@ A field is a jQuery object(extended), and conceptually can be:
         // check display style to see if container *should* be visible rather than whether it is actually visible
         if (show && !target.displayed()) {
           target.slideDown("fast", callback);
-        } else if(!show && target.displayed()){
+        } else if (!show && target.displayed()) {
           target.slideUp("fast", resetTarget ? callbackWithReset : callback);
         }
       };
@@ -223,6 +226,8 @@ A field is a jQuery object(extended), and conceptually can be:
 
   var defaultStrategy = {
     match: function() { return true; },
+    isContainer: false,
+    notInputtable: true,
     get: function() { return this.text(); },
     set: function(s, option) {
       if (s !== undefined) {
@@ -235,7 +240,7 @@ A field is a jQuery object(extended), and conceptually can be:
         : (this.is(":input") ? "" : undefined);
     },
     setDefault: function(s) {
-      if(s === null || typeof s !== "string"){
+      if (s === null || typeof s !== "string") {
         return;
       }
       this.attr("default", s);
@@ -249,10 +254,10 @@ A field is a jQuery object(extended), and conceptually can be:
   function valueCallback(dom) { return dom.value; };
 
   var elementStrategies = [
-  // for div and fieldset
+  // for div, fieldset and form
   {
     isContainer: true,
-    match: function() { return $.hasTag(this, "div", "fieldset"); },
+    match: function() { return $.hasTag(this, "div", "fieldset", "form"); },
     get: function() {
       var parcel = this.closestParcel();
       if (parcel) {
@@ -290,10 +295,10 @@ A field is a jQuery object(extended), and conceptually can be:
   },
   // for text input
   {
-    match: function() { return $.hasType(this, "text"); },
+    match: function() { return $.hasType(this, "text", "password"); },
     get: function() { return this.val(); },
     set: function(s, option) {
-      if(s === null || typeof s.valueOf() !== "string"){
+      if (s === null || typeof s.valueOf() !== "string") {
         return;
       }
       option = option || {};
@@ -302,7 +307,7 @@ A field is a jQuery object(extended), and conceptually can be:
       }
       this.val(s);
       if(!option.silent){
-        this.triggerNative("keydown").click().triggerNative("change").blur();
+        this.triggerNative("keydown").triggerNative("keyup").click().triggerNative("change").blur();
       }
     },
     getDefault: function() {
@@ -313,16 +318,20 @@ A field is a jQuery object(extended), and conceptually can be:
   // for hidden input
   {
     match: function() { return $.hasType(this, "hidden"); },
+    notInputtable: true,
     get: function() { return this.val(); },
     set: function(s, option) {
-      if(s === null || typeof s.valueOf() !== "string"){
+      if (s === null || typeof s.valueOf() !== "string") {
         return;
       }
       this.val(s);
+      if (option.notify) {
+        this.trigger("state-notify");
+      }
     },
     getDefault: defaultStrategy.getDefault,
     setDefault: defaultStrategy.setDefault
-  },
+   },
   // for select
   // state null => select no option
   {
@@ -346,11 +355,11 @@ A field is a jQuery object(extended), and conceptually can be:
         return this.attr("default");
       }
       var theDefaults = $.grep(this[0].options, defaultSelectedCallback);
-      return theDefaults.length === 0 ? null : theDefaults[0].value;
+      return theDefaults.length === 0 ? null : $(theDefaults[0]).val();
     },
     setDefault: function(s) {
       // TODO : null(select no option) is not properly stored as default state
-      if(s !== null && typeof s !== "string"){
+      if (s !== null && typeof s !== "string") {
         return;
       }
       this.attr("default", s);
@@ -361,48 +370,59 @@ A field is a jQuery object(extended), and conceptually can be:
   {
     match: function() { return $.hasType(this, "radio"); },
     get: function() {
-      var checkedRadios = $.grep(this, checkedCallback);
-      return (checkedRadios.length === 0) ? null : checkedRadios[0].value;
+        var checkedRadios = $.grep(this, checkedCallback);
+        return (checkedRadios.length === 0) ? null : checkedRadios[0].value;
     },
     set: function(s, option) {
       option = option || {};
       if (s === null) {
-        if(option.editable){
+        if (option.editable) {
           throw "ParcelError: can not uncheck all radios in group under config";
         }
-        this.filter(checkedCallbackOnThis).removeAttr("checked");
-        if(!option.silent){
-          this.triggerNative("change");
+        var checkedItem = this.filter(checkedCallbackOnThis);
+        checkedItem.attr("checked", false);
+        if (!option.silent) {
+          checkedItem.triggerNative("change");
         }
       } else {
-        var r = this.filter(function(){ return this.value === s; });
-        if(option.editable && !r.editable()){
+        var elem = this.filter(function() { return this.value === s; });
+        if (option.editable && !elem.editable()) {
           throw "ParcelError: the radio is hidden or disabled, can not check it";
         }
-        // click handler will not reflect current state like real user interaction in some cases if omitting attr("checked", true)
-        r.attr("checked", true);
-        if(!option.silent){
-          r.click().triggerNative("change");
+        if (option.silent) {
+          elem.attr("checked", true);
+        } else {
+          // 'checked' value is incorrect in handler if elem.click(), potentially a jQuery bug, use triggerNative("click") here
+          // TODO : this is a hack for IE
+          if ($.browser.msie) {
+            elem.attr("checked", true);
+          }
+          // change event will be triggered following a click for DOM event model compatible browser
+          elem.triggerNative("click");
+          
+          if ($.browser.msie) {
+            elem.triggerNative("change");
+          }
         }
       }
     },
     getDefault: function() {
-      var hasAnyDefaultAttr = false;
-      var theDefaults = $.grep(this, function(r) {
-        var d = r.getAttribute("default");
-        if(d !== null){ hasAnyDefaultAttr = true; }
-        return d !== null && d.toString().toLowerCase() !== "false";
+        var hasAnyDefaultAttr = false;
+        var theDefaults = $.grep(this, function(r) {
+          var d = r.getAttribute("default");
+          if(d !== null){ hasAnyDefaultAttr = true; }
+          return d !== null && d.toString().toLowerCase() !== "false";
       });
-      if (theDefaults.length === 0 && !hasAnyDefaultAttr) {
-        theDefaults = $.grep(this, defaultCheckedCallback);
+        if (theDefaults.length === 0 && !hasAnyDefaultAttr) {
+          theDefaults = $.grep(this, defaultCheckedCallback);
       }
-      return theDefaults.length === 0 ? null : theDefaults[0].value;
+        return theDefaults.length === 0 ? null : theDefaults[0].value;
     },
     setDefault: function(s) {
       if (s === undefined) { return; }
       this.attr("default", false);
       if (s !== null) {
-        this.filter(function(){ return this.value === s; }).attr("default", true);
+          this.filter(function(){ return this.value === s; }).attr("default", true);
       }
     }
   },
@@ -423,10 +443,20 @@ A field is a jQuery object(extended), and conceptually can be:
           if (option.editable && !elem.editable()) {
             throw "ParcelError: the checkbox [" + dom.value + "] is hidden or disabled, can not [" + (dom.checked ? "uncheck":"check") + "] it under config";
           }
-          if(!option.silent){
-            elem.click().triggerNative("change");
+          if (option.silent) {
+            elem.attr("checked", !dom.checked);
           } else {
-            elem.attr("checked", true);
+            // don't use elem.click() since 'checked' value in handler is incorrect in this case! potentially a bug of jQuery
+            // TODO : here is a hack for IE
+            if ($.browser.msie) {
+              elem.attr("checked", !dom.checked);
+            }
+            // change event will be triggered following a click for DOM event model compatible browser
+            elem.triggerNative("click");
+            
+            if ($.browser.msie) {
+              elem.triggerNative("change");
+            }
           }
         }
       });
@@ -461,28 +491,27 @@ A field is a jQuery object(extended), and conceptually can be:
     state: function(s, option) {
       var matched = $.first(elementStrategies, function(i, strategy) { return strategy.match.call(this); } .bind(this));
 
-      var customGet = ($.config.elementStrategy && $.config.elementStrategy.get) || emptyFn;
-      var customSet = ($.config.elementStrategy && $.config.elementStrategy.set) || emptyFn;
+      var customGet = ($.parcelConfig.elementStrategy && $.parcelConfig.elementStrategy.get) || emptyFn;
+      var customSet = ($.parcelConfig.elementStrategy && $.parcelConfig.elementStrategy.set) || emptyFn;
 
       if (s === undefined) {
         var ret = customGet.call(this);
         return ret === undefined ? matched.get.call(this) : ret;
       } else {
+
         option = option || {};
-        // remember old settings, will set them back after setting state
-        var oldSetting = { async: $.ajaxSettings.async, off: $.fx.off };
+        // remember original settings, will set them back after setting state
+        var originalSetting;
         if (option.sync) {
-          // turn off async of ajax and animation
-          $.ajaxSetup({ async: false });
-          $.fx.off = true;
+          originalSetting = $.parcelConfig.syncZone.enter();
         }
         try {
           if (customSet.call(this, s, option) === undefined) {
             if (matched.isContainer) {
               matched.set.call(this, s, option);
             } else if (!$.stateEqual(s, this.state())) {
-              if (option.editable && this.length === 1 && !this.editable()) {
-                throw "ParcelError: the field is hidden or disabled, can not be assigned with state " + $.print(s) + " under config";
+              if (option.editable && this.length === 1 && !matched.notInputtable && !this.editable()) {
+                throw "ParcelError: the inputtable field is currently hidden or disabled, can not be assigned with state " + $.print(s) + " under config";
               }
               matched.set.call(this, s, option);
             }
@@ -491,10 +520,9 @@ A field is a jQuery object(extended), and conceptually can be:
             throw "ParcelError: failed to set state with [" + $.print(s) + "], the current state is [" + $.print(this.state()) + "]";
           }
         } finally {
+          // restore settings after setting state
           if (option.sync) {
-            // revert settings after setting state
-            $.ajaxSetup({ async: oldSetting.async });
-            $.fx.off = oldSetting.off;
+            $.parcelConfig.syncZone.leave(originalSetting);
           }
         }
         return this;
@@ -504,8 +532,8 @@ A field is a jQuery object(extended), and conceptually can be:
     defaultState: function(s) {
       var matched = $.first(elementStrategies, function(i, elem) { return elem.match.call(this); } .bind(this));
 
-      var customGetDefault = ($.config.elementStrategy && $.config.elementStrategy.getDefault) || emptyFn;
-      var customSetDefault = ($.config.elementStrategy && $.config.elementStrategy.setDefault) || emptyFn;
+      var customGetDefault = ($.parcelConfig.elementStrategy && $.parcelConfig.elementStrategy.getDefault) || emptyFn;
+      var customSetDefault = ($.parcelConfig.elementStrategy && $.parcelConfig.elementStrategy.setDefault) || emptyFn;
 
       if (s === undefined) {
         var ret = customGetDefault.call(this);
@@ -518,18 +546,25 @@ A field is a jQuery object(extended), and conceptually can be:
       }
     },
 
-    editable: function(){
+    editable: function() {
       return this.length > 0 && !this.is(":hidden") && !this.attr("disabled");
     },
 
     // trigger event with browser native behaviour, e.g. change does not bubble up in IE, but firefox does.
     triggerNative: function(event) {
       this.each(function() {
-        if ($.browser.msie) {
+        if (document.createEventObject) {
           this.fireEvent("on" + event);
         } else {
-          var e = document.createEvent("HTMLEvents");
-          e.initEvent(event, true, true);
+          var e;
+          var isMouseEvent = "click mousedown mouseup mouseover mousemove mouseout".indexOf(event) !== -1;
+          if (isMouseEvent) {
+            e = document.createEvent("MouseEvents");
+            e.initMouseEvent(event, true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+          } else {
+            e = document.createEvent("HTMLEvents");
+            e.initEvent(event, true, true);
+          }
           this.dispatchEvent(e);
         }
       });
@@ -549,7 +584,9 @@ A field is a jQuery object(extended), and conceptually can be:
               if (e.hasOwnProperty("altKey")) {
                 // clone the event passed in
                 var event = $.extend(true, {}, e);
-                $.event.trigger(event, [event], this.parentNode || this.ownerDocument, true);
+                // pass what is passed to current handler to the following handlers
+                arguments[0] = event;
+                $.event.trigger(event, arguments, this.parentNode || this.ownerDocument, true);
               }
             });
           }
@@ -573,8 +610,8 @@ A field is a jQuery object(extended), and conceptually can be:
     // events can be a single event or multiple ones seperated with space
     fireChangeEventOn: function(events) {
       this.bind(events, function() {
-        this.change();
-      }.bind(this));
+        $(this).trigger("change", Array.prototype.slice.call(arguments, 1));
+      });
     },
 
     displayed: function() {
@@ -612,7 +649,6 @@ A field is a jQuery object(extended), and conceptually can be:
 
   $.extend($.parcelFn, fieldMixin, {
     FIELD_SELECTOR: ":input,[parcel],[parcel=],[parcelfield]",
-
     // sync with DOM changes
     sync: function(context) {
       if (context === true) { // DOM removed and added
@@ -665,8 +701,8 @@ A field is a jQuery object(extended), and conceptually can be:
     },
 
     _applyExtension: function() {
-      if ($.config.behaviours) {
-        $.each($.config.behaviours, function(i, behav) {
+      if ($.parcelConfig.behaviours) {
+        $.each($.parcelConfig.behaviours, function(i, behav) {
           if (!$.isFunction(behav)) {
             throw "ParcelError: invalid behaviour [" + behav + "] in parcel config.";
           }
@@ -800,7 +836,7 @@ A field is a jQuery object(extended), and conceptually can be:
           if (i < this.fields.length) {
             this.fields[i].state(itemState, option);
           } else {
-            // try add an item to array field
+            // try to add items to array field
             this.trigger(option.initial ? "addItemsInitial" : "addItems", [s.slice(i)]);
             // do sync and set state for onfly state setting
             if (this.onfly) {
@@ -1086,7 +1122,7 @@ A field is a jQuery object(extended), and conceptually can be:
 
   var emptyFn = function() { };
 
-  $.config = {
+  $.parcelConfig = {
     // the behaviours will be applied to all created parcels
     behaviours: [],
     // extend state() and defaultState() for input elements
@@ -1095,6 +1131,26 @@ A field is a jQuery object(extended), and conceptually can be:
       set: emptyFn,
       getDefault: emptyFn,
       setDefault: emptyFn
+    },
+    syncZone: {
+      // turn off async of ajax and animation, and return setting for restore back
+      enter: function() {
+        var originalSetting = {
+          async: $.ajaxSettings.async,
+          fxOff: $.fx.off,
+          ajax: $.ajax
+        };
+        $.ajaxSetup({ async: false });
+        $.fx.off = true;
+        $.ajax = ajaxInSync;
+        return originalSetting;
+      },
+      // restore original setting after leaving sync zone
+      leave: function(originalSetting) {
+        $.ajaxSetup({ async: originalSetting.async });
+        $.fx.off = originalSetting.fxOff;
+        $.ajax = originalSetting.ajax;
+      }
     }
   };
 
@@ -1116,12 +1172,12 @@ A field is a jQuery object(extended), and conceptually can be:
     if (whole === null || subset === null || typeof (whole) !== "object" || typeof (subset) !== "object") {
       return whole === subset;
     }
-    if($.isArray(subset)){
-      if(!$.isArray(whole)){
+    if ($.isArray(subset)) {
+      if (!$.isArray(whole)) {
         return false;
       }
-      for(var i = 0; i < subset.length; i++){
-        if (typeof(subset[i]) === "object") {
+      for (var i = 0; i < subset.length; i++) {
+        if (typeof (subset[i]) === "object") {
           if (!$.stateContain(whole[i], subset[i])) {
             return false;
           }
@@ -1130,11 +1186,11 @@ A field is a jQuery object(extended), and conceptually can be:
         }
       }
     } else {
-      if($.isArray(whole)){
+      if ($.isArray(whole)) {
         return false;
       }
       for (var p in subset) {
-        if (typeof(subset[p]) === "object") {
+        if (typeof (subset[p]) === "object") {
           if (!$.stateContain(whole[p], subset[p])) {
             return false;
           }
@@ -1223,6 +1279,15 @@ A field is a jQuery object(extended), and conceptually can be:
       throw "ParcelError: array is expected, but was [" + $.print(a) + "]";
     }
   }
+
+  var originalAjax = $.ajax;
+
+  var ajaxInSync = function() {
+    if (arguments[0]) {
+      arguments[0].async = false;
+    }
+    return originalAjax.apply(this, arguments);
+  };
 
   // change event in IE doesn't bubble.
   $.support.bubbleOnChange = !$.browser.msie;
